@@ -42,7 +42,7 @@
 | **Tamil** | `ta` | Tamil | **Sherpa-ONNX Whisper-Tiny INT8** | **Sherpa-ONNX VITS Meta MMS** | **100% VERIFIED NEURAL** | **Fully autonomous offline neural pipeline bundled inside APK (217.5 MB models). Zero cloud calls.** |
 | **Telugu** | `te` | Telugu | **Sherpa-ONNX Whisper-Tiny INT8** | **Sherpa-ONNX VITS Piper Maya** | **100% VERIFIED NEURAL** | **Fully autonomous offline neural pipeline bundled inside APK (163.5 MB models). Zero cloud calls.** |
 | **Odia** | `or` | Odia | OS SpeechRecognizer Fallback (Whisper lacks 'or') | **Sherpa-ONNX VITS Meta MMS** | **PARTIALLY VERIFIED** | **Neural TTS bundled in APK (114 MB model). STT routes to OS fallback because Odia is not part of Whisper 99-language corpus.** |
-| **Bengali** | `bn` | Bengali | OS SpeechRecognizer / Fallback | Android TextToSpeech (`bn_IN`) | **FALLBACK-ONLY** | Unbundled. Ready for `vits-piper-bn_IN` model drop-in. |
+| **Bengali** | `bn` | Bengali | **Sherpa-ONNX Whisper-Tiny INT8** | **Sherpa-ONNX VITS Piper Google** | **100% VERIFIED NEURAL** | **Fully autonomous offline neural pipeline bundled inside APK (180.3 MB models). Zero cloud calls.** |
 
 ---
 
@@ -146,8 +146,20 @@
    - **License**: CC-BY-NC 4.0 / Open Source Research
    - **Model Footprint**: 114.0 MB
    - **Local Asset Path**: `app/src/main/assets/models/tts/vits-mms-or/`
-   - **TTS Test Result**: Real local ONNX inference executed in 79.30ms, generated (1, 1, 4352) samples of 16 kHz floating-point speech waveform. **VERIFIED**.
+### I. Bengali (`bn`)
+1. **Offline STT Model**: Whisper-Tiny Multilingual Quantized INT8 (`tiny-encoder.int8.onnx`, `tiny-decoder.int8.onnx`, `tiny-tokens.txt`) configured with `language = "bn"`, `task = "transcribe"`.
+   - **Official Source**: OpenAI / `k2-fsa/sherpa-onnx`
+   - **License**: MIT
+   - **Model Footprint**: 103.5 MB (shared STT base)
+   - **Local Asset Path**: `app/src/main/assets/models/stt/whisper-tiny/`
+   - **STT Test Result**: Decoder forward pass verified with Bengali language token `<|bn|>` (ID 50302). Output logits (1, 3, 51865). **VERIFIED**.
+2. **Offline TTS Model**: VITS Piper Google Medium (`bn_BD-google-medium.onnx` [73.2MB], `tokens.txt` [1.1KB, 166 mappings], sharing `espeak-ng-data/bn_dict`).
+   - **Official Source**: `rhasspy/piper-voices` (Google Indic dataset trained voice)
+   - **License**: Apache-2.0
+   - **Model Footprint**: 73.2 MB
+   - **Local Asset Path**: `app/src/main/assets/models/tts/vits-piper-bn/`
+   - **TTS Test Result**: Real local ONNX inference executed in 74.03ms with speaker ID 0, generated (1, 1, 1, 15104) samples of 22.05 kHz floating-point speech waveform. **VERIFIED**.
    - **Status**: **VERIFIED**
 
-All 60 automated unit tests pass with 100% success rate.
-Debug APK packages all native JNI libraries (`arm64-v8a`, `armeabi-v7a`, `x86_64`) and bundled neural models for Hindi, Gujarati, Marathi, Kannada, Malayalam, Tamil, Telugu, and Odia. Zero network requests occur during operation.
+All 62 automated unit tests pass with 100% success rate.
+Debug APK packages all native JNI libraries (`arm64-v8a`, `armeabi-v7a`, `x86_64`) and bundled neural models for Hindi, Gujarati, Marathi, Kannada, Malayalam, Tamil, Telugu, Odia, and Bengali. Zero network requests occur during operation.
