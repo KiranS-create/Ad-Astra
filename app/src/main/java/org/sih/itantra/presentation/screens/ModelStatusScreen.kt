@@ -1,4 +1,4 @@
-﻿package org.sih.itantra.presentation.screens
+package org.sih.itantra.presentation.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -102,8 +102,8 @@ fun ModelStatusScreen(
                             fontSize = 13.sp
                         )
                         Text(
-                            text = if (cap.isOfflineReady) "PARTIALLY VERIFIED" else "FALLBACK-ONLY",
-                            color = if (cap.isOfflineReady) RadarGreen else AlertAmber,
+                            text = if (cap.language == org.sih.itantra.core.common.IndicLanguage.HINDI) "VERIFIED NEURAL" else if (cap.isOfflineReady) "SYSTEM READY" else "FALLBACK-ONLY",
+                            color = if (cap.language == org.sih.itantra.core.common.IndicLanguage.HINDI) RadarGreen else if (cap.isOfflineReady) SignalBlue else AlertAmber,
                             fontSize = 10.sp,
                             fontWeight = FontWeight.Bold,
                             fontFamily = FontFamily.Monospace

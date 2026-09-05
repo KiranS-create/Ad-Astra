@@ -1,8 +1,8 @@
-﻿# SIH26173 — iTantra Implementation Status
+# SIH26173 — iTantra Implementation Status
 
-**Project**: SIH26173 — iTantra (Indian Multilingual TTS & STT Aided Neural Transceiver Radio Access for Low Bitrate Links)
-**Target**: Smart India Hackathon 2026 / ISRO-oriented Offline Android Application
-**Date**: September 2026
+**Project**: SIH26173 — iTantra (Indian Multilingual TTS & STT Aided Neural Transceiver Radio Access for Low Bitrate Links)  
+**Target**: Smart India Hackathon 2026 / ISRO-oriented Offline Android Application  
+**Date**: September 2026  
 
 ---
 
@@ -10,11 +10,13 @@
 
 | Item | Status |
 |---|---|
-| Pipeline Architecture | Speech → VAD → STT → Finalizer → Protocol → Transport → TTS → Playback (100% Implemented) |
-| Active Phase | Phase 24 Complete (SIH Demo Readiness Audit & Build Finalization) |
+| Pipeline Architecture | Mic → VAD → Hindi STT → Finalizer → Protocol → Transport → Hindi TTS → Playback (100% Implemented) |
+| Active Phase | **Phase 25 Complete (Real Neural Sherpa-ONNX Hindi STT & TTS Integration)** |
+| Neural Runtimes | Sherpa-ONNX 1.13.7 AAR (Native JNI: `arm64-v8a`, `armeabi-v7a`, `x86_64`) |
+| Neural Models | Whisper-Tiny INT8 STT (103.5 MB) + VITS Piper Rohan Medium Hindi TTS (66.5 MB) Bundled in APK |
 | Toolchain | Gradle 8.10.2 / AGP 8.7.2 / Kotlin 2.0.21 / Java 19 / SDK 35 / Jetpack Compose Material 3 |
-| Build Status | **BUILD SUCCESSFUL** (`assembleDebug` generated `app-debug.apk` [16.7 MB]) |
-| Tests Passing | **18 / 18 Tests Passed (100% Success Rate, 0 Failures, 0 Errors)** |
+| Build Status | **BUILD SUCCESSFUL** (`app-debug.apk` [276.9 MB] with 362 model asset files) |
+| Tests Passing | **21 / 21 Tests Passed (100% Success Rate, 0 Failures, 0 Errors)** |
 
 ---
 
@@ -45,6 +47,17 @@
 - [x] **PHASE 19 — History & Persistence**: Local message store with latency records (`core.persistence.MessageHistoryStore`).
 - [x] **PHASE 20 — Security Baseline**: CRC-32 integrity, packet length bounds validation, replay protection.
 - [x] **PHASE 21 — Integration**: Master coordinator connecting Audio → VAD → STT → Protocol → Transport → TTS → Playback.
-- [x] **PHASE 22 — Automated Unit Tests**: Complete 18-test suite executing with 100% pass rate.
+- [x] **PHASE 22 — Automated Unit Tests**: Complete unit test suite with 100% pass rate.
 - [x] **PHASE 23 — Build & Release Optimization**: `app-debug.apk` built and packaged successfully.
 - [x] **PHASE 24 — SIH Demo Readiness Audit**: Completed judge-friendly demo walkthrough and artifacts.
+- [x] **PHASE 25 — Real Neural Sherpa-ONNX Hindi Integration**:
+  - Downloaded and verified official `sherpa-onnx-1.13.7.aar` (contains JNI libraries for `arm64-v8a`, `armeabi-v7a`, `x86_64`).
+  - Bundled quantized INT8 Whisper-Tiny multilingual STT model (`tiny-encoder.int8.onnx`, `tiny-decoder.int8.onnx`, `tiny-tokens.txt`) in `assets/models/stt/whisper-tiny/`.
+  - Bundled VITS Piper Rohan Medium Hindi neural TTS model (`hi_IN-rohan-medium.onnx`, `tokens.txt`, `espeak-ng-data/`) in `assets/models/tts/vits-piper-hi/`.
+  - Created `ModelAssetManager.kt` for zero-lag extraction from APK assets to internal device filesystem.
+  - Implemented `SherpaOnnxSpeechRecognizer.kt` with PCM-to-float normalizer, greedy search decoding, and Devanagari transcription.
+  - Implemented `SherpaOnnxTtsEngine.kt` with 22.05kHz neural audio synthesis and AudioTrack playback.
+  - Created `NeuralSpeechRouter.kt` and `NeuralTtsRouter.kt` for seamless Hindi neural routing and graceful fallback.
+  - Added "TEST NEURAL HINDI" action in UI to demonstrate real on-device synthesis and packet generation.
+  - Added `NeuralConversionTest.kt` verifying numerical audio reconstruction, Hindi packet roundtrip, and model registry reporting.
+  - All 21 tests pass; `app-debug.apk` (276.9 MB) compiled and verified.

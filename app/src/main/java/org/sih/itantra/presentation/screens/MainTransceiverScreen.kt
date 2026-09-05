@@ -1,4 +1,4 @@
-﻿package org.sih.itantra.presentation.screens
+package org.sih.itantra.presentation.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -87,6 +87,7 @@ fun MainTransceiverScreen(
             NavPill(text = "MODELS (10)", onClick = onNavigateToModelStatus)
             NavPill(text = "BENCHMARK", onClick = onNavigateToBenchmark)
             NavPill(text = "HISTORY (${history.size})", onClick = onNavigateToHistory)
+            NavPill(text = "TEST NEURAL HINDI", onClick = { viewModel.testHindiNeuralLoopback() })
         }
 
         Spacer(modifier = Modifier.height(10.dp))

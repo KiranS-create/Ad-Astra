@@ -1,4 +1,4 @@
-﻿package org.sih.itantra.presentation.viewmodel
+package org.sih.itantra.presentation.viewmodel
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
@@ -72,6 +72,18 @@ class TransceiverViewModel(application: Application) : AndroidViewModel(applicat
             else -> "EMERGENCY DISTRESS! IMMEDIATE ASSISTANCE REQUIRED!"
         }
         coordinator.sendAlert(alert, isDistress = true)
+    }
+
+    fun testHindiNeuralLoopback() {
+        viewModelScope.launch {
+            coordinator.sendAlert("नमस्ते, यह आई-तंत्रा का न्यूरल वॉइस परीक्षण है।", isDistress = false)
+        }
+    }
+
+    fun testSynthesizeSpeech(text: String) {
+        viewModelScope.launch {
+            coordinator.testSynthesizeAndPlay(text)
+        }
     }
 
     override fun onCleared() {

@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="org.sih.itantra.AdaptiveCompressorTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-09-05T18:21:03" hostname="MSI" time="0.041">
-  <properties/>
-  <testcase name="testLongTextCompressionAndDecompression" classname="org.sih.itantra.AdaptiveCompressorTest" time="0.039"/>
-  <testcase name="testShortStringAvoidsInefficientCompression" classname="org.sih.itantra.AdaptiveCompressorTest" time="0.0"/>
-  <system-out><![CDATA[]]></system-out>
-  <system-err><![CDATA[]]></system-err>
-</testsuite>

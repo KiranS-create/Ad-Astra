@@ -1,4 +1,4 @@
-﻿package org.sih.itantra.core.audio
+package org.sih.itantra.core.audio
 
 import android.media.AudioAttributes
 import android.media.AudioFormat
@@ -15,6 +15,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 interface AudioPlayer {
     val isPlaying: Boolean
     fun playPcm(pcmBytes: ByteArray, isUrgent: Boolean = false)
+    fun playPcm(pcmBytes: ByteArray, sampleRate: Int, isUrgent: Boolean = false)
     fun stopPlayback()
     fun release()
 }
@@ -32,6 +33,10 @@ class AndroidAudioPlayer(
         get() = _isPlaying.get()
 
     override fun playPcm(pcmBytes: ByteArray, isUrgent: Boolean) {
+        playPcm(pcmBytes, AudioFormatConfig.SAMPLE_RATE_HZ, isUrgent)
+    }
+
+    override fun playPcm(pcmBytes: ByteArray, sampleRate: Int, isUrgent: Boolean) {
         if (pcmBytes.isEmpty()) return
 
         // Urgent alerts interrupt currently playing audio
@@ -46,7 +51,7 @@ class AndroidAudioPlayer(
                 val bufferSize = maxOf(
                     pcmBytes.size,
                     AudioTrack.getMinBufferSize(
-                        AudioFormatConfig.SAMPLE_RATE_HZ,
+                        sampleRate,
                         AudioFormatConfig.CHANNEL_CONFIG_OUT,
                         AudioFormatConfig.AUDIO_FORMAT
                     )
@@ -64,7 +69,7 @@ class AndroidAudioPlayer(
                     .build()
 
                 val format = AudioFormat.Builder()
-                    .setSampleRate(AudioFormatConfig.SAMPLE_RATE_HZ)
+                    .setSampleRate(sampleRate)
                     .setChannelMask(AudioFormatConfig.CHANNEL_CONFIG_OUT)
                     .setEncoding(AudioFormatConfig.AUDIO_FORMAT)
                     .build()

@@ -1,4 +1,4 @@
-﻿package org.sih.itantra.core.session
+package org.sih.itantra.core.session
 
 import android.content.Context
 import android.util.Log
@@ -35,6 +35,9 @@ import org.sih.itantra.core.tts.OfflineTtsEngine
 import org.sih.itantra.core.tts.TextSynthesizer
 import org.sih.itantra.core.vad.VadDetector
 import org.sih.itantra.core.vad.VadState
+import org.sih.itantra.ml.model.ModelAssetManager
+import org.sih.itantra.ml.stt.NeuralSpeechRouter
+import org.sih.itantra.ml.tts.NeuralTtsRouter
 import java.util.UUID
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -48,8 +51,9 @@ class TransceiverCoordinator(
     val recorder: AudioRecorder = AndroidAudioRecorder(dispatcher),
     val player: AudioPlayer = AndroidAudioPlayer(dispatcher),
     val vad: VadDetector = VadDetector(),
-    val stt: SpeechRecognizer = OfflineSpeechRecognizer(context),
-    val tts: TextSynthesizer = OfflineTtsEngine(context),
+    val modelAssetManager: ModelAssetManager = ModelAssetManager(context),
+    val stt: SpeechRecognizer = NeuralSpeechRouter(context, modelAssetManager),
+    val tts: TextSynthesizer = NeuralTtsRouter(context, modelAssetManager),
     val transportManager: TransportManager = TransportManager(context)
 ) {
     private val tag = "TransceiverCoordinator"
@@ -103,7 +107,14 @@ class TransceiverCoordinator(
     }
 
     suspend fun start() {
+        scope.launch {
+            modelAssetManager.ensureModelsReady()
+        }
         transportManager.start()
+    }
+
+    suspend fun testSynthesizeAndPlay(text: String, language: IndicLanguage = _activeLanguage.value): Boolean {
+        return tts.synthesize(text, language, false)
     }
 
     suspend fun stop() {

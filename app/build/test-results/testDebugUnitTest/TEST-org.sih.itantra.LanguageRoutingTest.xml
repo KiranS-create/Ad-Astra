@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="org.sih.itantra.LanguageRoutingTest" tests="1" skipped="0" failures="0" errors="0" timestamp="2026-09-05T18:21:03" hostname="MSI" time="0.028">
-  <properties/>
-  <testcase name="testAllTenLanguagesConfigured" classname="org.sih.itantra.LanguageRoutingTest" time="0.028"/>
-  <system-out><![CDATA[]]></system-out>
-  <system-err><![CDATA[]]></system-err>
-</testsuite>

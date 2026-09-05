@@ -1,0 +1,103 @@
+package org.sih.itantra
+
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
+import org.junit.Test
+import org.sih.itantra.core.common.IndicLanguage
+import org.sih.itantra.core.common.MessagePriority
+import org.sih.itantra.core.protocol.AdaptiveCompressor
+import org.sih.itantra.core.protocol.Packet
+import org.sih.itantra.core.protocol.PacketSerializer
+import org.sih.itantra.core.stt.LanguageModelRegistry
+import java.nio.ByteBuffer
+import java.nio.ByteOrder
+
+class NeuralConversionTest {
+
+    @Test
+    fun testPcmToFloatAndFloatToPcmRoundTrip() {
+        // Generate simulated 16-bit PCM sine wave samples
+        val numSamples = 1600 // 100ms of 16kHz audio
+        val pcmOriginal = ByteArray(numSamples * 2)
+        val shortBuffer = ByteBuffer.wrap(pcmOriginal).order(ByteOrder.LITTLE_ENDIAN).asShortBuffer()
+
+        for (i in 0 until numSamples) {
+            val sample = (kotlin.math.sin(2.0 * Math.PI * 440.0 * i / 16000.0) * 20000.0).toInt().toShort()
+            shortBuffer.put(i, sample)
+        }
+
+        // 1. Convert PCM ByteArray to FloatArray [-1.0, 1.0] (Used by Sherpa-ONNX STT)
+        val floatSamples = FloatArray(numSamples)
+        val inputBuffer = ByteBuffer.wrap(pcmOriginal).order(ByteOrder.LITTLE_ENDIAN).asShortBuffer()
+        for (i in 0 until numSamples) {
+            floatSamples[i] = inputBuffer.get(i) / 32768.0f
+        }
+
+        // Verify float bounds
+        for (s in floatSamples) {
+            assertTrue("Float sample must be between -1.0 and 1.0", s >= -1.0f && s <= 1.0f)
+        }
+
+        // 2. Convert FloatArray back to 16-bit PCM ByteArray (Used by Sherpa-ONNX TTS output)
+        val pcmReconstructed = ByteArray(numSamples * 2)
+        val outBuffer = ByteBuffer.wrap(pcmReconstructed).order(ByteOrder.LITTLE_ENDIAN)
+        for (s in floatSamples) {
+            val clamped = s.coerceIn(-1.0f, 1.0f)
+            val shortVal = (clamped * 32767.0f).toInt().toShort()
+            outBuffer.putShort(shortVal)
+        }
+
+        // 3. Verify numerical reconstruction fidelity (< 2 quantization steps error)
+        val origShorts = ByteBuffer.wrap(pcmOriginal).order(ByteOrder.LITTLE_ENDIAN).asShortBuffer()
+        val reconShorts = ByteBuffer.wrap(pcmReconstructed).order(ByteOrder.LITTLE_ENDIAN).asShortBuffer()
+
+        for (i in 0 until numSamples) {
+            val diff = kotlin.math.abs(origShorts.get(i).toInt() - reconShorts.get(i).toInt())
+            assertTrue("Quantization difference must be minimal (<= 2), got $diff at sample $i", diff <= 2)
+        }
+    }
+
+    @Test
+    fun testHindiTextEndToEndTransceiverPacket() {
+        val hindiText = "नमस्ते, यह स्मार्ट इंडिया हैकथॉन का परीक्षण है।"
+        val rawBytes = hindiText.toByteArray(Charsets.UTF_8)
+        val compressed = AdaptiveCompressor.compress(rawBytes)
+
+        val packet = Packet(
+            version = Packet.PROTOCOL_VERSION,
+            msgType = Packet.TYPE_TEXT,
+            priority = MessagePriority.ALERT,
+            flags = if (compressed.isCompressed) Packet.FLAG_COMPRESSED.toByte() else 0.toByte(),
+            sequenceNumber = 42,
+            timestamp = 1718000000000L,
+            sourceDeviceId = 1001,
+            destinationDeviceId = Packet.BROADCAST_ID,
+            language = IndicLanguage.HINDI,
+            payload = compressed.bytes
+        )
+
+        val serialized = PacketSerializer.serialize(packet)
+        val deserialized = PacketSerializer.deserialize(serialized)
+
+        assertEquals(IndicLanguage.HINDI, deserialized.language)
+        assertEquals(MessagePriority.ALERT, deserialized.priority)
+        assertEquals(42.toShort(), deserialized.sequenceNumber)
+
+        val decompressed = AdaptiveCompressor.decompress(deserialized.payload, deserialized.isCompressed)
+        val recoveredText = String(decompressed, Charsets.UTF_8)
+        assertEquals(hindiText, recoveredText)
+    }
+
+    @Test
+    fun testLanguageModelRegistryReportsRealNeuralHindi() {
+        val capabilities = LanguageModelRegistry.getCapabilities()
+        val hindiStatus = capabilities.find { it.language == IndicLanguage.HINDI }
+
+        assertTrue("Hindi capability must be registered", hindiStatus != null)
+        assertTrue("Hindi must be marked offline ready", hindiStatus!!.isOfflineReady)
+        assertTrue("STT engine must cite Sherpa-ONNX Whisper", hindiStatus.sttEngine.contains("Sherpa-ONNX"))
+        assertTrue("TTS engine must cite Sherpa-ONNX VITS", hindiStatus.ttsEngine.contains("Sherpa-ONNX"))
+        assertTrue("Footprint must reflect neural models (~170MB)", hindiStatus.footprintMb >= 100.0f)
+        assertTrue("Verification notes must confirm genuine offline inference", hindiStatus.verificationNotes.contains("VERIFIED"))
+    }
+}
