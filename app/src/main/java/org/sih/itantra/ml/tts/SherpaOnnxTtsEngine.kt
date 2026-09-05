@@ -89,6 +89,16 @@ class SherpaOnnxTtsEngine(
                     lengthScale = 1.0f
                 )
             }
+            IndicLanguage.KANNADA -> {
+                if (!modelAssetManager.isKannadaTtsReady()) return null
+                TtsModelSpec(
+                    modelFile = modelAssetManager.knVitsModelFile,
+                    tokensFile = modelAssetManager.knVitsTokensFile,
+                    noiseScale = 0.667f,
+                    noiseScaleW = 0.8f,
+                    lengthScale = 1.0f
+                )
+            }
             else -> return null
         }
 
