@@ -9,24 +9,27 @@ data class LanguageModelStatus(
     val ttsEngine: String,
     val ttsStatus: String,
     val isOfflineReady: Boolean,
-    val footprintMb: Float
+    val footprintMb: Float,
+    val verificationNotes: String
 )
 
 object LanguageModelRegistry {
 
     fun getCapabilities(): List<LanguageModelStatus> {
         return IndicLanguage.entries.map { lang ->
+            val isCommonOsVoice = lang == IndicLanguage.ENGLISH || lang == IndicLanguage.HINDI
             LanguageModelStatus(
                 language = lang,
-                sttEngine = "IndicConformer-INT8 / Offline ASR",
-                sttStatus = "READY",
-                ttsEngine = if (lang == IndicLanguage.HINDI) "MMS-TTS Hindi / Offline TTS" else "VITS-Indic / Offline TTS",
-                ttsStatus = "READY",
-                isOfflineReady = true,
-                footprintMb = when (lang) {
-                    IndicLanguage.HINDI -> 18.5f
-                    IndicLanguage.ENGLISH -> 14.2f
-                    else -> 16.8f
+                sttEngine = "Android System ASR (EXTRA_PREFER_OFFLINE)",
+                sttStatus = if (isCommonOsVoice) "SYSTEM READY" else "REQUIRES OS VOICE PACK",
+                ttsEngine = "Android TextToSpeech (${lang.isoCode}_IN)",
+                ttsStatus = if (isCommonOsVoice) "SYSTEM READY" else "REQUIRES OS VOICE PACK",
+                isOfflineReady = isCommonOsVoice,
+                footprintMb = 0.0f, // No local ONNX models currently bundled in APK assets
+                verificationNotes = if (isCommonOsVoice) {
+                    "Supported offline if host OS has pre-downloaded offline speech voice."
+                } else {
+                    "FALLBACK-ONLY: Unbundled. Requires external ONNX model or OS language pack download."
                 }
             )
         }

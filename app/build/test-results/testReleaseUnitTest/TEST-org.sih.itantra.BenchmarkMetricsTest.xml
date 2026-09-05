@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="org.sih.itantra.BenchmarkMetricsTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-09-05T18:09:48" hostname="MSI" time="0.006">
+<testsuite name="org.sih.itantra.BenchmarkMetricsTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-09-05T18:20:59" hostname="MSI" time="0.009">
   <properties/>
-  <testcase name="testRealTimeFactor" classname="org.sih.itantra.BenchmarkMetricsTest" time="0.002"/>
-  <testcase name="testBandwidthSavingsCalculation" classname="org.sih.itantra.BenchmarkMetricsTest" time="0.004"/>
+  <testcase name="testRealTimeFactor" classname="org.sih.itantra.BenchmarkMetricsTest" time="0.003"/>
+  <testcase name="testBandwidthSavingsCalculation" classname="org.sih.itantra.BenchmarkMetricsTest" time="0.006"/>
   <system-out><![CDATA[]]></system-out>
   <system-err><![CDATA[]]></system-err>
 </testsuite>

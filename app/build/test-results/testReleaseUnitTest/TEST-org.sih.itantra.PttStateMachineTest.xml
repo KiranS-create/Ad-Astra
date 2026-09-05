@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="org.sih.itantra.PttStateMachineTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-09-05T18:09:48" hostname="MSI" time="0.009">
+<testsuite name="org.sih.itantra.PttStateMachineTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-09-05T18:21:00" hostname="MSI" time="0.027">
   <properties/>
-  <testcase name="testReset" classname="org.sih.itantra.PttStateMachineTest" time="0.009"/>
-  <testcase name="testInvalidTransitionRejected" classname="org.sih.itantra.PttStateMachineTest" time="0.0"/>
-  <testcase name="testNormalPttCycle" classname="org.sih.itantra.PttStateMachineTest" time="0.0"/>
+  <testcase name="testReset" classname="org.sih.itantra.PttStateMachineTest" time="0.024"/>
+  <testcase name="testInvalidTransitionRejected" classname="org.sih.itantra.PttStateMachineTest" time="0.001"/>
+  <testcase name="testNormalPttCycle" classname="org.sih.itantra.PttStateMachineTest" time="0.002"/>
   <system-out><![CDATA[]]></system-out>
   <system-err><![CDATA[]]></system-err>
 </testsuite>
