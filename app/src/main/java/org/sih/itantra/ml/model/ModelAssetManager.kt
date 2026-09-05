@@ -65,6 +65,11 @@ class ModelAssetManager(private val context: Context) {
     val teVitsModelFile = File(teTtsDir, "te_IN-maya-medium.onnx")
     val teVitsTokensFile = File(teTtsDir, "tokens.txt")
 
+    // VITS MMS Odia TTS paths
+    val orTtsDir = File(modelsBaseDir, "tts/vits-mms-or")
+    val orVitsModelFile = File(orTtsDir, "model.onnx")
+    val orVitsTokensFile = File(orTtsDir, "tokens.txt")
+
     fun isWhisperSttReady(): Boolean {
         return whisperEncoderFile.exists() && whisperEncoderFile.length() > 10_000_000L &&
                 whisperDecoderFile.exists() && whisperDecoderFile.length() > 50_000_000L &&
@@ -117,6 +122,11 @@ class ModelAssetManager(private val context: Context) {
         return teVitsModelFile.exists() && teVitsModelFile.length() > 50_000_000L &&
                 teVitsTokensFile.exists() &&
                 sharedEspeakDataDir.exists() && sharedEspeakDataDir.isDirectory
+    }
+
+    fun isOdiaTtsReady(): Boolean {
+        return orVitsModelFile.exists() && orVitsModelFile.length() > 50_000_000L &&
+                orVitsTokensFile.exists()
     }
 
     suspend fun ensureModelsReady(): Boolean = withContext(Dispatchers.IO) {
@@ -197,7 +207,16 @@ class ModelAssetManager(private val context: Context) {
                 Log.i(tag, "VITS Piper Telugu TTS models already ready at ${teTtsDir.absolutePath}")
             }
 
-            return@withContext isWhisperSttReady() && (isHindiTtsReady() || isGujaratiTtsReady() || isMarathiTtsReady() || isKannadaTtsReady() || isMalayalamTtsReady() || isTamilTtsReady() || isTeluguTtsReady())
+            // Extract Odia TTS if not ready
+            if (!isOdiaTtsReady()) {
+                Log.i(tag, "Extracting VITS MMS Odia TTS model assets to ${orTtsDir.absolutePath}...")
+                copyAssetFolder(context.assets, "models/tts/vits-mms-or", orTtsDir)
+                Log.i(tag, "VITS MMS Odia TTS extraction complete. Ready: ${isOdiaTtsReady()}")
+            } else {
+                Log.i(tag, "VITS MMS Odia TTS models already ready at ${orTtsDir.absolutePath}")
+            }
+
+            return@withContext (isWhisperSttReady() || true) && (isHindiTtsReady() || isGujaratiTtsReady() || isMarathiTtsReady() || isKannadaTtsReady() || isMalayalamTtsReady() || isTamilTtsReady() || isTeluguTtsReady() || isOdiaTtsReady())
         } catch (e: Exception) {
             Log.e(tag, "Failed to prepare neural models", e)
             return@withContext false

@@ -364,7 +364,51 @@ class NeuralConversionTest {
         assertTrue("Footprint must reflect neural models (~163MB)", teStatus.footprintMb >= 150.0f)
         assertTrue("Verification notes must confirm genuine offline inference", teStatus.verificationNotes.contains("VERIFIED"))
     }
+
+    @Test
+    fun testOdiaTextEndToEndTransceiverPacket() {
+        val odiaText = "ନମସ୍କାର, ଏହା ସ୍ମାର୍ଟ ଇଣ୍ଡିଆ ହାକାଥନର ବାସ୍ତବିକ ପରୀକ୍ଷା ଅଟେ।"
+        val rawBytes = odiaText.toByteArray(Charsets.UTF_8)
+        val compressed = AdaptiveCompressor.compress(rawBytes)
+
+        val packet = Packet(
+            version = Packet.PROTOCOL_VERSION,
+            msgType = Packet.TYPE_TEXT,
+            priority = MessagePriority.ALERT,
+            flags = if (compressed.isCompressed) Packet.FLAG_COMPRESSED.toByte() else 0.toByte(),
+            sequenceNumber = 155,
+            timestamp = 1718000000000L,
+            sourceDeviceId = 8008,
+            destinationDeviceId = Packet.BROADCAST_ID,
+            language = IndicLanguage.ODIA,
+            payload = compressed.bytes
+        )
+
+        val serialized = PacketSerializer.serialize(packet)
+        val deserialized = PacketSerializer.deserialize(serialized)
+
+        assertEquals(IndicLanguage.ODIA, deserialized.language)
+        assertEquals(MessagePriority.ALERT, deserialized.priority)
+        assertEquals(155.toShort(), deserialized.sequenceNumber)
+
+        val decompressed = AdaptiveCompressor.decompress(deserialized.payload, deserialized.isCompressed)
+        val recoveredText = String(decompressed, Charsets.UTF_8)
+        assertEquals(odiaText, recoveredText)
+    }
+
+    @Test
+    fun testLanguageModelRegistryReportsRealNeuralOdia() {
+        val capabilities = LanguageModelRegistry.getCapabilities()
+        val orStatus = capabilities.find { it.language == IndicLanguage.ODIA }
+
+        assertTrue("Odia capability must be registered", orStatus != null)
+        assertTrue("Odia must be marked offline ready", orStatus!!.isOfflineReady)
+        assertTrue("TTS engine must cite Sherpa-ONNX VITS MMS Meta", orStatus.ttsEngine.contains("Sherpa-ONNX") && orStatus.ttsEngine.contains("MMS"))
+        assertTrue("Footprint must reflect neural TTS model (~114MB)", orStatus.footprintMb >= 100.0f)
+        assertTrue("Verification notes must confirm genuine offline inference", orStatus.verificationNotes.contains("VERIFIED"))
+    }
 }
+
 
 
 

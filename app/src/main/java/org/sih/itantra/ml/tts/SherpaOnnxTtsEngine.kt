@@ -129,6 +129,16 @@ class SherpaOnnxTtsEngine(
                     lengthScale = 1.0f
                 )
             }
+            IndicLanguage.ODIA -> {
+                if (!modelAssetManager.isOdiaTtsReady()) return null
+                TtsModelSpec(
+                    modelFile = modelAssetManager.orVitsModelFile,
+                    tokensFile = modelAssetManager.orVitsTokensFile,
+                    noiseScale = 0.667f,
+                    noiseScaleW = 0.8f,
+                    lengthScale = 1.0f
+                )
+            }
             else -> return null
         }
 

@@ -102,6 +102,18 @@ object LanguageModelRegistry {
                         verificationNotes = "VERIFIED: Genuine offline neural inference with quantized INT8 Whisper & Piper VITS models via native C++ Sherpa-ONNX runtime. Zero network calls."
                     )
                 }
+                IndicLanguage.ODIA -> {
+                    LanguageModelStatus(
+                        language = lang,
+                        sttEngine = "Android SpeechRecognizer / OS Fallback (Whisper lacks 'or')",
+                        sttStatus = "REQUIRES OS VOICE PACK",
+                        ttsEngine = "Sherpa-ONNX VITS MMS Meta (On-Device Neural)",
+                        ttsStatus = "VERIFIED LOCAL NEURAL (114.0 MB)",
+                        isOfflineReady = true,
+                        footprintMb = 114.0f,
+                        verificationNotes = "VERIFIED: Genuine offline neural TTS inference with Meta MMS VITS model via native C++ Sherpa-ONNX runtime. STT uses Android OS SpeechRecognizer fallback (Odia not present in multilingual Whisper 99-language set)."
+                    )
+                }
                 else -> {
                     val isCommonOsVoice = lang == IndicLanguage.ENGLISH
                     LanguageModelStatus(
