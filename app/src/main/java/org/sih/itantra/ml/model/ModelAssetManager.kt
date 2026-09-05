@@ -60,6 +60,11 @@ class ModelAssetManager(private val context: Context) {
     val taVitsModelFile = File(taTtsDir, "model.onnx")
     val taVitsTokensFile = File(taTtsDir, "tokens.txt")
 
+    // VITS Piper Maya Medium Telugu TTS paths
+    val teTtsDir = File(modelsBaseDir, "tts/vits-piper-te")
+    val teVitsModelFile = File(teTtsDir, "te_IN-maya-medium.onnx")
+    val teVitsTokensFile = File(teTtsDir, "tokens.txt")
+
     fun isWhisperSttReady(): Boolean {
         return whisperEncoderFile.exists() && whisperEncoderFile.length() > 10_000_000L &&
                 whisperDecoderFile.exists() && whisperDecoderFile.length() > 50_000_000L &&
@@ -72,6 +77,7 @@ class ModelAssetManager(private val context: Context) {
     fun isKannadaSttReady(): Boolean = isWhisperSttReady()
     fun isMalayalamSttReady(): Boolean = isWhisperSttReady()
     fun isTamilSttReady(): Boolean = isWhisperSttReady()
+    fun isTeluguSttReady(): Boolean = isWhisperSttReady()
 
     fun isHindiTtsReady(): Boolean {
         return vitsModelFile.exists() && vitsModelFile.length() > 50_000_000L &&
@@ -105,6 +111,12 @@ class ModelAssetManager(private val context: Context) {
     fun isTamilTtsReady(): Boolean {
         return taVitsModelFile.exists() && taVitsModelFile.length() > 50_000_000L &&
                 taVitsTokensFile.exists()
+    }
+
+    fun isTeluguTtsReady(): Boolean {
+        return teVitsModelFile.exists() && teVitsModelFile.length() > 50_000_000L &&
+                teVitsTokensFile.exists() &&
+                sharedEspeakDataDir.exists() && sharedEspeakDataDir.isDirectory
     }
 
     suspend fun ensureModelsReady(): Boolean = withContext(Dispatchers.IO) {
@@ -176,7 +188,16 @@ class ModelAssetManager(private val context: Context) {
                 Log.i(tag, "VITS MMS Tamil TTS models already ready at ${taTtsDir.absolutePath}")
             }
 
-            return@withContext isWhisperSttReady() && (isHindiTtsReady() || isGujaratiTtsReady() || isMarathiTtsReady() || isKannadaTtsReady() || isMalayalamTtsReady() || isTamilTtsReady())
+            // Extract Telugu TTS if not ready
+            if (!isTeluguTtsReady()) {
+                Log.i(tag, "Extracting VITS Piper Telugu TTS model assets to ${teTtsDir.absolutePath}...")
+                copyAssetFolder(context.assets, "models/tts/vits-piper-te", teTtsDir)
+                Log.i(tag, "VITS Piper Telugu TTS extraction complete. Ready: ${isTeluguTtsReady()}")
+            } else {
+                Log.i(tag, "VITS Piper Telugu TTS models already ready at ${teTtsDir.absolutePath}")
+            }
+
+            return@withContext isWhisperSttReady() && (isHindiTtsReady() || isGujaratiTtsReady() || isMarathiTtsReady() || isKannadaTtsReady() || isMalayalamTtsReady() || isTamilTtsReady() || isTeluguTtsReady())
         } catch (e: Exception) {
             Log.e(tag, "Failed to prepare neural models", e)
             return@withContext false

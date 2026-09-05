@@ -119,6 +119,16 @@ class SherpaOnnxTtsEngine(
                     lengthScale = 1.0f
                 )
             }
+            IndicLanguage.TELUGU -> {
+                if (!modelAssetManager.isTeluguTtsReady()) return null
+                TtsModelSpec(
+                    modelFile = modelAssetManager.teVitsModelFile,
+                    tokensFile = modelAssetManager.teVitsTokensFile,
+                    noiseScale = 0.667f,
+                    noiseScaleW = 0.8f,
+                    lengthScale = 1.0f
+                )
+            }
             else -> return null
         }
 

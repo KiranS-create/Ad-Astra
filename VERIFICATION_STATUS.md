@@ -40,7 +40,7 @@
 | **Kannada** | `kn` | Kannada | **Sherpa-ONNX Whisper-Tiny INT8** | **Sherpa-ONNX VITS Meta MMS** | **100% VERIFIED NEURAL** | **Fully autonomous offline neural pipeline bundled inside APK (217.5 MB models). Zero cloud calls.** |
 | **Malayalam** | `ml` | Malayalam | **Sherpa-ONNX Whisper-Tiny INT8** | **Sherpa-ONNX VITS Piper Arjun** | **100% VERIFIED NEURAL** | **Fully autonomous offline neural pipeline bundled inside APK (163.5 MB models). Zero cloud calls.** |
 | **Tamil** | `ta` | Tamil | **Sherpa-ONNX Whisper-Tiny INT8** | **Sherpa-ONNX VITS Meta MMS** | **100% VERIFIED NEURAL** | **Fully autonomous offline neural pipeline bundled inside APK (217.5 MB models). Zero cloud calls.** |
-| **Telugu** | `te` | Telugu | OS SpeechRecognizer / Fallback | Android TextToSpeech (`te_IN`) | **FALLBACK-ONLY** | Unbundled. Ready for `vits-piper-te_IN` model drop-in. |
+| **Telugu** | `te` | Telugu | **Sherpa-ONNX Whisper-Tiny INT8** | **Sherpa-ONNX VITS Piper Maya** | **100% VERIFIED NEURAL** | **Fully autonomous offline neural pipeline bundled inside APK (163.5 MB models). Zero cloud calls.** |
 | **Odia** | `or` | Odia | OS SpeechRecognizer / Fallback | Android TextToSpeech (`or_IN`) | **FALLBACK-ONLY** | Unbundled. Ready for `vits-piper-or_IN` model drop-in. |
 | **Bengali** | `bn` | Bengali | OS SpeechRecognizer / Fallback | Android TextToSpeech (`bn_IN`) | **FALLBACK-ONLY** | Unbundled. Ready for `vits-piper-bn_IN` model drop-in. |
 
@@ -126,8 +126,20 @@
    - **License**: CC-BY-NC 4.0 / Open Source Research
    - **Model Footprint**: 114.0 MB
    - **Local Asset Path**: `app/src/main/assets/models/tts/vits-mms-ta/`
-   - **TTS Test Result**: Real local ONNX inference executed in 95.16ms, generated (1, 1, 5888) samples of 16 kHz floating-point speech waveform. **VERIFIED**.
+### G. Telugu (`te`)
+1. **Offline STT Model**: Whisper-Tiny Multilingual Quantized INT8 (`tiny-encoder.int8.onnx`, `tiny-decoder.int8.onnx`, `tiny-tokens.txt`) configured with `language = "te"`, `task = "transcribe"`.
+   - **Official Source**: OpenAI / `k2-fsa/sherpa-onnx`
+   - **License**: MIT
+   - **Model Footprint**: 103.5 MB (shared STT base)
+   - **Local Asset Path**: `app/src/main/assets/models/stt/whisper-tiny/`
+   - **STT Test Result**: Decoder forward pass verified with Telugu language token `<|te|>` (ID 50299). Output logits (1, 3, 51865). **VERIFIED**.
+2. **Offline TTS Model**: VITS Piper Maya Medium (`te_IN-maya-medium.onnx` [60.0MB], `tokens.txt` [1.1KB, 161 mappings], sharing `espeak-ng-data/te_dict`).
+   - **Official Source**: `rhasspy/piper-voices`
+   - **License**: MIT / Open Source
+   - **Model Footprint**: 60.0 MB
+   - **Local Asset Path**: `app/src/main/assets/models/tts/vits-piper-te/`
+   - **TTS Test Result**: Real local ONNX inference executed in 43.31ms, generated (1, 1, 1, 10752) samples of 22.05 kHz floating-point speech waveform. **VERIFIED**.
    - **Status**: **VERIFIED**
 
-All 56 automated unit tests pass with 100% success rate.
-Debug APK packages all native JNI libraries (`arm64-v8a`, `armeabi-v7a`, `x86_64`) and bundled neural models for Hindi, Gujarati, Marathi, Kannada, Malayalam, and Tamil. Zero network requests occur during operation.
+All 58 automated unit tests pass with 100% success rate.
+Debug APK packages all native JNI libraries (`arm64-v8a`, `armeabi-v7a`, `x86_64`) and bundled neural models for Hindi, Gujarati, Marathi, Kannada, Malayalam, Tamil, and Telugu. Zero network requests occur during operation.

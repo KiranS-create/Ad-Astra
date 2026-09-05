@@ -33,6 +33,7 @@ class NeuralTtsRouter(
             IndicLanguage.KANNADA -> modelAssetManager.isKannadaTtsReady()
             IndicLanguage.MALAYALAM -> modelAssetManager.isMalayalamTtsReady()
             IndicLanguage.TAMIL -> modelAssetManager.isTamilTtsReady()
+            IndicLanguage.TELUGU -> modelAssetManager.isTeluguTtsReady()
             else -> false
         }
     }
