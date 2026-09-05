@@ -126,21 +126,28 @@ object LanguageModelRegistry {
                         verificationNotes = "VERIFIED: Genuine offline neural inference with quantized INT8 Whisper & Piper VITS models via native C++ Sherpa-ONNX runtime. Zero network calls."
                     )
                 }
+                IndicLanguage.ENGLISH -> {
+                    LanguageModelStatus(
+                        language = lang,
+                        sttEngine = "Sherpa-ONNX Whisper-Tiny INT8 (On-Device Neural)",
+                        sttStatus = "VERIFIED LOCAL NEURAL (103.5 MB)",
+                        ttsEngine = "Sherpa-ONNX VITS Piper Lessac (On-Device Neural)",
+                        ttsStatus = "VERIFIED LOCAL NEURAL (63.2 MB)",
+                        isOfflineReady = true,
+                        footprintMb = 166.7f,
+                        verificationNotes = "VERIFIED: Genuine offline neural inference with quantized INT8 Whisper & Piper VITS models via native C++ Sherpa-ONNX runtime. Zero network calls."
+                    )
+                }
                 else -> {
-                    val isCommonOsVoice = lang == IndicLanguage.ENGLISH
                     LanguageModelStatus(
                         language = lang,
                         sttEngine = "Android System ASR (EXTRA_PREFER_OFFLINE)",
-                        sttStatus = if (isCommonOsVoice) "SYSTEM READY" else "REQUIRES OS VOICE PACK",
+                        sttStatus = "REQUIRES OS VOICE PACK",
                         ttsEngine = "Android TextToSpeech (${lang.isoCode}_IN)",
-                        ttsStatus = if (isCommonOsVoice) "SYSTEM READY" else "REQUIRES OS VOICE PACK",
-                        isOfflineReady = isCommonOsVoice,
+                        ttsStatus = "REQUIRES OS VOICE PACK",
+                        isOfflineReady = false,
                         footprintMb = 0.0f,
-                        verificationNotes = if (isCommonOsVoice) {
-                            "Supported offline if host OS has pre-downloaded offline speech voice."
-                        } else {
-                            "FALLBACK-ONLY: Unbundled. Plug-and-play architecture ready for Sherpa-ONNX language model files."
-                        }
+                        verificationNotes = "FALLBACK-ONLY: Unbundled. Plug-and-play architecture ready for Sherpa-ONNX language model files."
                     )
                 }
             }

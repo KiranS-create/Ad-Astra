@@ -149,6 +149,16 @@ class SherpaOnnxTtsEngine(
                     lengthScale = 1.0f
                 )
             }
+            IndicLanguage.ENGLISH -> {
+                if (!modelAssetManager.isEnglishTtsReady()) return null
+                TtsModelSpec(
+                    modelFile = modelAssetManager.enVitsModelFile,
+                    tokensFile = modelAssetManager.enVitsTokensFile,
+                    noiseScale = 0.667f,
+                    noiseScaleW = 0.8f,
+                    lengthScale = 1.0f
+                )
+            }
             else -> return null
         }
 
