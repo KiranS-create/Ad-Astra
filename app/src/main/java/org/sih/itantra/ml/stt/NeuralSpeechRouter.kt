@@ -25,8 +25,16 @@ class NeuralSpeechRouter(
     private val _results = MutableSharedFlow<SpeechResult>(replay = 1, extraBufferCapacity = 16)
     override val results: SharedFlow<SpeechResult> = _results.asSharedFlow()
 
+    private fun isNeuralSttSupported(language: IndicLanguage): Boolean {
+        return when (language) {
+            IndicLanguage.HINDI,
+            IndicLanguage.GUJARATI -> modelAssetManager.isWhisperSttReady()
+            else -> false
+        }
+    }
+
     override suspend fun processAudioSegment(pcmBytes: ByteArray, language: IndicLanguage): SpeechResult {
-        return if (language == IndicLanguage.HINDI && modelAssetManager.isHindiSttReady()) {
+        return if (isNeuralSttSupported(language)) {
             val result = sherpaStt.processAudioSegment(pcmBytes, language)
             if (result.text.isNotBlank()) {
                 _results.tryEmit(result)
@@ -44,7 +52,7 @@ class NeuralSpeechRouter(
     }
 
     override fun startListening(language: IndicLanguage) {
-        if (language == IndicLanguage.HINDI && modelAssetManager.isHindiSttReady()) {
+        if (isNeuralSttSupported(language)) {
             sherpaStt.startListening(language)
         } else {
             platformStt.startListening(language)

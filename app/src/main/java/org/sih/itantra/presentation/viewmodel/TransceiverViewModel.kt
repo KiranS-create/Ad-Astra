@@ -74,10 +74,27 @@ class TransceiverViewModel(application: Application) : AndroidViewModel(applicat
         coordinator.sendAlert(alert, isDistress = true)
     }
 
-    fun testHindiNeuralLoopback() {
+    fun testNeuralLoopback() {
         viewModelScope.launch {
-            coordinator.sendAlert("नमस्ते, यह आई-तंत्रा का न्यूरल वॉइस परीक्षण है।", isDistress = false)
+            val alertText = when (activeLanguage.value) {
+                IndicLanguage.HINDI -> "नमस्ते, यह आई-तंत्रा का न्यूरल वॉइस परीक्षण है।"
+                IndicLanguage.GUJARATI -> "નમસ્તે, આ આઈ-તંત્રા ન્યુરલ વૉઇસ ટેસ્ટ છે."
+                IndicLanguage.MARATHI -> "नमस्कार, ही आय-तंत्रा न्यूरल व्हॉइस चाचणी आहे."
+                IndicLanguage.KANNADA -> "ನಮಸ್ಕಾರ, ಇದು ಐ-ತಂತ್ರ ನ್ಯೂರಲ್ ವಾಯ್ಸ್ ಪರೀಕ್ಷೆ ಆಗಿದೆ."
+                IndicLanguage.MALAYALAM -> "നമസ്കാരം, ഇത് ഐ-തന്ത്ര ന്യൂറൽ വോയ്സ് ടെസ്റ്റ് ആണ്."
+                IndicLanguage.TAMIL -> "வணக்கம், இது ஐ-தந்த்ரா நியூரல் குரல் சோதனை."
+                IndicLanguage.TELUGU -> "నమస్కారం, ఇది ఐ-తంత్ర న్యూరల్ వాయిస్ టెస్ట్."
+                IndicLanguage.ODIA -> "ନମସ୍କାର, ଏହା ଆଇ-ତନ୍ତ୍ର ନ୍ୟୁରାଲ୍ ଭଏସ୍ ପରୀକ୍ଷଣ ଅଟେ।"
+                IndicLanguage.BENGALI -> "নমস্কার, এটি আই-তন্ত্র নিউরাল ভয়েস টেস্ট।"
+                IndicLanguage.ENGLISH -> "Hello, this is iTantra neural voice test."
+                else -> "Hello, this is iTantra neural voice test."
+            }
+            coordinator.sendAlert(alertText, isDistress = false)
         }
+    }
+
+    fun testHindiNeuralLoopback() {
+        testNeuralLoopback()
     }
 
     fun testSynthesizeSpeech(text: String) {

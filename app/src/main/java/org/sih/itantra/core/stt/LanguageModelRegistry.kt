@@ -17,33 +17,48 @@ object LanguageModelRegistry {
 
     fun getCapabilities(): List<LanguageModelStatus> {
         return IndicLanguage.entries.map { lang ->
-            if (lang == IndicLanguage.HINDI) {
-                LanguageModelStatus(
-                    language = lang,
-                    sttEngine = "Sherpa-ONNX Whisper-Tiny INT8 (On-Device Neural)",
-                    sttStatus = "VERIFIED LOCAL NEURAL (103.5 MB)",
-                    ttsEngine = "Sherpa-ONNX VITS Piper Rohan (On-Device Neural)",
-                    ttsStatus = "VERIFIED LOCAL NEURAL (66.5 MB)",
-                    isOfflineReady = true,
-                    footprintMb = 170.0f,
-                    verificationNotes = "VERIFIED: Genuine offline neural inference with quantized INT8 Whisper & VITS models via native C++ Sherpa-ONNX runtime. Zero network calls."
-                )
-            } else {
-                val isCommonOsVoice = lang == IndicLanguage.ENGLISH
-                LanguageModelStatus(
-                    language = lang,
-                    sttEngine = "Android System ASR (EXTRA_PREFER_OFFLINE)",
-                    sttStatus = if (isCommonOsVoice) "SYSTEM READY" else "REQUIRES OS VOICE PACK",
-                    ttsEngine = "Android TextToSpeech (${lang.isoCode}_IN)",
-                    ttsStatus = if (isCommonOsVoice) "SYSTEM READY" else "REQUIRES OS VOICE PACK",
-                    isOfflineReady = isCommonOsVoice,
-                    footprintMb = 0.0f,
-                    verificationNotes = if (isCommonOsVoice) {
-                        "Supported offline if host OS has pre-downloaded offline speech voice."
-                    } else {
-                        "FALLBACK-ONLY: Unbundled. Plug-and-play architecture ready for Sherpa-ONNX language model files."
-                    }
-                )
+            when (lang) {
+                IndicLanguage.HINDI -> {
+                    LanguageModelStatus(
+                        language = lang,
+                        sttEngine = "Sherpa-ONNX Whisper-Tiny INT8 (On-Device Neural)",
+                        sttStatus = "VERIFIED LOCAL NEURAL (103.5 MB)",
+                        ttsEngine = "Sherpa-ONNX VITS Piper Rohan (On-Device Neural)",
+                        ttsStatus = "VERIFIED LOCAL NEURAL (66.5 MB)",
+                        isOfflineReady = true,
+                        footprintMb = 170.0f,
+                        verificationNotes = "VERIFIED: Genuine offline neural inference with quantized INT8 Whisper & VITS models via native C++ Sherpa-ONNX runtime. Zero network calls."
+                    )
+                }
+                IndicLanguage.GUJARATI -> {
+                    LanguageModelStatus(
+                        language = lang,
+                        sttEngine = "Sherpa-ONNX Whisper-Tiny INT8 (On-Device Neural)",
+                        sttStatus = "VERIFIED LOCAL NEURAL (103.5 MB)",
+                        ttsEngine = "Sherpa-ONNX VITS Mimic3 CMU-Indic (On-Device Neural)",
+                        ttsStatus = "VERIFIED LOCAL NEURAL (76.3 MB)",
+                        isOfflineReady = true,
+                        footprintMb = 179.8f,
+                        verificationNotes = "VERIFIED: Genuine offline neural inference with quantized INT8 Whisper & Mimic3 VITS models via native C++ Sherpa-ONNX runtime. Zero network calls."
+                    )
+                }
+                else -> {
+                    val isCommonOsVoice = lang == IndicLanguage.ENGLISH
+                    LanguageModelStatus(
+                        language = lang,
+                        sttEngine = "Android System ASR (EXTRA_PREFER_OFFLINE)",
+                        sttStatus = if (isCommonOsVoice) "SYSTEM READY" else "REQUIRES OS VOICE PACK",
+                        ttsEngine = "Android TextToSpeech (${lang.isoCode}_IN)",
+                        ttsStatus = if (isCommonOsVoice) "SYSTEM READY" else "REQUIRES OS VOICE PACK",
+                        isOfflineReady = isCommonOsVoice,
+                        footprintMb = 0.0f,
+                        verificationNotes = if (isCommonOsVoice) {
+                            "Supported offline if host OS has pre-downloaded offline speech voice."
+                        } else {
+                            "FALLBACK-ONLY: Unbundled. Plug-and-play architecture ready for Sherpa-ONNX language model files."
+                        }
+                    )
+                }
             }
         }
     }

@@ -33,30 +33,30 @@ class SherpaOnnxSpeechRecognizer(
 ) : SpeechRecognizer {
 
     private val tag = "SherpaOnnxSTT"
-    private var recognizer: OfflineRecognizer? = null
+    private val recognizers = java.util.concurrent.ConcurrentHashMap<IndicLanguage, OfflineRecognizer>()
     private val _results = MutableSharedFlow<SpeechResult>(replay = 1, extraBufferCapacity = 16)
     override val results: SharedFlow<SpeechResult> = _results.asSharedFlow()
     private val isListening = AtomicBoolean(false)
     private var isInitialized = false
 
     init {
-        initEngine()
+        initEngine(IndicLanguage.HINDI)
     }
 
     @Synchronized
-    fun initEngine(): Boolean {
-        if (isInitialized && recognizer != null) return true
+    fun getOrInitRecognizer(language: IndicLanguage): OfflineRecognizer? {
+        recognizers[language]?.let { return it }
+
+        if (!modelAssetManager.isWhisperSttReady()) {
+            Log.w(tag, "Whisper model files not ready on disk yet")
+            return null
+        }
 
         return try {
-            if (!modelAssetManager.isHindiSttReady()) {
-                Log.w(tag, "Whisper model files not ready on disk yet")
-                return false
-            }
-
             val whisperConfig = OfflineWhisperModelConfig().apply {
                 encoder = modelAssetManager.whisperEncoderFile.absolutePath
                 decoder = modelAssetManager.whisperDecoderFile.absolutePath
-                language = "hi"
+                this.language = language.isoCode
                 task = "transcribe"
                 tailPaddings = -1
             }
@@ -80,25 +80,25 @@ class SherpaOnnxSpeechRecognizer(
                 this.decodingMethod = "greedy_search"
             }
 
-            recognizer = OfflineRecognizer(assetManager = null, config = config)
+            val rec = OfflineRecognizer(assetManager = null, config = config)
+            recognizers[language] = rec
             isInitialized = true
-            Log.i(tag, "Sherpa-ONNX Whisper STT initialized successfully for Hindi!")
-            true
+            Log.i(tag, "Sherpa-ONNX Whisper STT initialized successfully for ${language.displayName} (${language.isoCode})!")
+            rec
         } catch (e: Throwable) {
-            Log.e(tag, "Failed to initialize SherpaOnnxSpeechRecognizer", e)
-            recognizer = null
-            isInitialized = false
-            false
+            Log.e(tag, "Failed to initialize SherpaOnnxSpeechRecognizer for ${language.displayName}", e)
+            null
         }
+    }
+
+    @Synchronized
+    fun initEngine(language: IndicLanguage = IndicLanguage.HINDI): Boolean {
+        return getOrInitRecognizer(language) != null
     }
 
     override suspend fun processAudioSegment(pcmBytes: ByteArray, language: IndicLanguage): SpeechResult =
         withContext(dispatcher) {
-            if (recognizer == null) {
-                initEngine()
-            }
-
-            val currentRecognizer = recognizer
+            val currentRecognizer = getOrInitRecognizer(language) ?: getOrInitRecognizer(IndicLanguage.HINDI)
             if (currentRecognizer == null || pcmBytes.isEmpty()) {
                 Log.w(tag, "Recognizer not initialized or audio empty")
                 return@withContext SpeechResult(text = "", isFinal = true, language = language)
@@ -127,10 +127,10 @@ class SherpaOnnxSpeechRecognizer(
                     language = language
                 )
                 _results.tryEmit(result)
-                Log.i(tag, "Sherpa-ONNX Hindi STT Decoded: '$finalText' from ${samples.size} samples")
+                Log.i(tag, "Sherpa-ONNX ${language.displayName} STT Decoded: '$finalText' from ${samples.size} samples")
                 result
             } catch (e: Throwable) {
-                Log.e(tag, "Sherpa-ONNX Hindi STT decoding error", e)
+                Log.e(tag, "Sherpa-ONNX ${language.displayName} STT decoding error", e)
                 SpeechResult(text = "", isFinal = true, language = language)
             }
         }
@@ -144,12 +144,14 @@ class SherpaOnnxSpeechRecognizer(
     }
 
     override fun release() {
-        try {
-            recognizer?.release()
-        } catch (e: Throwable) {
-            Log.w(tag, "Error releasing recognizer", e)
+        for ((_, rec) in recognizers) {
+            try {
+                rec.release()
+            } catch (e: Throwable) {
+                Log.w(tag, "Error releasing recognizer", e)
+            }
         }
-        recognizer = null
+        recognizers.clear()
         isInitialized = false
     }
 }

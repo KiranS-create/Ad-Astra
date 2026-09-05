@@ -25,8 +25,16 @@ class NeuralTtsRouter(
     private val _ttsState = MutableStateFlow(TtsState.IDLE)
     override val ttsState: StateFlow<TtsState> = _ttsState.asStateFlow()
 
+    private fun isNeuralTtsSupported(language: IndicLanguage): Boolean {
+        return when (language) {
+            IndicLanguage.HINDI -> modelAssetManager.isHindiTtsReady()
+            IndicLanguage.GUJARATI -> modelAssetManager.isGujaratiTtsReady()
+            else -> false
+        }
+    }
+
     override suspend fun synthesize(text: String, language: IndicLanguage, isUrgent: Boolean): Boolean {
-        return if (language == IndicLanguage.HINDI && modelAssetManager.isHindiTtsReady()) {
+        return if (isNeuralTtsSupported(language)) {
             _ttsState.value = TtsState.SYNTHESIZING
             val success = sherpaTts.synthesize(text, language, isUrgent)
             _ttsState.value = sherpaTts.ttsState.value

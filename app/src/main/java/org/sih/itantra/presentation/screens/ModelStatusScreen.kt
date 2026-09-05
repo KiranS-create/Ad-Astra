@@ -101,9 +101,10 @@ fun ModelStatusScreen(
                             fontWeight = FontWeight.Bold,
                             fontSize = 13.sp
                         )
+                        val isVerified = cap.verificationNotes.contains("VERIFIED")
                         Text(
-                            text = if (cap.language == org.sih.itantra.core.common.IndicLanguage.HINDI) "VERIFIED NEURAL" else if (cap.isOfflineReady) "SYSTEM READY" else "FALLBACK-ONLY",
-                            color = if (cap.language == org.sih.itantra.core.common.IndicLanguage.HINDI) RadarGreen else if (cap.isOfflineReady) SignalBlue else AlertAmber,
+                            text = if (isVerified) "VERIFIED NEURAL" else if (cap.isOfflineReady) "SYSTEM READY" else "FALLBACK-ONLY",
+                            color = if (isVerified) RadarGreen else if (cap.isOfflineReady) SignalBlue else AlertAmber,
                             fontSize = 10.sp,
                             fontWeight = FontWeight.Bold,
                             fontFamily = FontFamily.Monospace

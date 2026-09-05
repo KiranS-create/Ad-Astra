@@ -100,4 +100,48 @@ class NeuralConversionTest {
         assertTrue("Footprint must reflect neural models (~170MB)", hindiStatus.footprintMb >= 100.0f)
         assertTrue("Verification notes must confirm genuine offline inference", hindiStatus.verificationNotes.contains("VERIFIED"))
     }
+
+    @Test
+    fun testGujaratiTextEndToEndTransceiverPacket() {
+        val gujaratiText = "નમસ્તે, આ સ્માર્ટ ઇન્ડિયા હેકાથોનનું વાસ્તવિક પરીક્ષણ છે."
+        val rawBytes = gujaratiText.toByteArray(Charsets.UTF_8)
+        val compressed = AdaptiveCompressor.compress(rawBytes)
+
+        val packet = Packet(
+            version = Packet.PROTOCOL_VERSION,
+            msgType = Packet.TYPE_TEXT,
+            priority = MessagePriority.ALERT,
+            flags = if (compressed.isCompressed) Packet.FLAG_COMPRESSED.toByte() else 0.toByte(),
+            sequenceNumber = 88,
+            timestamp = 1718000000000L,
+            sourceDeviceId = 2002,
+            destinationDeviceId = Packet.BROADCAST_ID,
+            language = IndicLanguage.GUJARATI,
+            payload = compressed.bytes
+        )
+
+        val serialized = PacketSerializer.serialize(packet)
+        val deserialized = PacketSerializer.deserialize(serialized)
+
+        assertEquals(IndicLanguage.GUJARATI, deserialized.language)
+        assertEquals(MessagePriority.ALERT, deserialized.priority)
+        assertEquals(88.toShort(), deserialized.sequenceNumber)
+
+        val decompressed = AdaptiveCompressor.decompress(deserialized.payload, deserialized.isCompressed)
+        val recoveredText = String(decompressed, Charsets.UTF_8)
+        assertEquals(gujaratiText, recoveredText)
+    }
+
+    @Test
+    fun testLanguageModelRegistryReportsRealNeuralGujarati() {
+        val capabilities = LanguageModelRegistry.getCapabilities()
+        val guStatus = capabilities.find { it.language == IndicLanguage.GUJARATI }
+
+        assertTrue("Gujarati capability must be registered", guStatus != null)
+        assertTrue("Gujarati must be marked offline ready", guStatus!!.isOfflineReady)
+        assertTrue("STT engine must cite Sherpa-ONNX Whisper", guStatus.sttEngine.contains("Sherpa-ONNX"))
+        assertTrue("TTS engine must cite Sherpa-ONNX VITS Mimic3", guStatus.ttsEngine.contains("Sherpa-ONNX") && guStatus.ttsEngine.contains("Mimic3"))
+        assertTrue("Footprint must reflect neural models (~179MB)", guStatus.footprintMb >= 150.0f)
+        assertTrue("Verification notes must confirm genuine offline inference", guStatus.verificationNotes.contains("VERIFIED"))
+    }
 }

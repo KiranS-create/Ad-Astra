@@ -87,7 +87,7 @@ fun MainTransceiverScreen(
             NavPill(text = "MODELS (10)", onClick = onNavigateToModelStatus)
             NavPill(text = "BENCHMARK", onClick = onNavigateToBenchmark)
             NavPill(text = "HISTORY (${history.size})", onClick = onNavigateToHistory)
-            NavPill(text = "TEST NEURAL HINDI", onClick = { viewModel.testHindiNeuralLoopback() })
+            NavPill(text = "TEST NEURAL PTT", onClick = { viewModel.testNeuralLoopback() })
         }
 
         Spacer(modifier = Modifier.height(10.dp))

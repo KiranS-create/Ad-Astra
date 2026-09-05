@@ -26,22 +26,39 @@ class ModelAssetManager(private val context: Context) {
     val whisperDecoderFile = File(sttDir, "tiny-decoder.int8.onnx")
     val whisperTokensFile = File(sttDir, "tiny-tokens.txt")
 
+    // Shared espeak-ng-data directory
+    val sharedEspeakDataDir = File(modelsBaseDir, "tts/vits-piper-hi/espeak-ng-data")
+
     // VITS Piper Rohan Medium Hindi TTS paths
     val ttsDir = File(modelsBaseDir, "tts/vits-piper-hi")
     val vitsModelFile = File(ttsDir, "hi_IN-rohan-medium.onnx")
     val vitsTokensFile = File(ttsDir, "tokens.txt")
-    val vitsDataDir = File(ttsDir, "espeak-ng-data")
+    val vitsDataDir = sharedEspeakDataDir
 
-    fun isHindiSttReady(): Boolean {
+    // VITS Mimic3 CMU-Indic Low Gujarati TTS paths
+    val guTtsDir = File(modelsBaseDir, "tts/vits-mimic3-gu")
+    val guVitsModelFile = File(guTtsDir, "gu_IN-cmu-indic_low.onnx")
+    val guVitsTokensFile = File(guTtsDir, "tokens.txt")
+
+    fun isWhisperSttReady(): Boolean {
         return whisperEncoderFile.exists() && whisperEncoderFile.length() > 10_000_000L &&
                 whisperDecoderFile.exists() && whisperDecoderFile.length() > 50_000_000L &&
                 whisperTokensFile.exists() && whisperTokensFile.length() > 100_000L
     }
 
+    fun isHindiSttReady(): Boolean = isWhisperSttReady()
+    fun isGujaratiSttReady(): Boolean = isWhisperSttReady()
+
     fun isHindiTtsReady(): Boolean {
         return vitsModelFile.exists() && vitsModelFile.length() > 50_000_000L &&
                 vitsTokensFile.exists() &&
-                vitsDataDir.exists() && vitsDataDir.isDirectory
+                sharedEspeakDataDir.exists() && sharedEspeakDataDir.isDirectory
+    }
+
+    fun isGujaratiTtsReady(): Boolean {
+        return guVitsModelFile.exists() && guVitsModelFile.length() > 50_000_000L &&
+                guVitsTokensFile.exists() &&
+                sharedEspeakDataDir.exists() && sharedEspeakDataDir.isDirectory
     }
 
     suspend fun ensureModelsReady(): Boolean = withContext(Dispatchers.IO) {
@@ -51,24 +68,33 @@ class ModelAssetManager(private val context: Context) {
             }
 
             // Extract STT if not ready
-            if (!isHindiSttReady()) {
+            if (!isWhisperSttReady()) {
                 Log.i(tag, "Extracting Whisper STT model assets to ${sttDir.absolutePath}...")
                 copyAssetFolder(context.assets, "models/stt/whisper-tiny", sttDir)
-                Log.i(tag, "Whisper STT extraction complete. Ready: ${isHindiSttReady()}")
+                Log.i(tag, "Whisper STT extraction complete. Ready: ${isWhisperSttReady()}")
             } else {
                 Log.i(tag, "Whisper STT models already ready at ${sttDir.absolutePath}")
             }
 
-            // Extract TTS if not ready
+            // Extract Hindi TTS if not ready
             if (!isHindiTtsReady()) {
-                Log.i(tag, "Extracting VITS Piper TTS model assets to ${ttsDir.absolutePath}...")
+                Log.i(tag, "Extracting VITS Piper Hindi TTS model assets to ${ttsDir.absolutePath}...")
                 copyAssetFolder(context.assets, "models/tts/vits-piper-hi", ttsDir)
-                Log.i(tag, "VITS Piper TTS extraction complete. Ready: ${isHindiTtsReady()}")
+                Log.i(tag, "VITS Piper Hindi TTS extraction complete. Ready: ${isHindiTtsReady()}")
             } else {
-                Log.i(tag, "VITS Piper TTS models already ready at ${ttsDir.absolutePath}")
+                Log.i(tag, "VITS Piper Hindi TTS models already ready at ${ttsDir.absolutePath}")
             }
 
-            return@withContext isHindiSttReady() && isHindiTtsReady()
+            // Extract Gujarati TTS if not ready
+            if (!isGujaratiTtsReady()) {
+                Log.i(tag, "Extracting VITS Mimic3 Gujarati TTS model assets to ${guTtsDir.absolutePath}...")
+                copyAssetFolder(context.assets, "models/tts/vits-mimic3-gu", guTtsDir)
+                Log.i(tag, "VITS Mimic3 Gujarati TTS extraction complete. Ready: ${isGujaratiTtsReady()}")
+            } else {
+                Log.i(tag, "VITS Mimic3 Gujarati TTS models already ready at ${guTtsDir.absolutePath}")
+            }
+
+            return@withContext isWhisperSttReady() && (isHindiTtsReady() || isGujaratiTtsReady())
         } catch (e: Exception) {
             Log.e(tag, "Failed to prepare neural models", e)
             return@withContext false
