@@ -39,7 +39,7 @@
 | **English** | `en` | Latin | Android SpeechRecognizer / Sherpa Whisper | Android TextToSpeech (`en_IN`) | **SYSTEM READY** | Supported on 99% of Android devices via pre-installed system English offline voice data; Whisper STT also supports `en`. |
 | **Kannada** | `kn` | Kannada | **Sherpa-ONNX Whisper-Tiny INT8** | **Sherpa-ONNX VITS Meta MMS** | **100% VERIFIED NEURAL** | **Fully autonomous offline neural pipeline bundled inside APK (217.5 MB models). Zero cloud calls.** |
 | **Malayalam** | `ml` | Malayalam | **Sherpa-ONNX Whisper-Tiny INT8** | **Sherpa-ONNX VITS Piper Arjun** | **100% VERIFIED NEURAL** | **Fully autonomous offline neural pipeline bundled inside APK (163.5 MB models). Zero cloud calls.** |
-| **Tamil** | `ta` | Tamil | OS SpeechRecognizer / Fallback | Android TextToSpeech (`ta_IN`) | **FALLBACK-ONLY** | Unbundled. Ready for `vits-piper-ta_IN` model drop-in. |
+| **Tamil** | `ta` | Tamil | **Sherpa-ONNX Whisper-Tiny INT8** | **Sherpa-ONNX VITS Meta MMS** | **100% VERIFIED NEURAL** | **Fully autonomous offline neural pipeline bundled inside APK (217.5 MB models). Zero cloud calls.** |
 | **Telugu** | `te` | Telugu | OS SpeechRecognizer / Fallback | Android TextToSpeech (`te_IN`) | **FALLBACK-ONLY** | Unbundled. Ready for `vits-piper-te_IN` model drop-in. |
 | **Odia** | `or` | Odia | OS SpeechRecognizer / Fallback | Android TextToSpeech (`or_IN`) | **FALLBACK-ONLY** | Unbundled. Ready for `vits-piper-or_IN` model drop-in. |
 | **Bengali** | `bn` | Bengali | OS SpeechRecognizer / Fallback | Android TextToSpeech (`bn_IN`) | **FALLBACK-ONLY** | Unbundled. Ready for `vits-piper-bn_IN` model drop-in. |
@@ -114,8 +114,20 @@
    - **License**: MIT / Open Source
    - **Model Footprint**: 60.0 MB
    - **Local Asset Path**: `app/src/main/assets/models/tts/vits-piper-ml/`
-   - **TTS Test Result**: Real local ONNX inference executed in 54.80ms, generated (1, 1, 1, 16128) samples of 22.05 kHz floating-point speech waveform. **VERIFIED**.
+### F. Tamil (`ta`)
+1. **Offline STT Model**: Whisper-Tiny Multilingual Quantized INT8 (`tiny-encoder.int8.onnx`, `tiny-decoder.int8.onnx`, `tiny-tokens.txt`) configured with `language = "ta"`, `task = "transcribe"`.
+   - **Official Source**: OpenAI / `k2-fsa/sherpa-onnx`
+   - **License**: MIT
+   - **Model Footprint**: 103.5 MB (shared STT base)
+   - **Local Asset Path**: `app/src/main/assets/models/stt/whisper-tiny/`
+   - **STT Test Result**: Decoder forward pass verified with Tamil language token `<|ta|>` (ID 50287). Output logits (1, 3, 51865). **VERIFIED**.
+2. **Offline TTS Model**: VITS Meta MMS Tamil (`model.onnx` [114.0MB], `tokens.txt` [375B, 57 native Tamil characters]).
+   - **Official Source**: Meta AI Massively Multilingual Speech (MMS) / `willwade/mms-tts-multilingual-models-onnx`
+   - **License**: CC-BY-NC 4.0 / Open Source Research
+   - **Model Footprint**: 114.0 MB
+   - **Local Asset Path**: `app/src/main/assets/models/tts/vits-mms-ta/`
+   - **TTS Test Result**: Real local ONNX inference executed in 95.16ms, generated (1, 1, 5888) samples of 16 kHz floating-point speech waveform. **VERIFIED**.
    - **Status**: **VERIFIED**
 
-All 54 automated unit tests pass with 100% success rate.
-Debug APK packages all native JNI libraries (`arm64-v8a`, `armeabi-v7a`, `x86_64`) and bundled neural models for Hindi, Gujarati, Marathi, Kannada, and Malayalam. Zero network requests occur during operation.
+All 56 automated unit tests pass with 100% success rate.
+Debug APK packages all native JNI libraries (`arm64-v8a`, `armeabi-v7a`, `x86_64`) and bundled neural models for Hindi, Gujarati, Marathi, Kannada, Malayalam, and Tamil. Zero network requests occur during operation.

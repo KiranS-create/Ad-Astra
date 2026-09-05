@@ -109,6 +109,16 @@ class SherpaOnnxTtsEngine(
                     lengthScale = 1.0f
                 )
             }
+            IndicLanguage.TAMIL -> {
+                if (!modelAssetManager.isTamilTtsReady()) return null
+                TtsModelSpec(
+                    modelFile = modelAssetManager.taVitsModelFile,
+                    tokensFile = modelAssetManager.taVitsTokensFile,
+                    noiseScale = 0.667f,
+                    noiseScaleW = 0.8f,
+                    lengthScale = 1.0f
+                )
+            }
             else -> return null
         }
 

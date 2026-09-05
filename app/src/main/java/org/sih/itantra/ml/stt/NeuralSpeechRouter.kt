@@ -31,7 +31,8 @@ class NeuralSpeechRouter(
             IndicLanguage.GUJARATI,
             IndicLanguage.MARATHI,
             IndicLanguage.KANNADA,
-            IndicLanguage.MALAYALAM -> modelAssetManager.isWhisperSttReady()
+            IndicLanguage.MALAYALAM,
+            IndicLanguage.TAMIL -> modelAssetManager.isWhisperSttReady()
             else -> false
         }
     }
