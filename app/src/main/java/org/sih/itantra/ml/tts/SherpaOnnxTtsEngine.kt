@@ -79,6 +79,16 @@ class SherpaOnnxTtsEngine(
                     lengthScale = 1.0f
                 )
             }
+            IndicLanguage.MARATHI -> {
+                if (!modelAssetManager.isMarathiTtsReady()) return null
+                TtsModelSpec(
+                    modelFile = modelAssetManager.mrVitsModelFile,
+                    tokensFile = modelAssetManager.mrVitsTokensFile,
+                    noiseScale = 0.667f,
+                    noiseScaleW = 0.8f,
+                    lengthScale = 1.0f
+                )
+            }
             else -> return null
         }
 

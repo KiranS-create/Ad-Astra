@@ -40,6 +40,11 @@ class ModelAssetManager(private val context: Context) {
     val guVitsModelFile = File(guTtsDir, "gu_IN-cmu-indic_low.onnx")
     val guVitsTokensFile = File(guTtsDir, "tokens.txt")
 
+    // VITS Piper Google Medium Marathi TTS paths
+    val mrTtsDir = File(modelsBaseDir, "tts/vits-piper-mr")
+    val mrVitsModelFile = File(mrTtsDir, "mr_IN-google-medium.onnx")
+    val mrVitsTokensFile = File(mrTtsDir, "tokens.txt")
+
     fun isWhisperSttReady(): Boolean {
         return whisperEncoderFile.exists() && whisperEncoderFile.length() > 10_000_000L &&
                 whisperDecoderFile.exists() && whisperDecoderFile.length() > 50_000_000L &&
@@ -48,6 +53,7 @@ class ModelAssetManager(private val context: Context) {
 
     fun isHindiSttReady(): Boolean = isWhisperSttReady()
     fun isGujaratiSttReady(): Boolean = isWhisperSttReady()
+    fun isMarathiSttReady(): Boolean = isWhisperSttReady()
 
     fun isHindiTtsReady(): Boolean {
         return vitsModelFile.exists() && vitsModelFile.length() > 50_000_000L &&
@@ -58,6 +64,12 @@ class ModelAssetManager(private val context: Context) {
     fun isGujaratiTtsReady(): Boolean {
         return guVitsModelFile.exists() && guVitsModelFile.length() > 50_000_000L &&
                 guVitsTokensFile.exists() &&
+                sharedEspeakDataDir.exists() && sharedEspeakDataDir.isDirectory
+    }
+
+    fun isMarathiTtsReady(): Boolean {
+        return mrVitsModelFile.exists() && mrVitsModelFile.length() > 50_000_000L &&
+                mrVitsTokensFile.exists() &&
                 sharedEspeakDataDir.exists() && sharedEspeakDataDir.isDirectory
     }
 
@@ -94,7 +106,16 @@ class ModelAssetManager(private val context: Context) {
                 Log.i(tag, "VITS Mimic3 Gujarati TTS models already ready at ${guTtsDir.absolutePath}")
             }
 
-            return@withContext isWhisperSttReady() && (isHindiTtsReady() || isGujaratiTtsReady())
+            // Extract Marathi TTS if not ready
+            if (!isMarathiTtsReady()) {
+                Log.i(tag, "Extracting VITS Piper Marathi TTS model assets to ${mrTtsDir.absolutePath}...")
+                copyAssetFolder(context.assets, "models/tts/vits-piper-mr", mrTtsDir)
+                Log.i(tag, "VITS Piper Marathi TTS extraction complete. Ready: ${isMarathiTtsReady()}")
+            } else {
+                Log.i(tag, "VITS Piper Marathi TTS models already ready at ${mrTtsDir.absolutePath}")
+            }
+
+            return@withContext isWhisperSttReady() && (isHindiTtsReady() || isGujaratiTtsReady() || isMarathiTtsReady())
         } catch (e: Exception) {
             Log.e(tag, "Failed to prepare neural models", e)
             return@withContext false
