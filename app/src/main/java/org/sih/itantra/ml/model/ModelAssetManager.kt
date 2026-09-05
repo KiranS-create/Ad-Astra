@@ -50,6 +50,11 @@ class ModelAssetManager(private val context: Context) {
     val knVitsModelFile = File(knTtsDir, "model.onnx")
     val knVitsTokensFile = File(knTtsDir, "tokens.txt")
 
+    // VITS Piper Arjun Medium Malayalam TTS paths
+    val mlTtsDir = File(modelsBaseDir, "tts/vits-piper-ml")
+    val mlVitsModelFile = File(mlTtsDir, "ml_IN-arjun-medium.onnx")
+    val mlVitsTokensFile = File(mlTtsDir, "tokens.txt")
+
     fun isWhisperSttReady(): Boolean {
         return whisperEncoderFile.exists() && whisperEncoderFile.length() > 10_000_000L &&
                 whisperDecoderFile.exists() && whisperDecoderFile.length() > 50_000_000L &&
@@ -60,6 +65,7 @@ class ModelAssetManager(private val context: Context) {
     fun isGujaratiSttReady(): Boolean = isWhisperSttReady()
     fun isMarathiSttReady(): Boolean = isWhisperSttReady()
     fun isKannadaSttReady(): Boolean = isWhisperSttReady()
+    fun isMalayalamSttReady(): Boolean = isWhisperSttReady()
 
     fun isHindiTtsReady(): Boolean {
         return vitsModelFile.exists() && vitsModelFile.length() > 50_000_000L &&
@@ -84,15 +90,21 @@ class ModelAssetManager(private val context: Context) {
                 knVitsTokensFile.exists()
     }
 
+    fun isMalayalamTtsReady(): Boolean {
+        return mlVitsModelFile.exists() && mlVitsModelFile.length() > 50_000_000L &&
+                mlVitsTokensFile.exists() &&
+                sharedEspeakDataDir.exists() && sharedEspeakDataDir.isDirectory
+    }
+
     suspend fun ensureModelsReady(): Boolean = withContext(Dispatchers.IO) {
         try {
             if (!modelsBaseDir.exists()) {
                 modelsBaseDir.mkdirs()
             }
 
-            // Extract STT if not ready
+            // Extract Whisper STT if not ready
             if (!isWhisperSttReady()) {
-                Log.i(tag, "Extracting Whisper STT model assets to ${sttDir.absolutePath}...")
+                Log.i(tag, "Extracting Whisper-Tiny multilingual STT model assets to ${sttDir.absolutePath}...")
                 copyAssetFolder(context.assets, "models/stt/whisper-tiny", sttDir)
                 Log.i(tag, "Whisper STT extraction complete. Ready: ${isWhisperSttReady()}")
             } else {
@@ -135,7 +147,16 @@ class ModelAssetManager(private val context: Context) {
                 Log.i(tag, "VITS MMS Kannada TTS models already ready at ${knTtsDir.absolutePath}")
             }
 
-            return@withContext isWhisperSttReady() && (isHindiTtsReady() || isGujaratiTtsReady() || isMarathiTtsReady() || isKannadaTtsReady())
+            // Extract Malayalam TTS if not ready
+            if (!isMalayalamTtsReady()) {
+                Log.i(tag, "Extracting VITS Piper Malayalam TTS model assets to ${mlTtsDir.absolutePath}...")
+                copyAssetFolder(context.assets, "models/tts/vits-piper-ml", mlTtsDir)
+                Log.i(tag, "VITS Piper Malayalam TTS extraction complete. Ready: ${isMalayalamTtsReady()}")
+            } else {
+                Log.i(tag, "VITS Piper Malayalam TTS models already ready at ${mlTtsDir.absolutePath}")
+            }
+
+            return@withContext isWhisperSttReady() && (isHindiTtsReady() || isGujaratiTtsReady() || isMarathiTtsReady() || isKannadaTtsReady() || isMalayalamTtsReady())
         } catch (e: Exception) {
             Log.e(tag, "Failed to prepare neural models", e)
             return@withContext false
