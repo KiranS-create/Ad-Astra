@@ -1,0 +1,69 @@
+﻿package org.sih.itantra.core.protocol
+
+import org.sih.itantra.core.common.IndicLanguage
+import org.sih.itantra.core.common.MessagePriority
+
+data class Packet(
+    val magic: Short = MAGIC,
+    val version: Byte = PROTOCOL_VERSION,
+    val msgType: Byte = TYPE_TEXT,
+    val priority: MessagePriority = MessagePriority.NORMAL,
+    val flags: Byte = 0,
+    val sequenceNumber: Short,
+    val timestamp: Long,
+    val sourceDeviceId: Int,
+    val destinationDeviceId: Int = BROADCAST_ID,
+    val language: IndicLanguage,
+    val payload: ByteArray,
+    val crc32: Long = 0L
+) {
+    val isCompressed: Boolean
+        get() = (flags.toInt() and FLAG_COMPRESSED) != 0
+
+    val requiresAck: Boolean
+        get() = (flags.toInt() and FLAG_REQUIRES_ACK) != 0
+
+    val isFragmented: Boolean
+        get() = (flags.toInt() and FLAG_FRAGMENTED) != 0
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+        other as Packet
+        if (sequenceNumber != other.sequenceNumber) return false
+        if (sourceDeviceId != other.sourceDeviceId) return false
+        if (timestamp != other.timestamp) return false
+        if (!payload.contentEquals(other.payload)) return false
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = sequenceNumber.toInt()
+        result = 31 * result + sourceDeviceId
+        result = 31 * result + timestamp.hashCode()
+        result = 31 * result + payload.contentHashCode()
+        return result
+    }
+
+    companion object {
+        const val MAGIC: Short = 0x4954 // "IT" in ASCII
+        const val PROTOCOL_VERSION: Byte = 0x01
+
+        const val TYPE_HELLO: Byte = 1
+        const val TYPE_SESSION: Byte = 2
+        const val TYPE_TEXT: Byte = 3
+        const val TYPE_ACK: Byte = 4
+        const val TYPE_ALERT: Byte = 5
+        const val TYPE_PING: Byte = 6
+        const val TYPE_PONG: Byte = 7
+
+        const val FLAG_COMPRESSED: Int = 1 shl 0
+        const val FLAG_FRAGMENTED: Int = 1 shl 1
+        const val FLAG_REQUIRES_ACK: Int = 1 shl 2
+
+        const val BROADCAST_ID: Int = -1 // 0xFFFFFFFF
+        const val HEADER_SIZE_BYTES = 27
+        const val CRC_SIZE_BYTES = 4
+        const val MIN_PACKET_SIZE = HEADER_SIZE_BYTES + CRC_SIZE_BYTES // 31 bytes
+    }
+}

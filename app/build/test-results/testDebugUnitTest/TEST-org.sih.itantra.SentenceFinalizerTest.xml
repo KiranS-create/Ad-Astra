@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="org.sih.itantra.SentenceFinalizerTest" tests="4" skipped="0" failures="0" errors="0" timestamp="2026-09-05T18:09:44" hostname="MSI" time="0.019">
+  <properties/>
+  <testcase name="testExistingTerminatorPreserved" classname="org.sih.itantra.SentenceFinalizerTest" time="0.016"/>
+  <testcase name="testHindiDandaFinalization" classname="org.sih.itantra.SentenceFinalizerTest" time="0.0"/>
+  <testcase name="testUtteranceSegmentation" classname="org.sih.itantra.SentenceFinalizerTest" time="0.001"/>
+  <testcase name="testEnglishFullStopFinalization" classname="org.sih.itantra.SentenceFinalizerTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

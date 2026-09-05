@@ -1,0 +1,5 @@
+﻿<resources>
+    <string name="app_name">iTantra</string>
+    <string name="ptt_button_idle">PUSH TO TALK</string>
+    <string name="ptt_button_active">TRANSMITTING…</string>
+</resources>
