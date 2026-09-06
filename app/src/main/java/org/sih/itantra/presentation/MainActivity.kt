@@ -18,6 +18,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.core.content.ContextCompat
+import org.sih.itantra.core.common.IndicLanguage
 import org.sih.itantra.core.transport.TransportType
 import org.sih.itantra.presentation.screens.BenchmarkScreen
 import org.sih.itantra.presentation.screens.DiagnosticsScreen
@@ -99,6 +100,16 @@ class MainActivity : ComponentActivity() {
     private fun handleIntent(intent: Intent?) {
         val action = intent?.getStringExtra("action")
         val btAddr = intent?.getStringExtra("bt_address")
+        val langStr = intent?.getStringExtra("language") ?: intent?.getStringExtra("lang")
+        if (action == "set_language" || langStr != null) {
+            val targetLang = IndicLanguage.entries.firstOrNull {
+                it.isoCode.equals(langStr, ignoreCase = true) || it.name.equals(langStr, ignoreCase = true)
+            }
+            if (targetLang != null) {
+                viewModel.setLanguage(targetLang)
+            }
+        }
+
         when (action) {
             "listen_bt", "bt_listen", "set_transport_bt" -> {
                 viewModel.setTransport(TransportType.BLUETOOTH)

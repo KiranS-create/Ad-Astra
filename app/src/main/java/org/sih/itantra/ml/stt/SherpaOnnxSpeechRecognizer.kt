@@ -38,7 +38,10 @@ class SherpaOnnxSpeechRecognizer(
 ) : SpeechRecognizer {
 
     private val tag = "SherpaOnnxSTT"
-    private val recognizers = java.util.concurrent.ConcurrentHashMap<IndicLanguage, OfflineRecognizer>()
+    private val modelLock = Any()
+    private var activeLanguage: IndicLanguage? = null
+    private var activeRecognizer: OfflineRecognizer? = null
+
     private val _results = MutableSharedFlow<SpeechResult>(replay = 1, extraBufferCapacity = 16)
     override val results: SharedFlow<SpeechResult> = _results.asSharedFlow()
     private val isListening = AtomicBoolean(false)
@@ -48,9 +51,30 @@ class SherpaOnnxSpeechRecognizer(
         initEngine(IndicLanguage.HINDI)
     }
 
-    @Synchronized
-    fun getOrInitRecognizer(language: IndicLanguage): OfflineRecognizer? {
-        recognizers[language]?.let { return it }
+    fun getActiveLanguage(): IndicLanguage? = synchronized(modelLock) { activeLanguage }
+
+    fun getOrInitRecognizer(language: IndicLanguage): OfflineRecognizer? = synchronized(modelLock) {
+        getOrInitRecognizerLocked(language)
+    }
+
+    private fun getOrInitRecognizerLocked(language: IndicLanguage): OfflineRecognizer? {
+        if (activeLanguage == language && activeRecognizer != null) {
+            return activeRecognizer
+        }
+
+        // Evict previous active model before initializing new one
+        if (activeRecognizer != null) {
+            Log.i(tag, "Evicting previous STT model (${activeLanguage?.displayName ?: "unknown"}) to maintain single-active resident model")
+            try {
+                activeRecognizer?.release()
+            } catch (e: Throwable) {
+                Log.w(tag, "Error releasing previous STT model", e)
+            } finally {
+                activeRecognizer = null
+                activeLanguage = null
+            }
+            System.gc()
+        }
 
         // 1. IndicConformer NeMo CTC for supported Indic languages (SOTA accuracy)
         if (language != IndicLanguage.ODIA && language != IndicLanguage.ENGLISH && modelAssetManager.isIndicConformerSttReady(language)) {
@@ -75,9 +99,10 @@ class SherpaOnnxSpeechRecognizer(
                     this.decodingMethod = "greedy_search"
                 }
                 val rec = OfflineRecognizer(assetManager = null, config = config)
-                recognizers[language] = rec
+                activeRecognizer = rec
+                activeLanguage = language
                 isInitialized = true
-                Log.i(tag, "Sherpa-ONNX IndicConformer NeMo CTC STT initialized successfully for ${language.displayName} (${language.isoCode})!")
+                Log.i(tag, "Sherpa-ONNX IndicConformer NeMo CTC STT initialized successfully for ${language.displayName} (${language.isoCode})! (single active model resident)")
                 return rec
             } catch (e: Throwable) {
                 Log.e(tag, "Failed to initialize IndicConformer CTC for ${language.displayName}, attempting Dolphin fallback", e)
@@ -108,9 +133,10 @@ class SherpaOnnxSpeechRecognizer(
                     this.decodingMethod = "greedy_search"
                 }
                 val rec = OfflineRecognizer(assetManager = null, config = config)
-                recognizers[language] = rec
+                activeRecognizer = rec
+                activeLanguage = language
                 isInitialized = true
-                Log.i(tag, "Sherpa-ONNX Dolphin CTC STT initialized successfully for ${language.displayName} (${language.isoCode})!")
+                Log.i(tag, "Sherpa-ONNX Dolphin CTC STT initialized successfully for ${language.displayName} (${language.isoCode})! (single active model resident)")
                 return rec
             } catch (e: Throwable) {
                 Log.e(tag, "Failed to initialize Dolphin CTC for ${language.displayName}, attempting Whisper fallback", e)
@@ -148,9 +174,10 @@ class SherpaOnnxSpeechRecognizer(
                 }
 
                 val rec = OfflineRecognizer(assetManager = null, config = config)
-                recognizers[language] = rec
+                activeRecognizer = rec
+                activeLanguage = language
                 isInitialized = true
-                Log.i(tag, "Sherpa-ONNX Whisper STT initialized successfully for ${language.displayName} (${language.isoCode})!")
+                Log.i(tag, "Sherpa-ONNX Whisper STT initialized successfully for ${language.displayName} (${language.isoCode})! (single active model resident)")
                 return rec
             } catch (e: Throwable) {
                 Log.e(tag, "Failed to initialize Whisper STT for ${language.displayName}", e)
@@ -161,14 +188,19 @@ class SherpaOnnxSpeechRecognizer(
         return null
     }
 
-    @Synchronized
-    fun initEngine(language: IndicLanguage = IndicLanguage.HINDI): Boolean {
-        return getOrInitRecognizer(language) != null
+    fun initEngine(language: IndicLanguage = IndicLanguage.HINDI): Boolean = synchronized(modelLock) {
+        getOrInitRecognizerLocked(language) != null
+    }
+
+    override fun prepareLanguage(language: IndicLanguage) {
+        initEngine(language)
     }
 
     override suspend fun processAudioSegment(pcmBytes: ByteArray, language: IndicLanguage): SpeechResult =
         withContext(dispatcher) {
-            val currentRecognizer = getOrInitRecognizer(language) ?: getOrInitRecognizer(IndicLanguage.HINDI)
+            val currentRecognizer = synchronized(modelLock) {
+                getOrInitRecognizerLocked(language) ?: getOrInitRecognizerLocked(IndicLanguage.HINDI)
+            }
             if (currentRecognizer == null || pcmBytes.isEmpty()) {
                 Log.w(tag, "Recognizer not initialized or audio empty")
                 return@withContext SpeechResult(text = "", isFinal = true, language = language)
@@ -208,12 +240,26 @@ class SherpaOnnxSpeechRecognizer(
                     samples[padSamples + i] = (rawSamples[i] * gain).coerceIn(-1.0f, 1.0f)
                 }
 
-                val stream = currentRecognizer.createStream()
-                stream.acceptWaveform(samples, 16000)
-                currentRecognizer.decode(stream)
-                val rawResult = currentRecognizer.getResult(stream)
-                val rawText = rawResult.text.trim()
-                stream.release()
+                val rawText = synchronized(modelLock) {
+                    val active = activeRecognizer
+                    if (active == null) {
+                        ""
+                    } else {
+                        val stream = active.createStream()
+                        try {
+                            stream.acceptWaveform(samples, 16000)
+                            active.decode(stream)
+                            val rawResult = active.getResult(stream)
+                            rawResult.text.trim()
+                        } finally {
+                            try {
+                                stream.release()
+                            } catch (e: Throwable) {
+                                Log.w(tag, "Error releasing STT stream", e)
+                            }
+                        }
+                    }
+                }
 
                 val finalText = SentenceFinalizer.finalizeSentence(rawText, language)
                 val result = SpeechResult(
@@ -239,14 +285,17 @@ class SherpaOnnxSpeechRecognizer(
     }
 
     override fun release() {
-        for ((_, rec) in recognizers) {
+        synchronized(modelLock) {
             try {
-                rec.release()
+                activeRecognizer?.release()
             } catch (e: Throwable) {
-                Log.w(tag, "Error releasing recognizer", e)
+                Log.w(tag, "Error releasing active STT recognizer", e)
+            } finally {
+                activeRecognizer = null
+                activeLanguage = null
+                isInitialized = false
             }
+            System.gc()
         }
-        recognizers.clear()
-        isInitialized = false
     }
 }

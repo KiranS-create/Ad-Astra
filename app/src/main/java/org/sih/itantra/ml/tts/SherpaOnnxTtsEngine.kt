@@ -36,7 +36,10 @@ class SherpaOnnxTtsEngine(
 ) : TextSynthesizer {
 
     private val tag = "SherpaOnnxTTS"
-    private val ttsEngines = java.util.concurrent.ConcurrentHashMap<IndicLanguage, OfflineTts>()
+    private val modelLock = Any()
+    private var activeLanguage: IndicLanguage? = null
+    private var activeTts: OfflineTts? = null
+
     private val _ttsState = MutableStateFlow(TtsState.IDLE)
     override val ttsState: StateFlow<TtsState> = _ttsState.asStateFlow()
     private val alertToneGenerator = AlertToneGenerator()
@@ -54,9 +57,30 @@ class SherpaOnnxTtsEngine(
         initEngine(IndicLanguage.HINDI)
     }
 
-    @Synchronized
-    fun getOrInitTts(language: IndicLanguage): OfflineTts? {
-        ttsEngines[language]?.let { return it }
+    fun getActiveLanguage(): IndicLanguage? = synchronized(modelLock) { activeLanguage }
+
+    fun getOrInitTts(language: IndicLanguage): OfflineTts? = synchronized(modelLock) {
+        getOrInitTtsLocked(language)
+    }
+
+    private fun getOrInitTtsLocked(language: IndicLanguage): OfflineTts? {
+        if (activeLanguage == language && activeTts != null) {
+            return activeTts
+        }
+
+        // Evict previous active model before initializing new one
+        if (activeTts != null) {
+            Log.i(tag, "Evicting previous TTS model (${activeLanguage?.displayName ?: "unknown"}) to maintain single-active resident model")
+            try {
+                activeTts?.release()
+            } catch (e: Throwable) {
+                Log.w(tag, "Error releasing previous TTS model", e)
+            } finally {
+                activeTts = null
+                activeLanguage = null
+            }
+            System.gc()
+        }
 
         val spec = when (language) {
             IndicLanguage.HINDI -> {
@@ -186,9 +210,10 @@ class SherpaOnnxTtsEngine(
             }
 
             val engine = OfflineTts(assetManager = null, config = ttsConfig)
-            ttsEngines[language] = engine
+            activeTts = engine
+            activeLanguage = language
             isInitialized = true
-            Log.i(tag, "Sherpa-ONNX VITS TTS initialized successfully for ${language.displayName}! SampleRate: ${engine.sampleRate()}")
+            Log.i(tag, "Sherpa-ONNX VITS TTS initialized successfully for ${language.displayName}! SampleRate: ${engine.sampleRate()} (single active model resident)")
             engine
         } catch (e: Throwable) {
             Log.e(tag, "Failed to initialize SherpaOnnxTtsEngine for ${language.displayName}", e)
@@ -196,18 +221,17 @@ class SherpaOnnxTtsEngine(
         }
     }
 
-    @Synchronized
-    fun initEngine(language: IndicLanguage = IndicLanguage.HINDI): Boolean {
-        return getOrInitTts(language) != null
+    fun initEngine(language: IndicLanguage = IndicLanguage.HINDI): Boolean = synchronized(modelLock) {
+        getOrInitTtsLocked(language) != null
+    }
+
+    override fun prepareLanguage(language: IndicLanguage) {
+        initEngine(language)
     }
 
     override suspend fun synthesize(text: String, language: IndicLanguage, isUrgent: Boolean): Boolean =
         withContext(dispatcher) {
-            val currentTts = getOrInitTts(language) ?: getOrInitTts(IndicLanguage.HINDI)
-            if (currentTts == null || text.isBlank()) {
-                Log.w(tag, "TTS engine not ready for ${language.displayName} or text blank")
-                return@withContext false
-            }
+            if (text.isBlank()) return@withContext false
 
             try {
                 if (isUrgent) {
@@ -217,7 +241,21 @@ class SherpaOnnxTtsEngine(
                 _ttsState.value = TtsState.SYNTHESIZING
                 Log.i(tag, "Synthesizing ${language.displayName} text: '$text'")
 
-                val audio: GeneratedAudio = currentTts.generate(text = text, sid = 0, speed = 1.0f)
+                val audio: GeneratedAudio? = synchronized(modelLock) {
+                    val currentTts = getOrInitTtsLocked(language) ?: getOrInitTtsLocked(IndicLanguage.HINDI)
+                    if (currentTts == null) {
+                        Log.w(tag, "TTS engine not ready for ${language.displayName}")
+                        null
+                    } else {
+                        currentTts.generate(text = text, sid = 0, speed = 1.0f)
+                    }
+                }
+
+                if (audio == null) {
+                    _ttsState.value = TtsState.IDLE
+                    return@withContext false
+                }
+
                 val samples = audio.samples
                 if (samples.isEmpty()) {
                     Log.w(tag, "TTS generated 0 samples for text: '$text'")
@@ -262,14 +300,17 @@ class SherpaOnnxTtsEngine(
 
     override fun release() {
         stop()
-        for ((_, engine) in ttsEngines) {
+        synchronized(modelLock) {
             try {
-                engine.release()
+                activeTts?.release()
             } catch (e: Throwable) {
-                Log.w(tag, "Error releasing TTS", e)
+                Log.w(tag, "Error releasing active TTS engine", e)
+            } finally {
+                activeTts = null
+                activeLanguage = null
+                isInitialized = false
             }
+            System.gc()
         }
-        ttsEngines.clear()
-        isInitialized = false
     }
 }

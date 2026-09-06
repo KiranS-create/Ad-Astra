@@ -128,6 +128,10 @@ class TransceiverCoordinator(
 
     fun setLanguage(language: IndicLanguage) {
         _activeLanguage.value = language
+        scope.launch {
+            stt.prepareLanguage(language)
+            tts.prepareLanguage(language)
+        }
     }
 
     fun setContinuousMode(enabled: Boolean) {

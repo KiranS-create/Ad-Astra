@@ -63,6 +63,12 @@ class NeuralTtsRouter(
         _ttsState.value = TtsState.IDLE
     }
 
+    override fun prepareLanguage(language: IndicLanguage) {
+        if (isNeuralTtsSupported(language)) {
+            sherpaTts.initEngine(language)
+        }
+    }
+
     override fun release() {
         sherpaTts.release()
         platformTts.release()

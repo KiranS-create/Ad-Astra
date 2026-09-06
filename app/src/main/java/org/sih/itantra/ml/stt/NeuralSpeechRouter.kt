@@ -71,6 +71,12 @@ class NeuralSpeechRouter(
         platformStt.stopListening()
     }
 
+    override fun prepareLanguage(language: IndicLanguage) {
+        if (isNeuralSttSupported(language)) {
+            sherpaStt.initEngine(language)
+        }
+    }
+
     override fun release() {
         sherpaStt.release()
         platformStt.release()
