@@ -454,6 +454,73 @@ fun DiagnosticsScreen(
 
         Spacer(modifier = Modifier.height(10.dp))
 
+        // 7. Tactical QoS & Queue Management Card
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(14.dp))
+                .background(radioColors.surface)
+                .border(
+                    1.dp,
+                    when (diag.congestionState) {
+                        "CONGESTED" -> radioColors.alert.copy(alpha = 0.8f)
+                        "BUSY" -> radioColors.warning.copy(alpha = 0.8f)
+                        else -> (if (radioColors.isDark) radioColors.sage else radioColors.forest).copy(alpha = 0.5f)
+                    },
+                    RoundedCornerShape(14.dp)
+                )
+                .padding(14.dp)
+        ) {
+            Column {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "TACTICAL QOS",
+                        color = radioColors.textPrimary,
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Bold,
+                        fontFamily = FontFamily.Monospace
+                    )
+                    val stateColor = when (diag.congestionState) {
+                        "CONGESTED" -> radioColors.alert
+                        "BUSY" -> radioColors.warning
+                        else -> radioColors.success
+                    }
+                    Box(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(4.dp))
+                            .background(stateColor.copy(alpha = 0.15f))
+                            .border(1.dp, stateColor.copy(alpha = 0.5f), RoundedCornerShape(4.dp))
+                            .padding(horizontal = 6.dp, vertical = 2.dp)
+                    ) {
+                        Text(
+                            text = diag.congestionState,
+                            color = stateColor,
+                            fontSize = 10.sp,
+                            fontWeight = FontWeight.Bold,
+                            fontFamily = FontFamily.Monospace
+                        )
+                    }
+                }
+                Spacer(modifier = Modifier.height(10.dp))
+                DiagnosticRow(label = "Priority Hierarchy", value = "DISTRESS > ALERT > IMPORTANT > NORMAL")
+                DiagnosticRow(label = "Outbound Queue", value = "${diag.queuedPackets} / ${diag.maxQueueCapacity}")
+                DiagnosticRow(
+                    label = "Queue Breakdown (D/A/I/N)",
+                    value = "${diag.queuedDistress} / ${diag.queuedAlert} / ${diag.queuedImportant} / ${diag.queuedNormal}"
+                )
+                DiagnosticRow(label = "Emergency Pre-emptions", value = "${diag.distressPreemptions}")
+                DiagnosticRow(label = "Normal Deferrals", value = "${diag.normalDeferrals}")
+                DiagnosticRow(label = "Starvation Rescues (5s)", value = "${diag.normalStarvationAvoidance}")
+                DiagnosticRow(label = "Queue Overflows / Evictions", value = "${diag.queueOverflows}")
+            }
+        }
+
+        Spacer(modifier = Modifier.height(10.dp))
+
         // MANET Topology & Simulation Demo button
         Row(
             modifier = Modifier

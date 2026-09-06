@@ -33,5 +33,6 @@ data class MessageRecord(
     val fragmentIndex: Int? = null,
     val deliveryLatencyMs: Long? = null,
     val isSecure: Boolean = false,
-    val authStatus: String? = null
+    val authStatus: String? = null,
+    val qosStatus: String? = null
 )

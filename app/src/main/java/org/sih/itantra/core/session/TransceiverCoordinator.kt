@@ -58,6 +58,8 @@ import org.sih.itantra.core.crypto.AntiReplayFilter
 import org.sih.itantra.core.crypto.AuthStatus
 import org.sih.itantra.core.crypto.NetworkKeyManager
 import org.sih.itantra.core.crypto.PacketAuthenticator
+import org.sih.itantra.core.qos.TacticalPacketScheduler
+import org.sih.itantra.core.qos.CongestionState
 import java.util.UUID
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -103,6 +105,19 @@ class TransceiverCoordinator(
         transportManager = transportManager,
         relayRouter      = relayRouter,
         scope            = scope
+    )
+
+    val qosScheduler = TacticalPacketScheduler(
+        maxCapacity = TacticalPacketScheduler.MAX_OUTBOUND_QUEUE,
+        starvationThresholdMs = TacticalPacketScheduler.DEFAULT_STARVATION_THRESHOLD_MS,
+        scope = scope,
+        transmitter = { packet ->
+            if (manetRouter.isEnabled.value) {
+                manetRouter.routeAndSend(packet)
+            } else {
+                transportManager.send(packet)
+            }
+        }
     )
 
     val fragmenter = PacketFragmenter(Packet.MAX_FRAGMENT_PAYLOAD)
@@ -355,8 +370,8 @@ class TransceiverCoordinator(
         var totalWireBytes = 0
 
         val sentSuccess = if (isFragmented) {
-            var allSent = true
             val key = NetworkKeyManager.getKey()
+            val signedPackets = ArrayList<Packet>(fragments.size)
             for (frag in fragments) {
                 val fragPacket = Packet(
                     version = Packet.PROTOCOL_VERSION,
@@ -375,8 +390,7 @@ class TransceiverCoordinator(
                     DiagnosticsRepository.recordAuthPacketSent(genNanos / 1000.0)
                     signed
                 } else fragPacket
-                val ok = transportManager.send(signedPacket)
-                allSent = allSent && ok
+                signedPackets.add(signedPacket)
                 totalWireBytes += PacketSerializer.serialize(signedPacket).size
             }
             pendingTransferTracker.registerTransfer(
@@ -393,7 +407,7 @@ class TransceiverCoordinator(
                 wireBytes = totalWireBytes,
                 transferId = transferId
             )
-            allSent
+            qosScheduler.sendBatch(signedPackets)
         } else {
             val key = NetworkKeyManager.getKey()
             val rawPacket = Packet(
@@ -414,9 +428,8 @@ class TransceiverCoordinator(
                 DiagnosticsRepository.recordAuthPacketSent(genNanos / 1000.0)
                 signed
             } else rawPacket
-            val ok = transportManager.send(signedPacket)
             totalWireBytes = PacketSerializer.serialize(signedPacket).size
-            ok
+            qosScheduler.send(signedPacket)
         }
 
         val tSendEnd = BenchmarkClock.nowNanos()
@@ -446,6 +459,13 @@ class TransceiverCoordinator(
         )
 
         val hasAuthKey = NetworkKeyManager.hasKey()
+        val cState = qosScheduler.getCongestionState()
+        val qosStatus = when {
+            cState == CongestionState.CONGESTED && effectivePriority == MessagePriority.NORMAL -> "DEFERRED — CONGESTION"
+            cState == CongestionState.BUSY && effectivePriority == MessagePriority.NORMAL -> "QUEUED"
+            else -> null
+        }
+
         MessageHistoryStore.addRecord(
             MessageRecord(
                 id = messageId,
@@ -465,7 +485,8 @@ class TransceiverCoordinator(
                 transferId = if (isFragmented) transferId else null,
                 fragmentCount = if (isFragmented) fragments.size else null,
                 isSecure = hasAuthKey,
-                authStatus = if (hasAuthKey) "AUTH ✓" else "UNVERIFIED"
+                authStatus = if (hasAuthKey) "AUTH ✓" else "UNVERIFIED",
+                qosStatus = qosStatus
             )
         )
 
@@ -518,8 +539,8 @@ class TransceiverCoordinator(
         val tSendStart = BenchmarkClock.nowNanos()
 
         val sentSuccess = if (isFragmented) {
-            var allSent = true
             val key = NetworkKeyManager.getKey()
+            val signedPackets = ArrayList<Packet>(fragments.size)
             for (frag in fragments) {
                 val fragPacket = Packet(
                     version = Packet.PROTOCOL_VERSION,
@@ -539,12 +560,7 @@ class TransceiverCoordinator(
                     DiagnosticsRepository.recordAuthPacketSent(genNanos / 1000.0)
                     signed
                 } else fragPacket
-                val ok = if (manetRouter.isEnabled.value) {
-                    manetRouter.routeAndSend(signedFragPacket)
-                } else {
-                    transportManager.send(signedFragPacket)
-                }
-                allSent = allSent && ok
+                signedPackets.add(signedFragPacket)
                 totalWireBytes += PacketSerializer.serialize(signedFragPacket).size
             }
             pendingTransferTracker.registerTransfer(
@@ -561,7 +577,7 @@ class TransceiverCoordinator(
                 wireBytes = totalWireBytes,
                 transferId = transferId
             )
-            allSent
+            qosScheduler.sendBatch(signedPackets)
         } else {
             val key = NetworkKeyManager.getKey()
             val rawPacket = Packet(
@@ -583,14 +599,9 @@ class TransceiverCoordinator(
                 DiagnosticsRepository.recordAuthPacketSent(genNanos / 1000.0)
                 signed
             } else rawPacket
-            val ok = if (manetRouter.isEnabled.value) {
-                manetRouter.routeAndSend(signedPacket)
-            } else {
-                transportManager.send(signedPacket)
-            }
             val serializedBytes = PacketSerializer.serialize(signedPacket)
             totalWireBytes = serializedBytes.size
-            ok
+            qosScheduler.send(signedPacket)
         }
 
         val tSendEnd = BenchmarkClock.nowNanos()
@@ -629,7 +640,8 @@ class TransceiverCoordinator(
                 transferId = if (isFragmented) transferId else null,
                 fragmentCount = if (isFragmented) fragments.size else null,
                 isSecure = hasAuthKey,
-                authStatus = if (hasAuthKey) "AUTH ✓" else "UNVERIFIED"
+                authStatus = if (hasAuthKey) "AUTH ✓" else "UNVERIFIED",
+                qosStatus = "PRIORITY 1"
             )
         )
 
@@ -800,12 +812,10 @@ class TransceiverCoordinator(
             } else ackPacket
             scope.launch {
                 try {
-                    if (manetRouter.isEnabled.value) {
-                        manetRouter.routeAndSend(signedAckPacket)
-                    } else {
-                        transportManager.send(signedAckPacket)
+                    val ok = qosScheduler.send(signedAckPacket)
+                    if (ok) {
+                        DiagnosticsRepository.recordDeliveryAckSent()
                     }
-                    DiagnosticsRepository.recordDeliveryAckSent()
                     Log.i(tag, "Sent DELIVERY_RECEIPT for transfer 0x${Integer.toHexString(result.transferId.toInt() and 0xFFFF)} to Node #${packet.sourceDeviceId}")
                 } catch (e: Exception) {
                     Log.e(tag, "Failed to send delivery receipt: ${e.message}", e)
@@ -838,12 +848,10 @@ class TransceiverCoordinator(
                 } else ackPacket
                 scope.launch {
                     try {
-                        if (manetRouter.isEnabled.value) {
-                            manetRouter.routeAndSend(signedAckPacket)
-                        } else {
-                            transportManager.send(signedAckPacket)
+                        val ok = qosScheduler.send(signedAckPacket)
+                        if (ok) {
+                            DiagnosticsRepository.recordDeliveryAckSent()
                         }
-                        DiagnosticsRepository.recordDeliveryAckSent()
                     } catch (e: Exception) {
                         Log.e(tag, "Failed to send unfragmented delivery receipt: ${e.message}", e)
                     }

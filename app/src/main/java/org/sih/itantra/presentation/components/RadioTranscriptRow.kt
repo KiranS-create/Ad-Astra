@@ -446,6 +446,50 @@ fun RadioTranscriptRow(
                             )
                         }
                     }
+
+                    // Tactical QoS Priority Badge
+                    val (pColor, pText) = when (record.priority) {
+                        MessagePriority.DISTRESS -> Pair(radioColors.alert, "DISTRESS P3")
+                        MessagePriority.ALERT -> Pair(radioColors.warning, "ALERT P2")
+                        MessagePriority.IMPORTANT -> Pair(Color(0xFF00E5FF), "IMPORTANT P1")
+                        MessagePriority.NORMAL -> Pair(radioColors.textTertiary, "NORMAL P0")
+                    }
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Box(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(4.dp))
+                            .background(pColor.copy(alpha = 0.12f))
+                            .border(1.dp, pColor.copy(alpha = 0.4f), RoundedCornerShape(4.dp))
+                            .padding(horizontal = 4.dp, vertical = 1.dp)
+                    ) {
+                        Text(
+                            text = pText,
+                            color = pColor,
+                            fontSize = 8.5.sp,
+                            fontWeight = FontWeight.Bold,
+                            fontFamily = FontFamily.Monospace
+                        )
+                    }
+
+                    // Tactical QoS Congestion / Status Badge
+                    if (!record.qosStatus.isNullOrEmpty()) {
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Box(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(4.dp))
+                                .background(radioColors.warning.copy(alpha = 0.15f))
+                                .border(1.dp, radioColors.warning.copy(alpha = 0.5f), RoundedCornerShape(4.dp))
+                                .padding(horizontal = 4.dp, vertical = 1.dp)
+                        ) {
+                            Text(
+                                text = record.qosStatus,
+                                color = radioColors.warning,
+                                fontSize = 8.5.sp,
+                                fontWeight = FontWeight.Bold,
+                                fontFamily = FontFamily.Monospace
+                            )
+                        }
+                    }
                 }
 
                 if (record.measuredLatencyMs > 0) {

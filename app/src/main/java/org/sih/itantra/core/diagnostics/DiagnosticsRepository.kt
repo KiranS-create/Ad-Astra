@@ -76,7 +76,22 @@ data class DiagnosticsState(
     val unknownKeyDrops: Long = 0L,
     val lastAuthGenMicros: Double? = null,
     val lastAuthVerifyMicros: Double? = null,
-    val authTagSizeBytes: Int = org.sih.itantra.core.protocol.Packet.AUTH_TAG_SIZE_BYTES
+    val authTagSizeBytes: Int = org.sih.itantra.core.protocol.Packet.AUTH_TAG_SIZE_BYTES,
+    // Tactical QoS & Transmission Queue telemetry
+    val queuedPackets: Int = 0,
+    val queuedDistress: Int = 0,
+    val queuedAlert: Int = 0,
+    val queuedImportant: Int = 0,
+    val queuedNormal: Int = 0,
+    val distressPreemptions: Long = 0L,
+    val normalDeferrals: Long = 0L,
+    val queueOverflows: Long = 0L,
+    val normalStarvationAvoidance: Long = 0L,
+    val congestionState: String = "NORMAL",
+    val oldestQueuedPacketAgeMs: Long = 0L,
+    val maxQueueCapacity: Int = 100,
+    val lastEvictedPriority: String? = null,
+    val lastOverflowReason: String? = null
 )
 
 object DiagnosticsRepository {
@@ -312,6 +327,57 @@ object DiagnosticsRepository {
         val current = _state.value
         _state.value = current.copy(
             unknownKeyDrops = current.unknownKeyDrops + 1
+        )
+    }
+
+    fun updateQosQueueState(
+        queuedTotal: Int,
+        qDistress: Int,
+        qAlert: Int,
+        qImportant: Int,
+        qNormal: Int,
+        congestionState: String,
+        oldestAgeMs: Long
+    ) {
+        val current = _state.value
+        _state.value = current.copy(
+            queuedPackets = queuedTotal,
+            queuedDistress = qDistress,
+            queuedAlert = qAlert,
+            queuedImportant = qImportant,
+            queuedNormal = qNormal,
+            congestionState = congestionState,
+            oldestQueuedPacketAgeMs = oldestAgeMs
+        )
+    }
+
+    fun recordDistressPreemption() {
+        val current = _state.value
+        _state.value = current.copy(
+            distressPreemptions = current.distressPreemptions + 1
+        )
+    }
+
+    fun recordNormalDeferral() {
+        val current = _state.value
+        _state.value = current.copy(
+            normalDeferrals = current.normalDeferrals + 1
+        )
+    }
+
+    fun recordQueueOverflow(reason: String, evictedPriority: org.sih.itantra.core.common.MessagePriority?) {
+        val current = _state.value
+        _state.value = current.copy(
+            queueOverflows = current.queueOverflows + 1,
+            lastOverflowReason = reason,
+            lastEvictedPriority = evictedPriority?.label
+        )
+    }
+
+    fun recordStarvationAvoidance() {
+        val current = _state.value
+        _state.value = current.copy(
+            normalStarvationAvoidance = current.normalStarvationAvoidance + 1
         )
     }
 }
