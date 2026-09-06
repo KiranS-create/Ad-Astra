@@ -40,6 +40,7 @@ import java.util.Locale
 fun DiagnosticsScreen(
     viewModel: TransceiverViewModel,
     onOpenModelAudit: () -> Unit = {},
+    onOpenManetDemo: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val radioColors = LocalRadioColors.current
@@ -302,6 +303,44 @@ fun DiagnosticsScreen(
                     text = "10 MODELS AUDIT",
                     color = radioColors.textPrimary,
                     fontSize = 11.sp,
+                    fontWeight = FontWeight.Bold,
+                    fontFamily = FontFamily.Monospace
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(10.dp))
+
+        // MANET Topology & Simulation Demo button
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(10.dp))
+                .background(radioColors.surface)
+                .border(1.dp, (if (radioColors.isDark) radioColors.sage else radioColors.forest).copy(alpha = 0.8f), RoundedCornerShape(10.dp))
+                .clickable { onOpenManetDemo() }
+                .padding(vertical = 12.dp, horizontal = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center
+        ) {
+            Text(
+                text = "MANET TOPOLOGY & ROUTING DEMO",
+                color = if (radioColors.isDark) radioColors.sage else radioColors.forest,
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Bold,
+                fontFamily = FontFamily.Monospace
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Box(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(4.dp))
+                    .background(radioColors.warning.copy(alpha = 0.2f))
+                    .padding(horizontal = 5.dp, vertical = 1.dp)
+            ) {
+                Text(
+                    text = "SIMULATION",
+                    color = radioColors.warning,
+                    fontSize = 9.sp,
                     fontWeight = FontWeight.Bold,
                     fontFamily = FontFamily.Monospace
                 )

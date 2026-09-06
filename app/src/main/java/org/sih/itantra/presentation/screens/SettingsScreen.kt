@@ -61,6 +61,7 @@ import org.sih.itantra.presentation.viewmodel.TransceiverViewModel
 fun SettingsScreen(
     viewModel: TransceiverViewModel,
     onOpenModelAudit: () -> Unit,
+    onOpenManetDemo: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val radioColors = LocalRadioColors.current
@@ -551,6 +552,45 @@ fun SettingsScreen(
                         fontSize = 10.sp,
                         fontFamily = FontFamily.Monospace
                     )
+                }
+
+                Spacer(modifier = Modifier.height(10.dp))
+                HorizontalDivider(color = radioColors.border.copy(alpha = 0.3f))
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(if (radioColors.isDark) radioColors.surfaceHighlight else radioColors.capsule)
+                        .border(1.dp, radioColors.border.copy(alpha = 0.5f), RoundedCornerShape(8.dp))
+                        .clickable { onOpenManetDemo() }
+                        .padding(vertical = 9.dp, horizontal = 10.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    Text(
+                        text = "OPEN TOPOLOGY DEMO & SIMULATOR",
+                        color = if (radioColors.isDark) radioColors.sage else radioColors.forest,
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold,
+                        fontFamily = FontFamily.Monospace
+                    )
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Box(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(3.dp))
+                            .background(radioColors.warning.copy(alpha = 0.2f))
+                            .padding(horizontal = 4.dp, vertical = 1.dp)
+                    ) {
+                        Text(
+                            text = "SIM",
+                            color = radioColors.warning,
+                            fontSize = 8.sp,
+                            fontWeight = FontWeight.Bold,
+                            fontFamily = FontFamily.Monospace
+                        )
+                    }
                 }
             }
         }

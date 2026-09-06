@@ -66,10 +66,20 @@ class MainActivity : ComponentActivity() {
                 ) {
                     var currentTab by remember { mutableStateOf(RadioNavTab.RADIO) }
                     var showModelAudit by remember { mutableStateOf(false) }
+                    var showManetDemo by remember { mutableStateOf(false) }
 
                     if (showModelAudit) {
                         ModelStatusScreen(
                             onBack = { showModelAudit = false },
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .statusBarsPadding()
+                                .navigationBarsPadding()
+                        )
+                    } else if (showManetDemo) {
+                        org.sih.itantra.presentation.screens.ManetDemoScreen(
+                            viewModel = viewModel,
+                            onBack = { showManetDemo = false },
                             modifier = Modifier
                                 .fillMaxSize()
                                 .statusBarsPadding()
@@ -95,11 +105,13 @@ class MainActivity : ComponentActivity() {
                                     )
                                     RadioNavTab.DIAGNOSTICS -> DiagnosticsScreen(
                                         viewModel = viewModel,
-                                        onOpenModelAudit = { showModelAudit = true }
+                                        onOpenModelAudit = { showModelAudit = true },
+                                        onOpenManetDemo = { showManetDemo = true }
                                     )
                                     RadioNavTab.SETTINGS -> SettingsScreen(
                                         viewModel = viewModel,
-                                        onOpenModelAudit = { showModelAudit = true }
+                                        onOpenModelAudit = { showModelAudit = true },
+                                        onOpenManetDemo = { showManetDemo = true }
                                     )
                                 }
                             }
@@ -145,6 +157,12 @@ class MainActivity : ComponentActivity() {
             }
             "send_test_packet" -> {
                 viewModel.testNeuralLoopback()
+            }
+            "start_node_mode" -> {
+                viewModel.startNodeMode()
+            }
+            "stop_node_mode" -> {
+                viewModel.stopNodeMode()
             }
             else -> {
                 if (btAddr != null) {

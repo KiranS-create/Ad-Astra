@@ -208,6 +208,21 @@ class TransceiverViewModel(application: Application) : AndroidViewModel(applicat
     }
 
     // -------------------------------------------------------------------------
+    // MANET Simulation / Demo Engine
+    // -------------------------------------------------------------------------
+
+    val manetSimulator = org.sih.itantra.core.mesh.ManetSimulator()
+    val topologyState = manetSimulator.topologyState
+
+    fun simStartDiscovery() = manetSimulator.startDiscovery()
+    fun simSendPacketAtoC(msg: String = "iTantra Voice Packet (Compressed INT8)") = manetSimulator.sendPacketAtoC(msg)
+    fun simFailNodeB() = manetSimulator.failNodeB()
+    fun simTriggerFailureAndRediscovery() = manetSimulator.triggerFailureAndRediscovery()
+    fun simRepairNodeB() = manetSimulator.repairNodeB()
+    fun simResetTopology() = manetSimulator.resetTopology()
+    fun simSelectPacket(packet: org.sih.itantra.core.protocol.Packet?) = manetSimulator.selectPacket(packet)
+
+    // -------------------------------------------------------------------------
     // Init
     // -------------------------------------------------------------------------
 
