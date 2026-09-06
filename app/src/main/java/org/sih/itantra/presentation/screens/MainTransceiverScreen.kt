@@ -100,7 +100,7 @@ fun MainTransceiverScreen(
         modifier = modifier
             .fillMaxSize()
             .background(radioColors.background)
-            .padding(horizontal = 16.dp, vertical = 12.dp),
+            .padding(horizontal = 16.dp, vertical = 8.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         // 1. Top Telemetry Header & Status Capsule
@@ -123,7 +123,7 @@ fun MainTransceiverScreen(
             }
         )
 
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(6.dp))
 
         // 2. Language Selector Pill (Dropdown opening 10 Indic languages + AUTO)
         LanguageSelectorPill(
@@ -131,15 +131,7 @@ fun MainTransceiverScreen(
             onModeSelected = { viewModel.setLanguageMode(it) }
         )
 
-        Spacer(modifier = Modifier.height(10.dp))
-
-        // 3. Audio Activity Oscilloscope Spectrum
-        WaveformVisualizer(
-            pttState = pttState,
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(6.dp))
 
         // 4. Live Speech / Transmission Ticker
         if (lastTranscribed.isNotBlank()) {
@@ -233,19 +225,21 @@ fun MainTransceiverScreen(
                 ) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(
-                            text = "CH-1 IDLE // READY FOR TRANSMISSION",
+                            text = "NO RADIO MESSAGES RECEIVED YET",
                             color = radioColors.textTertiary,
                             fontSize = 11.sp,
                             fontWeight = FontWeight.Bold,
                             fontFamily = FontFamily.Monospace,
-                            letterSpacing = 0.5.sp
+                            letterSpacing = 0.5.sp,
+                            textAlign = androidx.compose.ui.text.style.TextAlign.Center
                         )
-                        Spacer(modifier = Modifier.height(2.dp))
+                        Spacer(modifier = Modifier.height(4.dp))
                         Text(
-                            text = if (activeTransport == TransportType.BLUETOOTH) "Bluetooth Classic RFCOMM Active" else "Wi-Fi Multicast 224.0.0.251 Active",
+                            text = "Hold PTT or send a test packet to transmit",
                             color = radioColors.textTertiary,
                             fontSize = 10.sp,
-                            fontFamily = FontFamily.Monospace
+                            fontFamily = FontFamily.Monospace,
+                            textAlign = androidx.compose.ui.text.style.TextAlign.Center
                         )
                     }
                 }
@@ -263,7 +257,7 @@ fun MainTransceiverScreen(
             }
         }
 
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(6.dp))
 
         // 6. Central Large Circular PTT Control
         RadioPttControl(
@@ -273,7 +267,7 @@ fun MainTransceiverScreen(
             onPressRelease = { viewModel.stopPtt() }
         )
 
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(6.dp))
 
         // Emergency Distress Status Ticker (if active)
         distressStatus?.let { status ->
@@ -412,7 +406,7 @@ fun MainTransceiverScreen(
             }
         }
 
-        Spacer(modifier = Modifier.height(6.dp))
+        Spacer(modifier = Modifier.height(4.dp))
 
         // 8. Voice Control Status Card (compact, always visible)
         Box(

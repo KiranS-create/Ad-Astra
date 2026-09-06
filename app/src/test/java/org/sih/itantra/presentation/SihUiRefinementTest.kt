@@ -269,7 +269,6 @@ class SihUiRefinementTest {
         val radioScreenFile = File("src/main/java/org/sih/itantra/presentation/screens/MainTransceiverScreen.kt")
         val content = radioScreenFile.readText()
 
-        // Find positions of the three controls in the tactical controls row
         val rowStart = content.indexOf("Tactical Controls Row: WALKIE PTT -> SEND DISTRESS -> TEST PACKET")
         assertTrue("Tactical controls row header comment must exist", rowStart >= 0)
 
@@ -282,7 +281,6 @@ class SihUiRefinementTest {
         assertTrue("SEND DISTRESS must be present in tactical controls row", posSendDistress >= 0)
         assertTrue("TEST PACKET must be present in tactical controls row", posTestPacket >= 0)
 
-        // Critical requirement: WALKIE PTT -> SEND DISTRESS -> TEST PACKET
         assertTrue(
             "SEND DISTRESS must be physically between WALKIE PTT and TEST PACKET",
             posWalkiePtt < posSendDistress && posSendDistress < posTestPacket
@@ -318,5 +316,87 @@ class SihUiRefinementTest {
         assertTrue("Voice control status label must be observed", content.contains("voiceCommandStatusLabel"))
         assertTrue("Voice command confirmation buttons must be present", content.contains("viewModel.confirmVoiceCommand()"))
         assertTrue("Voice command rejection button must be present", content.contains("viewModel.rejectVoiceCommand()"))
+    }
+
+    // =========================================================================
+    // D. Radio Traffic Final — Separator Removal & Enlarged Traffic Area
+    // =========================================================================
+
+    @Test
+    fun testNoDottedSeparatorWaveformInRadioScreen() {
+        val radioScreenFile = File("src/main/java/org/sih/itantra/presentation/screens/MainTransceiverScreen.kt")
+        assertTrue("MainTransceiverScreen.kt must exist", radioScreenFile.exists())
+        val content = radioScreenFile.readText()
+
+        // WaveformVisualizer must NOT be rendered in the main radio screen layout
+        assertFalse(
+            "WaveformVisualizer must be removed from MainTransceiverScreen (it was the dotted separator)",
+            content.contains("WaveformVisualizer(")
+        )
+        // No HorizontalDivider or dashed path effects either
+        assertFalse(
+            "No HorizontalDivider should be present as a separator between language selector and traffic",
+            content.contains("HorizontalDivider(")
+        )
+    }
+
+    @Test
+    fun testLiveRadioTrafficUsesWeightModifier() {
+        val radioScreenFile = File("src/main/java/org/sih/itantra/presentation/screens/MainTransceiverScreen.kt")
+        val content = radioScreenFile.readText()
+
+        // The LIVE RADIO TRAFFIC column must use weight(1f) so it expands to fill available space
+        val trafficSection = content.substringAfter("LIVE RADIO TRAFFIC").substringBefore("Central Large Circular PTT")
+        assertTrue(
+            "LIVE RADIO TRAFFIC section must use Modifier.weight(1f) to fill remaining space",
+            trafficSection.contains("weight(1f)")
+        )
+    }
+
+    @Test
+    fun testEmptyStateShowsNewMessageText() {
+        val radioScreenFile = File("src/main/java/org/sih/itantra/presentation/screens/MainTransceiverScreen.kt")
+        val content = radioScreenFile.readText()
+
+        // New user-friendly empty state text per PART 9
+        assertTrue(
+            "Empty state must show 'NO RADIO MESSAGES RECEIVED YET'",
+            content.contains("NO RADIO MESSAGES RECEIVED YET")
+        )
+        assertTrue(
+            "Empty state must show PTT instruction",
+            content.contains("Hold PTT or send a test packet to transmit")
+        )
+        // Old cryptic text must be gone
+        assertFalse(
+            "Old 'CH-1 IDLE // READY FOR TRANSMISSION' text must be removed",
+            content.contains("CH-1 IDLE // READY FOR TRANSMISSION")
+        )
+    }
+
+    @Test
+    fun testHistoryLazyColumnStillPresent() {
+        val radioScreenFile = File("src/main/java/org/sih/itantra/presentation/screens/MainTransceiverScreen.kt")
+        val content = radioScreenFile.readText()
+
+        // LazyColumn with items(history) must remain — no separate data source
+        assertTrue("LazyColumn must still render items from history", content.contains("items(history)"))
+        assertFalse("history.take() must not be used to cap messages", content.contains("history.take("))
+    }
+
+    @Test
+    fun testSihDemoAccessibleFromSettingsNotRadio() {
+        val radioScreenFile = File("src/main/java/org/sih/itantra/presentation/screens/MainTransceiverScreen.kt")
+        val radioContent = radioScreenFile.readText()
+        val settingsFile = File("src/main/java/org/sih/itantra/presentation/screens/SettingsScreen.kt")
+        val settingsContent = settingsFile.readText()
+
+        // Confirm SIH Demo is NOT on Radio screen
+        assertFalse("Radio screen must not reference onOpenSihDemo", radioContent.contains("onOpenSihDemo"))
+        assertFalse("Radio screen must not show ⚡ SIH DEMO MODE banner", radioContent.contains("⚡ SIH DEMO MODE"))
+
+        // Confirm SIH Demo IS accessible from Settings
+        assertTrue("Settings must have onOpenSihDemo callback", settingsContent.contains("onOpenSihDemo"))
+        assertTrue("Settings must contain OPEN SIH DEMO action", settingsContent.contains("OPEN SIH DEMO"))
     }
 }
