@@ -72,6 +72,7 @@ fun MainTransceiverScreen(
     val languageState by viewModel.languageState.collectAsState()
     val history by viewModel.messageHistory.collectAsState()
     val lastTranscribed by viewModel.lastTranscribedText.collectAsState()
+    val isRelayEnabled by viewModel.isRelayEnabled.collectAsState()
 
     var showBtSheet by remember { mutableStateOf(false) }
     val btSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
@@ -88,6 +89,7 @@ fun MainTransceiverScreen(
             activeTransport = activeTransport,
             bluetoothState = btState,
             voiceStatus = voiceStatus,
+            isRelayEnabled = isRelayEnabled,
             onOpenSettings = onNavigateToSettings,
             onBluetoothClick = {
                 viewModel.setTransport(TransportType.BLUETOOTH)

@@ -1,4 +1,4 @@
-﻿package org.sih.itantra.core.persistence
+package org.sih.itantra.core.persistence
 
 import org.sih.itantra.core.common.IndicLanguage
 import org.sih.itantra.core.common.MessagePriority
@@ -18,5 +18,7 @@ data class MessageRecord(
     val peer: String,
     val packetSizeBytes: Int,
     val rawAudioEquivalentBytes: Long,
-    val measuredLatencyMs: Double
+    val measuredLatencyMs: Double,
+    val isRelayed: Boolean = false,
+    val hopCount: Int = 0
 )

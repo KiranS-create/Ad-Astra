@@ -1,4 +1,4 @@
-﻿package org.sih.itantra.core.protocol
+package org.sih.itantra.core.protocol
 
 import org.sih.itantra.core.common.IndicLanguage
 import org.sih.itantra.core.common.MessagePriority
@@ -22,6 +22,7 @@ object PacketSerializer {
         buffer.put(packet.version)
         buffer.put(packet.msgType)
         buffer.put(packet.priority.id)
+        buffer.put(packet.ttl)
         buffer.put(packet.flags)
         buffer.putShort(packet.sequenceNumber)
         buffer.putLong(packet.timestamp)
@@ -58,6 +59,7 @@ object PacketSerializer {
 
         val msgType = buffer.get()
         val priorityId = buffer.get()
+        val ttl = buffer.get()
         val flags = buffer.get()
         val seqNum = buffer.short
         val timestamp = buffer.long
@@ -88,6 +90,7 @@ object PacketSerializer {
             version = version,
             msgType = msgType,
             priority = MessagePriority.fromId(priorityId),
+            ttl = ttl,
             flags = flags,
             sequenceNumber = seqNum,
             timestamp = timestamp,

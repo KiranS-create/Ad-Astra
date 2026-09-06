@@ -61,6 +61,10 @@ android {
     androidResources {
         noCompress += listOf("onnx", "bin", "fst", "json", "txt", "dict", "data")
     }
+
+    testOptions {
+        unitTests.isReturnDefaultValues = true
+    }
 }
 
 dependencies {

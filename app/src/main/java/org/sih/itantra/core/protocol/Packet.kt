@@ -1,4 +1,4 @@
-﻿package org.sih.itantra.core.protocol
+package org.sih.itantra.core.protocol
 
 import org.sih.itantra.core.common.IndicLanguage
 import org.sih.itantra.core.common.MessagePriority
@@ -8,6 +8,7 @@ data class Packet(
     val version: Byte = PROTOCOL_VERSION,
     val msgType: Byte = TYPE_TEXT,
     val priority: MessagePriority = MessagePriority.NORMAL,
+    val ttl: Byte = DEFAULT_TTL,
     val flags: Byte = 0,
     val sequenceNumber: Short,
     val timestamp: Long,
@@ -25,6 +26,9 @@ data class Packet(
 
     val isFragmented: Boolean
         get() = (flags.toInt() and FLAG_FRAGMENTED) != 0
+
+    val isForwarded: Boolean
+        get() = (flags.toInt() and FLAG_FORWARDED) != 0 || ttl < DEFAULT_TTL
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -60,10 +64,13 @@ data class Packet(
         const val FLAG_COMPRESSED: Int = 1 shl 0
         const val FLAG_FRAGMENTED: Int = 1 shl 1
         const val FLAG_REQUIRES_ACK: Int = 1 shl 2
+        const val FLAG_FORWARDED: Int = 1 shl 3
+
+        const val DEFAULT_TTL: Byte = 3
 
         const val BROADCAST_ID: Int = -1 // 0xFFFFFFFF
-        const val HEADER_SIZE_BYTES = 27
+        const val HEADER_SIZE_BYTES = 28
         const val CRC_SIZE_BYTES = 4
-        const val MIN_PACKET_SIZE = HEADER_SIZE_BYTES + CRC_SIZE_BYTES // 31 bytes
+        const val MIN_PACKET_SIZE = HEADER_SIZE_BYTES + CRC_SIZE_BYTES // 32 bytes
     }
 }

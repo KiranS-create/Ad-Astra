@@ -33,6 +33,8 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -327,7 +329,114 @@ fun SettingsScreen(
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // 4. EMERGENCY DISTRESS SYSTEM (matching mockup specs)
+        // 4. MESH RELAY & HOP FORWARDING
+        SectionHeader(title = "MESH RELAY & HOP FORWARDING")
+        Spacer(modifier = Modifier.height(8.dp))
+
+        val isRelayEnabled by viewModel.isRelayEnabled.collectAsState()
+        val diagState by viewModel.diagnosticsState.collectAsState()
+
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(12.dp))
+                .background(radioColors.surface)
+                .border(
+                    1.dp,
+                    if (isRelayEnabled) (if (radioColors.isDark) radioColors.sage else radioColors.forest)
+                    else radioColors.border.copy(alpha = 0.5f),
+                    RoundedCornerShape(12.dp)
+                )
+                .padding(14.dp)
+        ) {
+            Column(modifier = Modifier.fillMaxWidth()) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(
+                                text = "Autonomous Mesh Relay",
+                                color = radioColors.textPrimary,
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Box(
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(4.dp))
+                                    .background(
+                                        if (isRelayEnabled) radioColors.success.copy(alpha = 0.15f)
+                                        else radioColors.capsule
+                                    )
+                                    .padding(horizontal = 6.dp, vertical = 2.dp)
+                            ) {
+                                Text(
+                                    text = if (isRelayEnabled) "ACTIVE" else "STANDBY",
+                                    color = if (isRelayEnabled) radioColors.success else radioColors.textTertiary,
+                                    fontSize = 9.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    fontFamily = FontFamily.Monospace
+                                )
+                            }
+                        }
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = "Forward received radio packets to out-of-range nodes with TTL decrement and duplicate loop suppression.",
+                            color = radioColors.textSecondary,
+                            fontSize = 11.sp,
+                            lineHeight = 15.sp
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.width(12.dp))
+
+                    Switch(
+                        checked = isRelayEnabled,
+                        onCheckedChange = { viewModel.setRelayEnabled(it) },
+                        colors = SwitchDefaults.colors(
+                            checkedThumbColor = Color.White,
+                            checkedTrackColor = if (radioColors.isDark) radioColors.sage else radioColors.forest
+                        )
+                    )
+                }
+
+                if (isRelayEnabled) {
+                    Spacer(modifier = Modifier.height(10.dp))
+                    HorizontalDivider(color = radioColors.border.copy(alpha = 0.3f))
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(
+                            text = "Relayed: ${diagState.packetsRelayed}",
+                            color = radioColors.textSecondary,
+                            fontSize = 11.sp,
+                            fontFamily = FontFamily.Monospace
+                        )
+                        Text(
+                            text = "Dup Dropped: ${diagState.relayDuplicatesDropped}",
+                            color = radioColors.textSecondary,
+                            fontSize = 11.sp,
+                            fontFamily = FontFamily.Monospace
+                        )
+                        Text(
+                            text = "TTL=0 Dropped: ${diagState.relayTtlExpired}",
+                            color = radioColors.textSecondary,
+                            fontSize = 11.sp,
+                            fontFamily = FontFamily.Monospace
+                        )
+                    }
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        // 5. EMERGENCY DISTRESS SYSTEM (matching mockup specs)
         SectionHeader(title = "EMERGENCY & DISTRESS")
         Spacer(modifier = Modifier.height(8.dp))
 

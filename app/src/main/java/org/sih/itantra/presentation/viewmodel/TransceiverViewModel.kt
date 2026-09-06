@@ -48,6 +48,11 @@ class TransceiverViewModel(application: Application) : AndroidViewModel(applicat
 
     val messageHistory: StateFlow<List<MessageRecord>> = MessageHistoryStore.historyFlow
     val diagnosticsState: StateFlow<DiagnosticsState> = DiagnosticsRepository.state
+    val isRelayEnabled: StateFlow<Boolean> = coordinator.relayRouter.isRelayEnabled
+
+    fun setRelayEnabled(enabled: Boolean) {
+        coordinator.relayRouter.setRelayEnabled(enabled)
+    }
 
     private val _themeMode = MutableStateFlow(org.sih.itantra.presentation.theme.AppThemeMode.SYSTEM)
     val themeMode: StateFlow<org.sih.itantra.presentation.theme.AppThemeMode> = _themeMode.asStateFlow()

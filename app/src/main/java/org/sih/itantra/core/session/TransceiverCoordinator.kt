@@ -39,6 +39,8 @@ import org.sih.itantra.core.vad.VadState
 import org.sih.itantra.ml.model.ModelAssetManager
 import org.sih.itantra.ml.stt.NeuralSpeechRouter
 import org.sih.itantra.ml.tts.NeuralTtsRouter
+import org.sih.itantra.core.mesh.PacketRelayRouter
+import org.sih.itantra.core.mesh.RelayAction
 import java.util.UUID
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -63,6 +65,7 @@ class TransceiverCoordinator(
     val stateMachine = PttStateMachine()
     private val sequenceCounter = AtomicInteger(1)
     private val localDeviceId: Int = (Math.random() * 900000 + 100000).toInt()
+    val relayRouter = PacketRelayRouter(localDeviceId)
 
     private val _activeLanguage = MutableStateFlow(IndicLanguage.HINDI)
     val activeLanguage: StateFlow<IndicLanguage> = _activeLanguage.asStateFlow()
@@ -342,12 +345,37 @@ class TransceiverCoordinator(
     }
 
     /**
-     * Incoming Pipeline: Transport -> Protocol Decode -> TTS Synthesize -> Playback
+     * Incoming Pipeline: Transport -> Mesh Relay / Protocol Decode -> TTS Synthesize -> Playback
      */
     private suspend fun handleIncomingPacket(packet: Packet) {
-        // Drop self-broadcast packets to prevent transmitter from playing its own speech
-        if (packet.sourceDeviceId == localDeviceId) {
-            return
+        val decision = relayRouter.evaluatePacket(packet)
+        when (decision) {
+            is RelayAction.DropSelf -> {
+                return
+            }
+            is RelayAction.DropDuplicate -> {
+                DiagnosticsRepository.recordRelayDuplicateDrop()
+                return
+            }
+            is RelayAction.ForwardAndDeliver -> {
+                DiagnosticsRepository.recordRelayForward()
+                // Asynchronously forward the packet to the next hop over active transport
+                scope.launch {
+                    try {
+                        transportManager.send(decision.forwardedPacket)
+                        Log.i(tag, "Relayed packet forwarded: seq=${decision.forwardedPacket.sequenceNumber}, ttl=${decision.forwardedPacket.ttl}")
+                    } catch (e: Exception) {
+                        Log.e(tag, "Failed to relay forwarded packet: ${e.message}", e)
+                    }
+                }
+                // Proceed to local playback and transcript
+            }
+            is RelayAction.DeliverLocalOnly -> {
+                if (packet.ttl <= 1) {
+                    DiagnosticsRepository.recordRelayTtlExpired()
+                }
+                // Proceed to local playback and transcript
+            }
         }
 
         val tRx = BenchmarkClock.nowNanos()
@@ -373,6 +401,13 @@ class TransceiverCoordinator(
         val ttsLatencyMs = BenchmarkClock.elapsedMs(tTtsStart, tTtsEnd)
         DiagnosticsRepository.recordReception(packet.payload.size + Packet.HEADER_SIZE_BYTES + Packet.CRC_SIZE_BYTES)
 
+        val hopCount = (Packet.DEFAULT_TTL - packet.ttl).coerceAtLeast(0)
+        val peerLabel = if (packet.isForwarded || hopCount > 0) {
+            "Node #${packet.sourceDeviceId} [HOP $hopCount]"
+        } else {
+            "Node #${packet.sourceDeviceId}"
+        }
+
         MessageHistoryStore.addRecord(
             MessageRecord(
                 id = UUID.randomUUID().toString(),
@@ -381,14 +416,16 @@ class TransceiverCoordinator(
                 language = packet.language,
                 priority = packet.priority,
                 text = text,
-                peer = "Node #${packet.sourceDeviceId}",
+                peer = peerLabel,
                 packetSizeBytes = packet.payload.size + Packet.MIN_PACKET_SIZE,
                 rawAudioEquivalentBytes = 0L,
-                measuredLatencyMs = ttsLatencyMs
+                measuredLatencyMs = ttsLatencyMs,
+                isRelayed = packet.isForwarded || hopCount > 0,
+                hopCount = hopCount
             )
         )
 
-        Log.i(tag, "Received '${text}' (${packet.language}) from Node #${packet.sourceDeviceId} (Priority: ${packet.priority})")
+        Log.i(tag, "Received '${text}' (${packet.language}) from Node #${packet.sourceDeviceId} (Priority: ${packet.priority}, Relayed=${packet.isForwarded}, Hop=$hopCount)")
 
         if (_isContinuousMode.value) {
             stateMachine.transitionTo(PttState.RECORDING)

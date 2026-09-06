@@ -13,7 +13,10 @@ data class DiagnosticsState(
     val lastBandwidth: BandwidthMetrics = BandwidthMetrics(),
     val overallSavingsPercent: Double? = null,
     val activeSoC: String = "ARM64-v8a",
-    val ramUsageMb: Float = ((Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) / (1024f * 1024f))
+    val ramUsageMb: Float = ((Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) / (1024f * 1024f)),
+    val packetsRelayed: Long = 0L,
+    val relayDuplicatesDropped: Long = 0L,
+    val relayTtlExpired: Long = 0L
 )
 
 object DiagnosticsRepository {
@@ -47,6 +50,27 @@ object DiagnosticsRepository {
         val current = _state.value
         _state.value = current.copy(
             packetsReceived = current.packetsReceived + 1
+        )
+    }
+
+    fun recordRelayForward() {
+        val current = _state.value
+        _state.value = current.copy(
+            packetsRelayed = current.packetsRelayed + 1
+        )
+    }
+
+    fun recordRelayDuplicateDrop() {
+        val current = _state.value
+        _state.value = current.copy(
+            relayDuplicatesDropped = current.relayDuplicatesDropped + 1
+        )
+    }
+
+    fun recordRelayTtlExpired() {
+        val current = _state.value
+        _state.value = current.copy(
+            relayTtlExpired = current.relayTtlExpired + 1
         )
     }
 }

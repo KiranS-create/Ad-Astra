@@ -44,6 +44,7 @@ fun TopRadioHeader(
     activeTransport: TransportType,
     bluetoothState: TransportState,
     voiceStatus: org.sih.itantra.presentation.viewmodel.VoiceEngineStatus,
+    isRelayEnabled: Boolean = false,
     onOpenSettings: () -> Unit,
     onBluetoothClick: () -> Unit,
     onWifiClick: () -> Unit,
@@ -192,8 +193,8 @@ fun TopRadioHeader(
                     )
                     Spacer(modifier = Modifier.width(5.dp))
                     androidx.compose.material3.Text(
-                        text = "CH-1",
-                        color = radioColors.textSecondary,
+                        text = if (isRelayEnabled) "CH-1 • RELAY" else "CH-1",
+                        color = if (isRelayEnabled) (if (radioColors.isDark) radioColors.sage else radioColors.forest) else radioColors.textSecondary,
                         fontSize = 11.sp,
                         fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
                         fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace
