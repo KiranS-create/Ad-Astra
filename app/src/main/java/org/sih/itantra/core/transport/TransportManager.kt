@@ -1,4 +1,4 @@
-﻿package org.sih.itantra.core.transport
+package org.sih.itantra.core.transport
 
 import android.content.Context
 import kotlinx.coroutines.CoroutineScope
@@ -70,5 +70,13 @@ class TransportManager(
 
     suspend fun stop() {
         _activeTransport.value.stop()
+    }
+
+    suspend fun connectBluetooth(targetAddress: String? = null): Boolean {
+        return bluetoothTransport.connectToBondedPeer(targetAddress)
+    }
+
+    fun getBondedBluetoothDevices(): List<PeerDevice> {
+        return bluetoothTransport.getBondedDevices()
     }
 }

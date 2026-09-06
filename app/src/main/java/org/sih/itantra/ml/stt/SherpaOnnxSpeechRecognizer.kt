@@ -174,6 +174,11 @@ class SherpaOnnxSpeechRecognizer(
                 return@withContext SpeechResult(text = "", isFinal = true, language = language)
             }
 
+            // MEASUREMENT INSTRUMENTATION (timing only — no behavior change):
+            // This log fires on the inference dispatcher thread immediately before STT inference begins.
+            // logcat -v epoch timestamp here = t_stt_input_ready = true speech-end anchor.
+            Log.i(tag, "STT input ready: ${pcmBytes.size / 2} samples (${language.displayName})")
+
             try {
                 // Convert 16-bit Mono PCM bytes (16kHz, little-endian) to FloatArray normalized [-1.0, 1.0]
                 val numSamples = pcmBytes.size / 2

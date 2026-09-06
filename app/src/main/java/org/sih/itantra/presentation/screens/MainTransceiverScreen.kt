@@ -176,6 +176,94 @@ fun MainTransceiverScreen(
             }
         }
 
+        if (activeTransport == TransportType.BLUETOOTH) {
+            Spacer(modifier = Modifier.height(6.dp))
+            val btState by viewModel.bluetoothTransportState.collectAsState()
+            val bondedPeers by viewModel.bondedBluetoothDevices.collectAsState()
+
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(TacticalSurface, RoundedCornerShape(6.dp))
+                    .border(1.dp, TacticalBorder, RoundedCornerShape(6.dp))
+                    .padding(8.dp)
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "BT SPP: $btState",
+                        color = when (btState) {
+                            org.sih.itantra.core.transport.TransportState.CONNECTED -> RadarGreen
+                            org.sih.itantra.core.transport.TransportState.CONNECTING -> SignalBlue
+                            org.sih.itantra.core.transport.TransportState.LISTENING -> TextSecondary
+                            else -> DistressRed
+                        },
+                        fontSize = 11.sp,
+                        fontFamily = FontFamily.Monospace,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Box(
+                        modifier = Modifier
+                            .clickable { viewModel.refreshBondedBluetoothDevices() }
+                            .padding(horizontal = 6.dp, vertical = 2.dp)
+                    ) {
+                        Text(
+                            text = "[REFRESH]",
+                            color = SignalBlue,
+                            fontSize = 10.sp,
+                            fontFamily = FontFamily.Monospace
+                        )
+                    }
+                }
+
+                if (bondedPeers.isEmpty()) {
+                    Text(
+                        text = "NO BONDED PEER (Pair devices in Android Settings)",
+                        color = DistressRed,
+                        fontSize = 10.sp,
+                        fontFamily = FontFamily.Monospace,
+                        modifier = Modifier.padding(top = 4.dp)
+                    )
+                } else {
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .horizontalScroll(rememberScrollState()),
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        bondedPeers.forEach { peer ->
+                            val isConnected = peer.isConnected && btState == org.sih.itantra.core.transport.TransportState.CONNECTED
+                            Box(
+                                modifier = Modifier
+                                    .background(
+                                        if (isConnected) RadarGreen.copy(alpha = 0.2f) else TacticalBackground,
+                                        RoundedCornerShape(4.dp)
+                                    )
+                                    .border(
+                                        1.dp,
+                                        if (isConnected) RadarGreen else TacticalBorder,
+                                        RoundedCornerShape(4.dp)
+                                    )
+                                    .clickable { viewModel.connectBluetooth(peer.address) }
+                                    .padding(horizontal = 8.dp, vertical = 4.dp)
+                            ) {
+                                Text(
+                                    text = if (isConnected) "CONNECTED: ${peer.name}" else "CONNECT: ${peer.name}",
+                                    color = if (isConnected) RadarGreen else TextPrimary,
+                                    fontSize = 11.sp,
+                                    fontFamily = FontFamily.Monospace
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         Spacer(modifier = Modifier.height(10.dp))
 
         // Real-Time Oscilloscope Visualizer

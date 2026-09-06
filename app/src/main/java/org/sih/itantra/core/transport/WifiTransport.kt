@@ -1,4 +1,4 @@
-﻿package org.sih.itantra.core.transport
+package org.sih.itantra.core.transport
 
 import android.content.Context
 import android.net.wifi.WifiManager
@@ -117,6 +117,27 @@ class WifiTransport(
         }
     }
 
+    private fun getBroadcastAddresses(): List<InetAddress> {
+        val broadcastList = mutableListOf<InetAddress>()
+        try {
+            broadcastList.add(InetAddress.getByName("255.255.255.255"))
+            val interfaces = java.net.NetworkInterface.getNetworkInterfaces()
+            while (interfaces != null && interfaces.hasMoreElements()) {
+                val networkInterface = interfaces.nextElement()
+                if (networkInterface.isLoopback || !networkInterface.isUp) continue
+                for (interfaceAddress in networkInterface.interfaceAddresses) {
+                    val broadcast = interfaceAddress.broadcast
+                    if (broadcast != null) {
+                        broadcastList.add(broadcast)
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            Log.e(tag, "Error determining broadcast addresses", e)
+        }
+        return broadcastList.distinct()
+    }
+
     override suspend fun send(packet: Packet): Boolean = withContext(dispatcher) {
         if (!isRunning.get() || socket == null) {
             Log.w(tag, "Cannot send: Wi-Fi transport is not running")
@@ -125,11 +146,16 @@ class WifiTransport(
 
         return@withContext try {
             val bytes = PacketSerializer.serialize(packet)
-            val broadcastAddress = InetAddress.getByName("255.255.255.255")
-            val datagram = DatagramPacket(bytes, bytes.size, broadcastAddress, port)
-
-            socket?.send(datagram)
-            Log.d(tag, "Transmitted ${bytes.size} bytes over Wi-Fi broadcast")
+            val targets = getBroadcastAddresses()
+            for (target in targets) {
+                try {
+                    val datagram = DatagramPacket(bytes, bytes.size, target, port)
+                    socket?.send(datagram)
+                } catch (e: Exception) {
+                    Log.w(tag, "Failed to send to $target: ${e.message}")
+                }
+            }
+            Log.d(tag, "Transmitted ${bytes.size} bytes over Wi-Fi broadcast to ${targets.size} targets")
             true
         } catch (e: Exception) {
             Log.e(tag, "Failed to send packet over Wi-Fi", e)

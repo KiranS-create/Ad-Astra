@@ -166,6 +166,9 @@ class TransceiverCoordinator(
             audioCollectJob = null
             recorder.stopRecording()
             vad.forceFinalize()
+            if (vad.vadState.value == VadState.IDLE && stateMachine.state.value != PttState.STT_PROCESSING) {
+                stateMachine.reset()
+            }
         } else {
             stateMachine.reset()
         }
@@ -299,6 +302,11 @@ class TransceiverCoordinator(
      * Incoming Pipeline: Transport -> Protocol Decode -> TTS Synthesize -> Playback
      */
     private suspend fun handleIncomingPacket(packet: Packet) {
+        // Drop self-broadcast packets to prevent transmitter from playing its own speech
+        if (packet.sourceDeviceId == localDeviceId) {
+            return
+        }
+
         val tRx = BenchmarkClock.nowNanos()
         stateMachine.transitionTo(PttState.RECEIVED)
 

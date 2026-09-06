@@ -16,6 +16,8 @@ import org.sih.itantra.core.persistence.MessageHistoryStore
 import org.sih.itantra.core.persistence.MessageRecord
 import org.sih.itantra.core.session.PttState
 import org.sih.itantra.core.session.TransceiverCoordinator
+import org.sih.itantra.core.transport.PeerDevice
+import org.sih.itantra.core.transport.TransportState
 import org.sih.itantra.core.transport.TransportType
 
 class TransceiverViewModel(application: Application) : AndroidViewModel(application) {
@@ -31,12 +33,28 @@ class TransceiverViewModel(application: Application) : AndroidViewModel(applicat
     private val _activeTransportType = MutableStateFlow(TransportType.WIFI)
     val activeTransportType: StateFlow<TransportType> = _activeTransportType.asStateFlow()
 
+    private val _bondedBluetoothDevices = MutableStateFlow<List<PeerDevice>>(emptyList())
+    val bondedBluetoothDevices: StateFlow<List<PeerDevice>> = _bondedBluetoothDevices.asStateFlow()
+
+    val bluetoothTransportState: StateFlow<TransportState> = coordinator.transportManager.bluetoothTransport.state
+
     val messageHistory: StateFlow<List<MessageRecord>> = MessageHistoryStore.historyFlow
     val diagnosticsState: StateFlow<DiagnosticsState> = DiagnosticsRepository.state
 
     init {
         viewModelScope.launch {
             coordinator.start()
+        }
+    }
+
+    fun refreshBondedBluetoothDevices() {
+        _bondedBluetoothDevices.value = coordinator.transportManager.getBondedBluetoothDevices()
+    }
+
+    fun connectBluetooth(targetAddress: String? = null) {
+        viewModelScope.launch {
+            coordinator.transportManager.connectBluetooth(targetAddress)
+            refreshBondedBluetoothDevices()
         }
     }
 
@@ -61,6 +79,9 @@ class TransceiverViewModel(application: Application) : AndroidViewModel(applicat
         _activeTransportType.value = type
         viewModelScope.launch {
             coordinator.transportManager.switchTransport(type)
+            if (type == TransportType.BLUETOOTH) {
+                refreshBondedBluetoothDevices()
+            }
         }
     }
 

@@ -1,6 +1,7 @@
-﻿package org.sih.itantra.presentation
+package org.sih.itantra.presentation
 
 import android.Manifest
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
@@ -17,6 +18,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.core.content.ContextCompat
+import org.sih.itantra.core.transport.TransportType
 import org.sih.itantra.presentation.screens.BenchmarkScreen
 import org.sih.itantra.presentation.screens.DiagnosticsScreen
 import org.sih.itantra.presentation.screens.HistoryScreen
@@ -49,6 +51,7 @@ class MainActivity : ComponentActivity() {
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
 
         requestRequiredPermissions()
+        handleIntent(intent)
 
         setContent {
             ITantraTheme {
@@ -82,6 +85,35 @@ class MainActivity : ComponentActivity() {
                             onBack = { currentScreen = Screen.MAIN }
                         )
                     }
+                }
+            }
+        }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        handleIntent(intent)
+    }
+
+    private fun handleIntent(intent: Intent?) {
+        val action = intent?.getStringExtra("action")
+        val btAddr = intent?.getStringExtra("bt_address")
+        when (action) {
+            "listen_bt", "bt_listen", "set_transport_bt" -> {
+                viewModel.setTransport(TransportType.BLUETOOTH)
+            }
+            "connect_bt" -> {
+                viewModel.setTransport(TransportType.BLUETOOTH)
+                viewModel.connectBluetooth(btAddr)
+            }
+            "send_test_packet" -> {
+                viewModel.testNeuralLoopback()
+            }
+            else -> {
+                if (btAddr != null) {
+                    viewModel.setTransport(TransportType.BLUETOOTH)
+                    viewModel.connectBluetooth(btAddr)
                 }
             }
         }
