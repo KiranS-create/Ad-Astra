@@ -25,7 +25,9 @@ object PacketSerializer {
 
         val hasLocation = (flags.toInt() and Packet.FLAG_HAS_LOCATION) != 0 && packet.location != null
         val locBytes = if (hasLocation) Packet.LOCATION_SIZE_BYTES else 0
-        val totalLength = Packet.HEADER_SIZE_BYTES + locBytes + payload.size + Packet.CRC_SIZE_BYTES
+        val hasAuth = (flags.toInt() and Packet.FLAG_AUTHENTICATED) != 0 && packet.authTag != null
+        val authBytes = if (hasAuth) Packet.AUTH_TAG_SIZE_BYTES else 0
+        val totalLength = Packet.HEADER_SIZE_BYTES + locBytes + payload.size + authBytes + Packet.CRC_SIZE_BYTES
         val buffer = ByteBuffer.allocate(totalLength).order(ByteOrder.BIG_ENDIAN)
 
         buffer.putShort(packet.magic)
@@ -52,9 +54,13 @@ object PacketSerializer {
 
         buffer.put(payload)
 
-        // Calculate CRC32 over all bytes preceding CRC (header + optional location + payload)
+        if (hasAuth) {
+            buffer.put(packet.authTag!!)
+        }
+
+        // Calculate CRC32 over all bytes preceding CRC (header + optional location + payload + optional authTag)
         val crc = CRC32()
-        crc.update(buffer.array(), 0, Packet.HEADER_SIZE_BYTES + locBytes + payload.size)
+        crc.update(buffer.array(), 0, Packet.HEADER_SIZE_BYTES + locBytes + payload.size + authBytes)
         val calculatedCrc = crc.value
 
         buffer.putInt(calculatedCrc.toInt())
@@ -91,8 +97,11 @@ object PacketSerializer {
         val hasLocation = (flags.toInt() and Packet.FLAG_HAS_LOCATION) != 0
         val locBytes = if (hasLocation) Packet.LOCATION_SIZE_BYTES else 0
 
-        if (rawBytes.size < Packet.HEADER_SIZE_BYTES + locBytes + payloadLen + Packet.CRC_SIZE_BYTES) {
-            throw CorruptPacketException("Declared payload length ($payloadLen) + location ($locBytes) exceeds buffer size (${rawBytes.size})")
+        val hasAuth = (flags.toInt() and Packet.FLAG_AUTHENTICATED) != 0
+        val authBytes = if (hasAuth) Packet.AUTH_TAG_SIZE_BYTES else 0
+
+        if (rawBytes.size < Packet.HEADER_SIZE_BYTES + locBytes + payloadLen + authBytes + Packet.CRC_SIZE_BYTES) {
+            throw CorruptPacketException("Declared payload length ($payloadLen) + location ($locBytes) + auth ($authBytes) exceeds buffer size (${rawBytes.size})")
         }
 
         val location = if (hasLocation) {
@@ -114,10 +123,16 @@ object PacketSerializer {
         val payload = ByteArray(payloadLen)
         buffer.get(payload)
 
+        val authTag = if (hasAuth) {
+            val tag = ByteArray(Packet.AUTH_TAG_SIZE_BYTES)
+            buffer.get(tag)
+            tag
+        } else null
+
         val receivedCrc = buffer.int.toLong() and 0xFFFFFFFFL
 
         val crc = CRC32()
-        crc.update(rawBytes, 0, Packet.HEADER_SIZE_BYTES + locBytes + payloadLen)
+        crc.update(rawBytes, 0, Packet.HEADER_SIZE_BYTES + locBytes + payloadLen + authBytes)
         val computedCrc = crc.value
 
         if (receivedCrc != computedCrc) {
@@ -145,6 +160,7 @@ object PacketSerializer {
             payload = payload,
             location = location,
             semanticCommand = semanticCommand,
+            authTag = authTag,
             crc32 = receivedCrc
         )
     }

@@ -31,5 +31,7 @@ data class MessageRecord(
     val transferId: Short? = null,
     val fragmentCount: Int? = null,
     val fragmentIndex: Int? = null,
-    val deliveryLatencyMs: Long? = null
+    val deliveryLatencyMs: Long? = null,
+    val isSecure: Boolean = false,
+    val authStatus: String? = null
 )

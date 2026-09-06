@@ -26,6 +26,7 @@ data class Packet(
     val payload: ByteArray,
     val location: GeoLocation? = null,
     val semanticCommand: SemanticCommand? = null,
+    val authTag: ByteArray? = null,
     val crc32: Long = 0L
 ) {
     val isCompressed: Boolean
@@ -46,6 +47,9 @@ data class Packet(
     val isSemantic: Boolean
         get() = (flags.toInt() and FLAG_SEMANTIC) != 0 || semanticCommand != null
 
+    val isAuthenticated: Boolean
+        get() = (flags.toInt() and FLAG_AUTHENTICATED) != 0 && authTag != null
+
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
@@ -56,6 +60,10 @@ data class Packet(
         if (location != other.location) return false
         if (semanticCommand != other.semanticCommand) return false
         if (!payload.contentEquals(other.payload)) return false
+        if (authTag != null) {
+            if (other.authTag == null) return false
+            if (!authTag.contentEquals(other.authTag)) return false
+        } else if (other.authTag != null) return false
         return true
     }
 
@@ -66,6 +74,7 @@ data class Packet(
         result = 31 * result + (location?.hashCode() ?: 0)
         result = 31 * result + (semanticCommand?.hashCode() ?: 0)
         result = 31 * result + payload.contentHashCode()
+        result = 31 * result + (authTag?.contentHashCode() ?: 0)
         return result
     }
 
@@ -95,12 +104,14 @@ data class Packet(
         const val FLAG_FORWARDED: Int = 1 shl 3
         const val FLAG_HAS_LOCATION: Int = 1 shl 4
         const val FLAG_SEMANTIC: Int = 1 shl 5
+        const val FLAG_AUTHENTICATED: Int = 1 shl 6
 
         const val DEFAULT_TTL: Byte = 3
 
         const val BROADCAST_ID: Int = -1 // 0xFFFFFFFF
         const val HEADER_SIZE_BYTES = 28
         const val LOCATION_SIZE_BYTES = 32 // 8B lat + 8B lon + 4B acc + 8B time + 4B alt
+        const val AUTH_TAG_SIZE_BYTES = 8 // 8B truncated HMAC-SHA256
         const val CRC_SIZE_BYTES = 4
         const val MIN_PACKET_SIZE = HEADER_SIZE_BYTES + CRC_SIZE_BYTES // 32 bytes
 

@@ -402,6 +402,58 @@ fun DiagnosticsScreen(
 
         Spacer(modifier = Modifier.height(10.dp))
 
+        // Tactical Security & Anti-Replay Card
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(12.dp))
+                .background(radioColors.surface)
+                .border(1.dp, radioColors.border.copy(alpha = 0.5f), RoundedCornerShape(12.dp))
+                .padding(14.dp)
+        ) {
+            Column {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "TACTICAL PACKET AUTHENTICATION",
+                        color = radioColors.textSecondary,
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold,
+                        fontFamily = FontFamily.Monospace
+                    )
+                    Box(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(4.dp))
+                            .background(radioColors.success.copy(alpha = 0.15f))
+                            .padding(horizontal = 6.dp, vertical = 2.dp)
+                    ) {
+                        Text(
+                            text = "HMAC-SHA256 (8B)",
+                            color = radioColors.success,
+                            fontSize = 10.sp,
+                            fontWeight = FontWeight.Bold,
+                            fontFamily = FontFamily.Monospace
+                        )
+                    }
+                }
+                Spacer(modifier = Modifier.height(10.dp))
+                DiagnosticRow(label = "Authenticated Packets TX", value = "${diag.authenticatedPacketsSent}")
+                DiagnosticRow(label = "Authenticated Packets RX", value = "${diag.authenticatedPacketsReceived}")
+                DiagnosticRow(label = "Authentication Failures", value = "${diag.authenticationFailures}")
+                DiagnosticRow(label = "Anti-Replay Window Drops", value = "${diag.replayDrops}")
+                val genStr = diag.lastAuthGenMicros?.let { String.format(Locale.US, "%.1f µs", it) } ?: "--"
+                DiagnosticRow(label = "Last HMAC Generation Time", value = genStr)
+                val verifyStr = diag.lastAuthVerifyMicros?.let { String.format(Locale.US, "%.1f µs", it) } ?: "--"
+                DiagnosticRow(label = "Last HMAC Verification Time", value = verifyStr)
+                DiagnosticRow(label = "Authentication Wire Overhead", value = "${diag.authTagSizeBytes} Bytes / Packet")
+            }
+        }
+
+        Spacer(modifier = Modifier.height(10.dp))
+
         // MANET Topology & Simulation Demo button
         Row(
             modifier = Modifier

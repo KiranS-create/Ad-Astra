@@ -67,7 +67,16 @@ data class DiagnosticsState(
     val lastReassemblyLatencyMs: Double? = null,
     val lastDeliveryAckLatencyMs: Double? = null,
     val lastFragmentPayloadBytes: Int? = null,
-    val lastTotalWireBytes: Int? = null
+    val lastTotalWireBytes: Int? = null,
+    // Security / Authentication counters
+    val authenticatedPacketsSent: Long = 0L,
+    val authenticatedPacketsReceived: Long = 0L,
+    val authenticationFailures: Long = 0L,
+    val replayDrops: Long = 0L,
+    val unknownKeyDrops: Long = 0L,
+    val lastAuthGenMicros: Double? = null,
+    val lastAuthVerifyMicros: Double? = null,
+    val authTagSizeBytes: Int = org.sih.itantra.core.protocol.Packet.AUTH_TAG_SIZE_BYTES
 )
 
 object DiagnosticsRepository {
@@ -266,6 +275,43 @@ object DiagnosticsRepository {
             deliveryAcksReceived = current.deliveryAcksReceived + 1,
             lastDeliveryAckLatencyMs = rttMs.toDouble(),
             lastTransferId = transferId
+        )
+    }
+
+    fun recordAuthPacketSent(genMicros: Double) {
+        val current = _state.value
+        _state.value = current.copy(
+            authenticatedPacketsSent = current.authenticatedPacketsSent + 1,
+            lastAuthGenMicros = genMicros
+        )
+    }
+
+    fun recordAuthPacketReceived(verifyMicros: Double) {
+        val current = _state.value
+        _state.value = current.copy(
+            authenticatedPacketsReceived = current.authenticatedPacketsReceived + 1,
+            lastAuthVerifyMicros = verifyMicros
+        )
+    }
+
+    fun recordAuthFailure() {
+        val current = _state.value
+        _state.value = current.copy(
+            authenticationFailures = current.authenticationFailures + 1
+        )
+    }
+
+    fun recordReplayDrop() {
+        val current = _state.value
+        _state.value = current.copy(
+            replayDrops = current.replayDrops + 1
+        )
+    }
+
+    fun recordUnknownKeyDrop() {
+        val current = _state.value
+        _state.value = current.copy(
+            unknownKeyDrops = current.unknownKeyDrops + 1
         )
     }
 }

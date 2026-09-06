@@ -404,12 +404,49 @@ fun RadioTranscriptRow(
                     ""
                 }
 
-                Text(
-                    text = "${record.packetSizeBytes} B$savingsStr",
-                    color = radioColors.textTertiary,
-                    fontSize = 10.sp,
-                    fontFamily = FontFamily.Monospace
-                )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = "${record.packetSizeBytes} B$savingsStr",
+                        color = radioColors.textTertiary,
+                        fontSize = 10.sp,
+                        fontFamily = FontFamily.Monospace
+                    )
+                    if (record.isSecure) {
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Box(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(4.dp))
+                                .background((if (radioColors.isDark) radioColors.sage else radioColors.forest).copy(alpha = 0.15f))
+                                .border(1.dp, (if (radioColors.isDark) radioColors.sage else radioColors.forest).copy(alpha = 0.4f), RoundedCornerShape(4.dp))
+                                .padding(horizontal = 4.dp, vertical = 1.dp)
+                        ) {
+                            Text(
+                                text = record.authStatus ?: "AUTH ✓",
+                                color = if (radioColors.isDark) radioColors.sage else radioColors.forest,
+                                fontSize = 9.sp,
+                                fontWeight = FontWeight.Bold,
+                                fontFamily = FontFamily.Monospace
+                            )
+                        }
+                    } else if (record.authStatus == "UNVERIFIED") {
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Box(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(4.dp))
+                                .background(radioColors.warning.copy(alpha = 0.15f))
+                                .border(1.dp, radioColors.warning.copy(alpha = 0.4f), RoundedCornerShape(4.dp))
+                                .padding(horizontal = 4.dp, vertical = 1.dp)
+                        ) {
+                            Text(
+                                text = "UNVERIFIED",
+                                color = radioColors.warning,
+                                fontSize = 9.sp,
+                                fontWeight = FontWeight.Bold,
+                                fontFamily = FontFamily.Monospace
+                            )
+                        }
+                    }
+                }
 
                 if (record.measuredLatencyMs > 0) {
                     Text(

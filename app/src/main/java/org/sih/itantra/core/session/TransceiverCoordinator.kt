@@ -54,6 +54,10 @@ import org.sih.itantra.core.protocol.PacketFragmenter
 import org.sih.itantra.core.protocol.PendingTransferTracker
 import org.sih.itantra.core.protocol.ReassemblyBuffer
 import org.sih.itantra.core.protocol.ReassemblyResult
+import org.sih.itantra.core.crypto.AntiReplayFilter
+import org.sih.itantra.core.crypto.AuthStatus
+import org.sih.itantra.core.crypto.NetworkKeyManager
+import org.sih.itantra.core.crypto.PacketAuthenticator
 import java.util.UUID
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -74,6 +78,19 @@ class TransceiverCoordinator(
 ) {
     private val tag = "TransceiverCoordinator"
     private val scope = CoroutineScope(dispatcher)
+
+    enum class SecurityMode {
+        STRICT,
+        COMPATIBILITY
+    }
+
+    private val _securityMode = MutableStateFlow(SecurityMode.STRICT)
+    val securityMode: StateFlow<SecurityMode> = _securityMode.asStateFlow()
+    fun setSecurityMode(mode: SecurityMode) {
+        _securityMode.value = mode
+    }
+
+    val antiReplayFilter = AntiReplayFilter()
 
     val stateMachine = PttStateMachine()
     private val sequenceCounter = AtomicInteger(1)
@@ -339,6 +356,7 @@ class TransceiverCoordinator(
 
         val sentSuccess = if (isFragmented) {
             var allSent = true
+            val key = NetworkKeyManager.getKey()
             for (frag in fragments) {
                 val fragPacket = Packet(
                     version = Packet.PROTOCOL_VERSION,
@@ -352,9 +370,14 @@ class TransceiverCoordinator(
                     language = lang,
                     payload = frag.toPayload()
                 )
-                val ok = transportManager.send(fragPacket)
+                val signedPacket = if (key != null) {
+                    val (signed, genNanos) = PacketAuthenticator.signWithLatency(fragPacket, key)
+                    DiagnosticsRepository.recordAuthPacketSent(genNanos / 1000.0)
+                    signed
+                } else fragPacket
+                val ok = transportManager.send(signedPacket)
                 allSent = allSent && ok
-                totalWireBytes += PacketSerializer.serialize(fragPacket).size
+                totalWireBytes += PacketSerializer.serialize(signedPacket).size
             }
             pendingTransferTracker.registerTransfer(
                 transferId = transferId,
@@ -372,7 +395,8 @@ class TransceiverCoordinator(
             )
             allSent
         } else {
-            val packet = Packet(
+            val key = NetworkKeyManager.getKey()
+            val rawPacket = Packet(
                 version = Packet.PROTOCOL_VERSION,
                 msgType = originalMsgType,
                 priority = effectivePriority,
@@ -385,8 +409,13 @@ class TransceiverCoordinator(
                 payload = packetPayload,
                 semanticCommand = semanticCmd
             )
-            val ok = transportManager.send(packet)
-            totalWireBytes = PacketSerializer.serialize(packet).size
+            val signedPacket = if (key != null) {
+                val (signed, genNanos) = PacketAuthenticator.signWithLatency(rawPacket, key)
+                DiagnosticsRepository.recordAuthPacketSent(genNanos / 1000.0)
+                signed
+            } else rawPacket
+            val ok = transportManager.send(signedPacket)
+            totalWireBytes = PacketSerializer.serialize(signedPacket).size
             ok
         }
 
@@ -416,6 +445,7 @@ class TransceiverCoordinator(
             bandwidth = bandwidthMetrics
         )
 
+        val hasAuthKey = NetworkKeyManager.hasKey()
         MessageHistoryStore.addRecord(
             MessageRecord(
                 id = messageId,
@@ -433,7 +463,9 @@ class TransceiverCoordinator(
                 semanticSavingsBytes = semanticSavings,
                 deliveryStatus = if (isFragmented) DeliveryStatus.PENDING else DeliveryStatus.NONE,
                 transferId = if (isFragmented) transferId else null,
-                fragmentCount = if (isFragmented) fragments.size else null
+                fragmentCount = if (isFragmented) fragments.size else null,
+                isSecure = hasAuthKey,
+                authStatus = if (hasAuthKey) "AUTH ✓" else "UNVERIFIED"
             )
         )
 
@@ -487,6 +519,7 @@ class TransceiverCoordinator(
 
         val sentSuccess = if (isFragmented) {
             var allSent = true
+            val key = NetworkKeyManager.getKey()
             for (frag in fragments) {
                 val fragPacket = Packet(
                     version = Packet.PROTOCOL_VERSION,
@@ -501,13 +534,18 @@ class TransceiverCoordinator(
                     payload = frag.toPayload(),
                     location = location
                 )
+                val signedFragPacket = if (key != null) {
+                    val (signed, genNanos) = PacketAuthenticator.signWithLatency(fragPacket, key)
+                    DiagnosticsRepository.recordAuthPacketSent(genNanos / 1000.0)
+                    signed
+                } else fragPacket
                 val ok = if (manetRouter.isEnabled.value) {
-                    manetRouter.routeAndSend(fragPacket)
+                    manetRouter.routeAndSend(signedFragPacket)
                 } else {
-                    transportManager.send(fragPacket)
+                    transportManager.send(signedFragPacket)
                 }
                 allSent = allSent && ok
-                totalWireBytes += PacketSerializer.serialize(fragPacket).size
+                totalWireBytes += PacketSerializer.serialize(signedFragPacket).size
             }
             pendingTransferTracker.registerTransfer(
                 transferId = transferId,
@@ -525,7 +563,8 @@ class TransceiverCoordinator(
             )
             allSent
         } else {
-            val packet = Packet(
+            val key = NetworkKeyManager.getKey()
+            val rawPacket = Packet(
                 version = Packet.PROTOCOL_VERSION,
                 msgType = Packet.TYPE_DISTRESS,
                 priority = MessagePriority.DISTRESS,
@@ -539,12 +578,17 @@ class TransceiverCoordinator(
                 location = location,
                 semanticCommand = semanticCmd
             )
+            val signedPacket = if (key != null) {
+                val (signed, genNanos) = PacketAuthenticator.signWithLatency(rawPacket, key)
+                DiagnosticsRepository.recordAuthPacketSent(genNanos / 1000.0)
+                signed
+            } else rawPacket
             val ok = if (manetRouter.isEnabled.value) {
-                manetRouter.routeAndSend(packet)
+                manetRouter.routeAndSend(signedPacket)
             } else {
-                transportManager.send(packet)
+                transportManager.send(signedPacket)
             }
-            val serializedBytes = PacketSerializer.serialize(packet)
+            val serializedBytes = PacketSerializer.serialize(signedPacket)
             totalWireBytes = serializedBytes.size
             ok
         }
@@ -564,6 +608,7 @@ class TransceiverCoordinator(
         )
         DiagnosticsRepository.recordDistressSent(hasLocation = hasLoc, seq = transferId)
 
+        val hasAuthKey = NetworkKeyManager.hasKey()
         MessageHistoryStore.addRecord(
             MessageRecord(
                 id = messageId,
@@ -582,7 +627,9 @@ class TransceiverCoordinator(
                 semanticSavingsBytes = semanticSavings,
                 deliveryStatus = if (isFragmented) DeliveryStatus.PENDING else DeliveryStatus.NONE,
                 transferId = if (isFragmented) transferId else null,
-                fragmentCount = if (isFragmented) fragments.size else null
+                fragmentCount = if (isFragmented) fragments.size else null,
+                isSecure = hasAuthKey,
+                authStatus = if (hasAuthKey) "AUTH ✓" else "UNVERIFIED"
             )
         )
 
@@ -604,7 +651,61 @@ class TransceiverCoordinator(
             DiagnosticsRepository.recordReassemblyTimeout()
         }
 
-        // 1. DELIVERY RECEIPT ACK handling — if packet is TYPE_ACK, correlate and consume
+        // 1. Security Verification: Authentication & Anti-Replay Filter
+        val key = NetworkKeyManager.getKey()
+        val isAuthPacket = packet.isAuthenticated
+
+        val (isVerified, authStatusLabel) = when {
+            isAuthPacket -> {
+                val authResult = PacketAuthenticator.verify(packet, key)
+                when (authResult.status) {
+                    AuthStatus.VALID -> {
+                        val verifyMicros = authResult.elapsedNanos / 1000.0
+                        DiagnosticsRepository.recordAuthPacketReceived(verifyMicros)
+                        Pair(true, "AUTH ✓")
+                    }
+                    AuthStatus.INVALID_TAG -> {
+                        DiagnosticsRepository.recordAuthFailure()
+                        Log.w(tag, "AUTH FAILED: Bad HMAC tag from source=${packet.sourceDeviceId}, seq=${packet.sequenceNumber}")
+                        return
+                    }
+                    AuthStatus.MALFORMED_TAG -> {
+                        DiagnosticsRepository.recordAuthFailure()
+                        Log.w(tag, "MALFORMED AUTH: Invalid tag length from source=${packet.sourceDeviceId}")
+                        return
+                    }
+                    AuthStatus.UNKNOWN_KEY -> {
+                        DiagnosticsRepository.recordUnknownKeyDrop()
+                        Log.w(tag, "AUTH FAILED: Unknown key / unprovisioned node")
+                        return
+                    }
+                    AuthStatus.MISSING_TAG -> {
+                        DiagnosticsRepository.recordAuthFailure()
+                        Log.w(tag, "AUTH FAILED: Missing auth tag")
+                        return
+                    }
+                }
+            }
+            else -> {
+                if (_securityMode.value == SecurityMode.STRICT) {
+                    DiagnosticsRepository.recordAuthFailure()
+                    Log.w(tag, "AUTH FAILED: Unauthenticated packet rejected in STRICT security mode (source=${packet.sourceDeviceId}, seq=${packet.sequenceNumber})")
+                    return
+                } else {
+                    Pair(false, "UNVERIFIED")
+                }
+            }
+        }
+
+        // Anti-Replay Sliding Window Check
+        val replayResult = antiReplayFilter.checkAndRecord(packet.sourceDeviceId, packet.sequenceNumber)
+        if (!replayResult.isAccepted) {
+            DiagnosticsRepository.recordReplayDrop()
+            Log.w(tag, "REPLAY DROPPED: status=${replayResult.status} source=${packet.sourceDeviceId} seq=${packet.sequenceNumber}")
+            return
+        }
+
+        // 2. DELIVERY RECEIPT ACK handling — if packet is TYPE_ACK, correlate and consume
         if (packet.msgType == Packet.TYPE_ACK) {
             val receipt = DeliveryReceipt.deserialize(packet.payload)
             if (receipt != null) {
@@ -618,11 +719,11 @@ class TransceiverCoordinator(
             return
         }
 
-        // 2. MANET control packets — dispatch and return; do NOT deliver as voice/TTS
+        // 3. MANET control packets — dispatch and return; do NOT deliver as voice/TTS
         val isControl = manetRouter.handleControlPacket(packet)
         if (isControl) return
 
-        // 3. DATA / ALERT / DISTRESS — relay evaluation
+        // 4. DATA / ALERT / DISTRESS — relay evaluation
         val decision = relayRouter.evaluatePacket(packet)
         when (decision) {
             is RelayAction.DropSelf -> {
@@ -653,7 +754,7 @@ class TransceiverCoordinator(
             }
         }
 
-        // 4. Fragmentation Reassembly or Single-Packet Extraction
+        // 5. Fragmentation Reassembly or Single-Packet Extraction
         val effectivePayload: ByteArray
         val effectiveFlags: Byte
         val effectiveMsgType: Byte
@@ -692,12 +793,17 @@ class TransceiverCoordinator(
                 language = packet.language,
                 payload = ackPayload
             )
+            val signedAckPacket = if (key != null) {
+                val (signed, genNanos) = PacketAuthenticator.signWithLatency(ackPacket, key)
+                DiagnosticsRepository.recordAuthPacketSent(genNanos / 1000.0)
+                signed
+            } else ackPacket
             scope.launch {
                 try {
                     if (manetRouter.isEnabled.value) {
-                        manetRouter.routeAndSend(ackPacket)
+                        manetRouter.routeAndSend(signedAckPacket)
                     } else {
-                        transportManager.send(ackPacket)
+                        transportManager.send(signedAckPacket)
                     }
                     DiagnosticsRepository.recordDeliveryAckSent()
                     Log.i(tag, "Sent DELIVERY_RECEIPT for transfer 0x${Integer.toHexString(result.transferId.toInt() and 0xFFFF)} to Node #${packet.sourceDeviceId}")
@@ -725,12 +831,17 @@ class TransceiverCoordinator(
                     language = packet.language,
                     payload = ackPayload
                 )
+                val signedAckPacket = if (key != null) {
+                    val (signed, genNanos) = PacketAuthenticator.signWithLatency(ackPacket, key)
+                    DiagnosticsRepository.recordAuthPacketSent(genNanos / 1000.0)
+                    signed
+                } else ackPacket
                 scope.launch {
                     try {
                         if (manetRouter.isEnabled.value) {
-                            manetRouter.routeAndSend(ackPacket)
+                            manetRouter.routeAndSend(signedAckPacket)
                         } else {
-                            transportManager.send(ackPacket)
+                            transportManager.send(signedAckPacket)
                         }
                         DiagnosticsRepository.recordDeliveryAckSent()
                     } catch (e: Exception) {
@@ -789,7 +900,7 @@ class TransceiverCoordinator(
         val tTtsEnd = BenchmarkClock.nowNanos()
 
         val ttsLatencyMs = BenchmarkClock.elapsedMs(tTtsStart, tTtsEnd)
-        DiagnosticsRepository.recordReception(effectivePayload.size + Packet.HEADER_SIZE_BYTES + Packet.CRC_SIZE_BYTES)
+        DiagnosticsRepository.recordReception(effectivePayload.size + Packet.HEADER_SIZE_BYTES + Packet.CRC_SIZE_BYTES + (if (packet.isAuthenticated) Packet.AUTH_TAG_SIZE_BYTES else 0))
 
         val hopCount = (Packet.DEFAULT_TTL - packet.ttl).coerceAtLeast(0)
         val peerLabel = if (packet.isForwarded || hopCount > 0) {
@@ -816,7 +927,7 @@ class TransceiverCoordinator(
                 priority = packet.priority,
                 text = displayText,
                 peer = peerLabel,
-                packetSizeBytes = effectivePayload.size + Packet.MIN_PACKET_SIZE + (if (packet.hasLocation) Packet.LOCATION_SIZE_BYTES else 0),
+                packetSizeBytes = effectivePayload.size + Packet.MIN_PACKET_SIZE + (if (packet.hasLocation) Packet.LOCATION_SIZE_BYTES else 0) + (if (packet.isAuthenticated) Packet.AUTH_TAG_SIZE_BYTES else 0),
                 rawAudioEquivalentBytes = 0L,
                 measuredLatencyMs = ttsLatencyMs,
                 isRelayed = packet.isForwarded || hopCount > 0,
@@ -824,11 +935,13 @@ class TransceiverCoordinator(
                 location = packet.location,
                 isSemantic = isSemantic,
                 semanticSummary = semanticSummary,
-                fragmentCount = fragmentCountForLog
+                fragmentCount = fragmentCountForLog,
+                isSecure = isVerified,
+                authStatus = authStatusLabel
             )
         )
 
-        Log.i(tag, "Received '${displayText}' (${packet.language}) from Node #${packet.sourceDeviceId} (Semantic=$isSemantic, Priority=${packet.priority}, Relayed=${packet.isForwarded}, Hop=$hopCount, Frags=$fragmentCountForLog)")
+        Log.i(tag, "Received '${displayText}' (${packet.language}) from Node #${packet.sourceDeviceId} (Auth=$authStatusLabel, Semantic=$isSemantic, Priority=${packet.priority}, Relayed=${packet.isForwarded}, Hop=$hopCount, Frags=$fragmentCountForLog)")
 
         if (_isContinuousMode.value) {
             stateMachine.transitionTo(PttState.RECORDING)
@@ -848,7 +961,7 @@ class TransceiverCoordinator(
             val rawBytes = cleanText.toByteArray(Charsets.UTF_8)
             val compression = AdaptiveCompressor.compress(rawBytes)
 
-            val packet = Packet(
+            val rawPacket = Packet(
                 version = Packet.PROTOCOL_VERSION,
                 msgType = Packet.TYPE_ALERT,
                 priority = priority,
@@ -861,7 +974,14 @@ class TransceiverCoordinator(
                 payload = compression.bytes
             )
 
-            transportManager.send(packet)
+            val key = NetworkKeyManager.getKey()
+            val signedPacket = if (key != null) {
+                val (signed, genNanos) = PacketAuthenticator.signWithLatency(rawPacket, key)
+                DiagnosticsRepository.recordAuthPacketSent(genNanos / 1000.0)
+                signed
+            } else rawPacket
+
+            transportManager.send(signedPacket)
             MessageHistoryStore.addRecord(
                 MessageRecord(
                     id = UUID.randomUUID().toString(),
@@ -871,9 +991,11 @@ class TransceiverCoordinator(
                     priority = priority,
                     text = cleanText,
                     peer = "Emergency Broadcast",
-                    packetSizeBytes = packet.payload.size + Packet.MIN_PACKET_SIZE,
+                    packetSizeBytes = signedPacket.payload.size + Packet.MIN_PACKET_SIZE + (if (signedPacket.isAuthenticated) Packet.AUTH_TAG_SIZE_BYTES else 0),
                     rawAudioEquivalentBytes = 0L,
-                    measuredLatencyMs = 12.0
+                    measuredLatencyMs = 12.0,
+                    isSecure = key != null,
+                    authStatus = if (key != null) "AUTH ✓" else "UNVERIFIED"
                 )
             )
         }
