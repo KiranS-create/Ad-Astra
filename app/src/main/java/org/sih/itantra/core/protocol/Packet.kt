@@ -61,6 +61,11 @@ data class Packet(
         const val TYPE_PING: Byte = 6
         const val TYPE_PONG: Byte = 7
 
+        // MANET routing control packets (transport-agnostic)
+        const val TYPE_ROUTE_REQUEST: Byte = 8
+        const val TYPE_ROUTE_REPLY: Byte   = 9
+        const val TYPE_ROUTE_ERROR: Byte   = 10
+
         const val FLAG_COMPRESSED: Int = 1 shl 0
         const val FLAG_FRAGMENTED: Int = 1 shl 1
         const val FLAG_REQUIRES_ACK: Int = 1 shl 2

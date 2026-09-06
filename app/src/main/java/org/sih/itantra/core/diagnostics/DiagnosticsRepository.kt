@@ -14,9 +14,23 @@ data class DiagnosticsState(
     val overallSavingsPercent: Double? = null,
     val activeSoC: String = "ARM64-v8a",
     val ramUsageMb: Float = ((Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) / (1024f * 1024f)),
+    // Mesh relay counters
     val packetsRelayed: Long = 0L,
     val relayDuplicatesDropped: Long = 0L,
-    val relayTtlExpired: Long = 0L
+    val relayTtlExpired: Long = 0L,
+    // MANET routing counters
+    val manetHelloTx: Long = 0L,
+    val manetHelloRx: Long = 0L,
+    val manetNeighborsDiscovered: Long = 0L,
+    val manetRreqTx: Long = 0L,
+    val manetRreqRx: Long = 0L,
+    val manetRrepTx: Long = 0L,
+    val manetRrepRx: Long = 0L,
+    val manetRoutesEstablished: Long = 0L,
+    val manetRoutesExpired: Long = 0L,
+    val manetRerrCount: Long = 0L,
+    val manetPacketsRouted: Long = 0L,
+    val manetRouteRediscoveries: Long = 0L
 )
 
 object DiagnosticsRepository {
@@ -71,6 +85,25 @@ object DiagnosticsRepository {
         val current = _state.value
         _state.value = current.copy(
             relayTtlExpired = current.relayTtlExpired + 1
+        )
+    }
+
+    /** Snapshot current MANET stats from ManetRouter into diagnostics state. */
+    fun recordManetStats(stats: org.sih.itantra.core.mesh.ManetStats) {
+        val current = _state.value
+        _state.value = current.copy(
+            manetHelloTx            = stats.helloTx,
+            manetHelloRx            = stats.helloRx,
+            manetNeighborsDiscovered = stats.neighborsDiscovered,
+            manetRreqTx             = stats.rreqTx,
+            manetRreqRx             = stats.rreqRx,
+            manetRrepTx             = stats.rrepTx,
+            manetRrepRx             = stats.rrepRx,
+            manetRoutesEstablished  = stats.routesEstablished,
+            manetRoutesExpired      = stats.routesExpired,
+            manetRerrCount          = stats.rerrCount,
+            manetPacketsRouted      = stats.packetsRouted,
+            manetRouteRediscoveries = stats.routeRediscoveries
         )
     }
 }

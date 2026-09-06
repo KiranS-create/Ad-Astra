@@ -41,6 +41,7 @@ import org.sih.itantra.ml.stt.NeuralSpeechRouter
 import org.sih.itantra.ml.tts.NeuralTtsRouter
 import org.sih.itantra.core.mesh.PacketRelayRouter
 import org.sih.itantra.core.mesh.RelayAction
+import org.sih.itantra.core.mesh.ManetRouter
 import java.util.UUID
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -66,6 +67,13 @@ class TransceiverCoordinator(
     private val sequenceCounter = AtomicInteger(1)
     private val localDeviceId: Int = (Math.random() * 900000 + 100000).toInt()
     val relayRouter = PacketRelayRouter(localDeviceId)
+    val manetRouter = ManetRouter(
+        context          = context,
+        localNodeId      = localDeviceId,
+        transportManager = transportManager,
+        relayRouter      = relayRouter,
+        scope            = scope
+    )
 
     private val _activeLanguage = MutableStateFlow(IndicLanguage.HINDI)
     val activeLanguage: StateFlow<IndicLanguage> = _activeLanguage.asStateFlow()
@@ -348,6 +356,11 @@ class TransceiverCoordinator(
      * Incoming Pipeline: Transport -> Mesh Relay / Protocol Decode -> TTS Synthesize -> Playback
      */
     private suspend fun handleIncomingPacket(packet: Packet) {
+        // 1. MANET control packets — dispatch and return; do NOT deliver as voice/TTS
+        val isControl = manetRouter.handleControlPacket(packet)
+        if (isControl) return
+
+        // 2. DATA / ALERT / DISTRESS — relay evaluation
         val decision = relayRouter.evaluatePacket(packet)
         when (decision) {
             is RelayAction.DropSelf -> {

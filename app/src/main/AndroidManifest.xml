@@ -22,6 +22,22 @@
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.VIBRATE" />
 
+    <!--
+        Foreground Service — MANET Node Mode
+        FOREGROUND_SERVICE: required to call startForeground() on any API level.
+        FOREGROUND_SERVICE_DATA_SYNC: required on API 34+ (Android 14+) for the
+          dataSync foreground service type. Declared here so the manifest targets
+          API 35 correctly without triggering ForegroundServiceStartNotAllowedException.
+        POST_NOTIFICATIONS: required on API 33+ (Android 13+) to show the
+          persistent MANET node notification. Requested at runtime in MainActivity.
+        RECEIVE_BOOT_COMPLETED: allows BootReceiver to detect reboot and post
+          a nudge notification (does NOT start foreground service from receiver).
+    -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
@@ -29,6 +45,7 @@
         android:roundIcon="@mipmap/ic_launcher"
         android:supportsRtl="true"
         android:theme="@android:style/Theme.Material.NoActionBar">
+
         <activity
             android:name=".presentation.MainActivity"
             android:exported="true"
@@ -40,6 +57,43 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <!--
+            ManetNodeService — persistent MANET relay node.
+
+            foregroundServiceType="dataSync":
+              Selected because this service transfers data between peer devices
+              over Bluetooth RFCOMM and Wi-Fi UDP. Matches Android's documented
+              dataSync use-case: "data syncing, file transfers, or any network
+              communication to or from a remote server or peer device."
+              Required to be declared on API 34+ (targetSdk=35).
+
+            stopWithTask="false":
+              Service continues when MainActivity is destroyed (back-stack cleared).
+              This is the key mechanism that keeps MANET alive after UI closure.
+
+            exported="false":
+              Service is private to this app; no external components can bind it.
+        -->
+        <service
+            android:name=".service.ManetNodeService"
+            android:exported="false"
+            android:foregroundServiceType="dataSync"
+            android:stopWithTask="false" />
+
+        <!--
+            BootReceiver — posts nudge notification after reboot if Node Mode was ON.
+            Does NOT start a foreground service (prohibited on Android 12+ from receiver).
+            exported="true" is required for BOOT_COMPLETED to be delivered.
+        -->
+        <receiver
+            android:name=".service.BootReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
+
     </application>
 
 </manifest>

@@ -155,11 +155,28 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    override fun onStart() {
+        super.onStart()
+        // Reconnect to ManetNodeService if it is already running in background
+        viewModel.bindToServiceIfRunning()
+    }
+
+    override fun onStop() {
+        super.onStop()
+        // Unbind from service — does NOT stop it; service continues independently
+        viewModel.unbindFromService()
+    }
+
     private fun requestRequiredPermissions() {
         val permissions = mutableListOf(
             Manifest.permission.RECORD_AUDIO,
             Manifest.permission.CHANGE_WIFI_MULTICAST_STATE
         )
+
+        // Notification permission required on API 33+ (Android 13+)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            permissions.add(Manifest.permission.POST_NOTIFICATIONS)
+        }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             permissions.add(Manifest.permission.BLUETOOTH_CONNECT)
@@ -179,3 +196,4 @@ class MainActivity : ComponentActivity() {
         }
     }
 }
+

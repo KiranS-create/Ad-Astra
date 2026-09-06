@@ -436,7 +436,128 @@ fun SettingsScreen(
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // 5. EMERGENCY DISTRESS SYSTEM (matching mockup specs)
+        // 5. MANET NODE MODE — persistent background relay node
+        val isNodeModeEnabled by viewModel.isNodeModeEnabled.collectAsState()
+        val nodeNeighborCount by viewModel.nodeNeighborCount.collectAsState()
+        val nodeRouteCount by viewModel.nodeRouteCount.collectAsState()
+
+        SectionHeader(title = "MANET NODE MODE")
+        Spacer(modifier = Modifier.height(4.dp))
+        Text(
+            text = "Operates when screen is off or app is closed",
+            color = radioColors.textTertiary,
+            fontSize = 10.sp,
+            fontFamily = FontFamily.Monospace
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(12.dp))
+                .background(radioColors.surface)
+                .border(
+                    1.dp,
+                    if (isNodeModeEnabled) (if (radioColors.isDark) radioColors.sage else radioColors.forest).copy(alpha = 0.8f)
+                    else radioColors.border.copy(alpha = 0.5f),
+                    RoundedCornerShape(12.dp)
+                )
+                .padding(14.dp)
+        ) {
+            Column(modifier = Modifier.fillMaxWidth()) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(
+                                text = "Persistent Node",
+                                color = radioColors.textPrimary,
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Box(
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(4.dp))
+                                    .background(
+                                        if (isNodeModeEnabled) radioColors.success.copy(alpha = 0.15f)
+                                        else radioColors.capsule
+                                    )
+                                    .padding(horizontal = 6.dp, vertical = 2.dp)
+                            ) {
+                                Text(
+                                    text = if (isNodeModeEnabled) "ONLINE" else "OFFLINE",
+                                    color = if (isNodeModeEnabled) radioColors.success else radioColors.textTertiary,
+                                    fontSize = 9.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    fontFamily = FontFamily.Monospace
+                                )
+                            }
+                        }
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = "Continues neighbor discovery, routing, and packet relay when UI is closed or screen is off.",
+                            color = radioColors.textSecondary,
+                            fontSize = 11.sp,
+                            lineHeight = 15.sp
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.width(12.dp))
+
+                    Switch(
+                        checked = isNodeModeEnabled,
+                        onCheckedChange = { enabled ->
+                            if (enabled) viewModel.startNodeMode()
+                            else viewModel.stopNodeMode()
+                        },
+                        colors = SwitchDefaults.colors(
+                            checkedThumbColor = Color.White,
+                            checkedTrackColor = if (radioColors.isDark) radioColors.sage else radioColors.forest
+                        )
+                    )
+                }
+
+                if (isNodeModeEnabled) {
+                    Spacer(modifier = Modifier.height(10.dp))
+                    HorizontalDivider(color = radioColors.border.copy(alpha = 0.3f))
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        Text(
+                            text = "Neighbors: $nodeNeighborCount",
+                            color = radioColors.success,
+                            fontSize = 11.sp,
+                            fontFamily = FontFamily.Monospace,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Text(
+                            text = "Routes: $nodeRouteCount",
+                            color = if (radioColors.isDark) radioColors.sage else radioColors.forest,
+                            fontSize = 11.sp,
+                            fontFamily = FontFamily.Monospace,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = "Service active · Notification visible in status bar",
+                        color = radioColors.textTertiary,
+                        fontSize = 10.sp,
+                        fontFamily = FontFamily.Monospace
+                    )
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        // 6. EMERGENCY DISTRESS SYSTEM (matching mockup specs)
         SectionHeader(title = "EMERGENCY & DISTRESS")
         Spacer(modifier = Modifier.height(8.dp))
 
