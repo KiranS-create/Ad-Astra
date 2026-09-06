@@ -42,10 +42,46 @@ class TransceiverViewModel(application: Application) : AndroidViewModel(applicat
     val messageHistory: StateFlow<List<MessageRecord>> = MessageHistoryStore.historyFlow
     val diagnosticsState: StateFlow<DiagnosticsState> = DiagnosticsRepository.state
 
+    private val _themeMode = MutableStateFlow(org.sih.itantra.presentation.theme.AppThemeMode.SYSTEM)
+    val themeMode: StateFlow<org.sih.itantra.presentation.theme.AppThemeMode> = _themeMode.asStateFlow()
+
+    private val _languageMode = MutableStateFlow<org.sih.itantra.core.language.LanguageSelectionMode>(
+        org.sih.itantra.core.language.LanguageSelectionMode.Manual(coordinator.activeLanguage.value)
+    )
+    val languageMode: StateFlow<org.sih.itantra.core.language.LanguageSelectionMode> = _languageMode.asStateFlow()
+
     init {
         viewModelScope.launch {
             coordinator.start()
         }
+        viewModelScope.launch {
+            coordinator.activeLanguage.collect { lang ->
+                if (_languageMode.value is org.sih.itantra.core.language.LanguageSelectionMode.Manual) {
+                    _languageMode.value = org.sih.itantra.core.language.LanguageSelectionMode.Manual(lang)
+                }
+            }
+        }
+    }
+
+    fun setThemeMode(mode: org.sih.itantra.presentation.theme.AppThemeMode) {
+        _themeMode.value = mode
+    }
+
+    fun setLanguageMode(mode: org.sih.itantra.core.language.LanguageSelectionMode) {
+        _languageMode.value = mode
+        when (mode) {
+            is org.sih.itantra.core.language.LanguageSelectionMode.Manual -> {
+                coordinator.setLanguage(mode.language)
+            }
+            is org.sih.itantra.core.language.LanguageSelectionMode.Auto -> {
+                // Auto mode defaults safely to Hindi baseline in offline mode
+                coordinator.setLanguage(org.sih.itantra.core.common.IndicLanguage.HINDI)
+            }
+        }
+    }
+
+    fun clearHistory() {
+        MessageHistoryStore.clear()
     }
 
     fun refreshBondedBluetoothDevices() {

@@ -10,8 +10,14 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material3.Surface
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -20,22 +26,16 @@ import androidx.compose.ui.Modifier
 import androidx.core.content.ContextCompat
 import org.sih.itantra.core.common.IndicLanguage
 import org.sih.itantra.core.transport.TransportType
-import org.sih.itantra.presentation.screens.BenchmarkScreen
+import org.sih.itantra.presentation.components.BottomNavBar
+import org.sih.itantra.presentation.components.RadioNavTab
 import org.sih.itantra.presentation.screens.DiagnosticsScreen
 import org.sih.itantra.presentation.screens.HistoryScreen
 import org.sih.itantra.presentation.screens.MainTransceiverScreen
 import org.sih.itantra.presentation.screens.ModelStatusScreen
+import org.sih.itantra.presentation.screens.SettingsScreen
 import org.sih.itantra.presentation.theme.ITantraTheme
-import org.sih.itantra.presentation.theme.TacticalBackground
+import org.sih.itantra.presentation.theme.LocalRadioColors
 import org.sih.itantra.presentation.viewmodel.TransceiverViewModel
-
-enum class Screen {
-    MAIN,
-    DIAGNOSTICS,
-    MODELS,
-    BENCHMARK,
-    HISTORY
-}
 
 class MainActivity : ComponentActivity() {
 
@@ -55,36 +55,61 @@ class MainActivity : ComponentActivity() {
         handleIntent(intent)
 
         setContent {
-            ITantraTheme {
+            val themeMode by viewModel.themeMode.collectAsState()
+
+            ITantraTheme(themeMode = themeMode) {
+                val radioColors = LocalRadioColors.current
+
                 Surface(
                     modifier = Modifier.fillMaxSize(),
-                    color = TacticalBackground
+                    color = radioColors.background
                 ) {
-                    var currentScreen by remember { mutableStateOf(Screen.MAIN) }
+                    var currentTab by remember { mutableStateOf(RadioNavTab.RADIO) }
+                    var showModelAudit by remember { mutableStateOf(false) }
 
-                    when (currentScreen) {
-                        Screen.MAIN -> MainTransceiverScreen(
-                            viewModel = viewModel,
-                            onNavigateToDiagnostics = { currentScreen = Screen.DIAGNOSTICS },
-                            onNavigateToModelStatus = { currentScreen = Screen.MODELS },
-                            onNavigateToBenchmark = { currentScreen = Screen.BENCHMARK },
-                            onNavigateToHistory = { currentScreen = Screen.HISTORY }
+                    if (showModelAudit) {
+                        ModelStatusScreen(
+                            onBack = { showModelAudit = false },
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .statusBarsPadding()
+                                .navigationBarsPadding()
                         )
-                        Screen.DIAGNOSTICS -> DiagnosticsScreen(
-                            viewModel = viewModel,
-                            onBack = { currentScreen = Screen.MAIN }
-                        )
-                        Screen.MODELS -> ModelStatusScreen(
-                            onBack = { currentScreen = Screen.MAIN }
-                        )
-                        Screen.BENCHMARK -> BenchmarkScreen(
-                            viewModel = viewModel,
-                            onBack = { currentScreen = Screen.MAIN }
-                        )
-                        Screen.HISTORY -> HistoryScreen(
-                            viewModel = viewModel,
-                            onBack = { currentScreen = Screen.MAIN }
-                        )
+                    } else {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(radioColors.background)
+                                .statusBarsPadding()
+                                .navigationBarsPadding()
+                        ) {
+                            Box(modifier = Modifier.weight(1f)) {
+                                when (currentTab) {
+                                    RadioNavTab.RADIO -> MainTransceiverScreen(
+                                        viewModel = viewModel,
+                                        onNavigateToSettings = { currentTab = RadioNavTab.SETTINGS },
+                                        onNavigateToModelAudit = { showModelAudit = true }
+                                    )
+                                    RadioNavTab.TRANSCRIPT -> HistoryScreen(
+                                        viewModel = viewModel
+                                    )
+                                    RadioNavTab.DIAGNOSTICS -> DiagnosticsScreen(
+                                        viewModel = viewModel,
+                                        onOpenModelAudit = { showModelAudit = true }
+                                    )
+                                    RadioNavTab.SETTINGS -> SettingsScreen(
+                                        viewModel = viewModel,
+                                        onOpenModelAudit = { showModelAudit = true }
+                                    )
+                                }
+                            }
+
+                            // 4-Tab Bottom Navigation Bar
+                            BottomNavBar(
+                                currentTab = currentTab,
+                                onTabSelected = { currentTab = it }
+                            )
+                        }
                     }
                 }
             }

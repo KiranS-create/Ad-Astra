@@ -3,7 +3,6 @@ package org.sih.itantra.presentation.screens
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -17,176 +16,270 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Bluetooth
+import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Radio
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import org.sih.itantra.core.common.IndicLanguage
+import org.sih.itantra.core.transport.TransportState
 import org.sih.itantra.core.transport.TransportType
-import org.sih.itantra.presentation.components.StatusHeader
-import org.sih.itantra.presentation.components.TacticalPttButton
-import org.sih.itantra.presentation.components.TranscriptBubble
+import org.sih.itantra.presentation.components.LanguageSelectorPill
+import org.sih.itantra.presentation.components.RadioPttControl
+import org.sih.itantra.presentation.components.RadioTranscriptRow
+import org.sih.itantra.presentation.components.TopRadioHeader
 import org.sih.itantra.presentation.components.WaveformVisualizer
-import org.sih.itantra.presentation.theme.DistressRed
-import org.sih.itantra.presentation.theme.RadarGreen
-import org.sih.itantra.presentation.theme.SignalBlue
-import org.sih.itantra.presentation.theme.TacticalBackground
-import org.sih.itantra.presentation.theme.TacticalBorder
-import org.sih.itantra.presentation.theme.TacticalSurface
-import org.sih.itantra.presentation.theme.TextPrimary
-import org.sih.itantra.presentation.theme.TextSecondary
+import org.sih.itantra.presentation.theme.LocalRadioColors
 import org.sih.itantra.presentation.viewmodel.TransceiverViewModel
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainTransceiverScreen(
     viewModel: TransceiverViewModel,
-    onNavigateToDiagnostics: () -> Unit,
-    onNavigateToModelStatus: () -> Unit,
-    onNavigateToBenchmark: () -> Unit,
-    onNavigateToHistory: () -> Unit,
+    onNavigateToSettings: () -> Unit,
+    onNavigateToModelAudit: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
+    val radioColors = LocalRadioColors.current
+
     val pttState by viewModel.pttState.collectAsState()
-    val activeLang by viewModel.activeLanguage.collectAsState()
     val activeTransport by viewModel.activeTransportType.collectAsState()
+    val btState by viewModel.bluetoothTransportState.collectAsState()
+    val bondedPeers by viewModel.bondedBluetoothDevices.collectAsState()
+    val isModelReady by viewModel.isModelReady.collectAsState()
     val isContinuous by viewModel.isContinuousMode.collectAsState()
+    val languageMode by viewModel.languageMode.collectAsState()
     val history by viewModel.messageHistory.collectAsState()
     val lastTranscribed by viewModel.lastTranscribedText.collectAsState()
+
+    var showBtSheet by remember { mutableStateOf(false) }
+    val btSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
     Column(
         modifier = modifier
             .fillMaxSize()
-            .background(TacticalBackground)
-            .padding(16.dp)
+            .background(radioColors.background)
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Telemetry Header
-        StatusHeader(activeTransport = activeTransport)
-
-        Spacer(modifier = Modifier.height(10.dp))
-
-        // Navigation tab bar
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            modifier = Modifier
-                .fillMaxWidth()
-                .horizontalScroll(rememberScrollState())
-        ) {
-            NavPill(text = "DIAGNOSTICS", onClick = onNavigateToDiagnostics)
-            NavPill(text = "MODELS (10)", onClick = onNavigateToModelStatus)
-            NavPill(text = "BENCHMARK", onClick = onNavigateToBenchmark)
-            NavPill(text = "HISTORY (${history.size})", onClick = onNavigateToHistory)
-            NavPill(text = "TEST NEURAL PTT", onClick = { viewModel.testNeuralLoopback() })
-        }
-
-        Spacer(modifier = Modifier.height(10.dp))
-
-        // Language Selector Chip Row
-        Text(
-            text = "ACTIVE LANGUAGE (10 INDIC)",
-            color = TextSecondary,
-            fontSize = 11.sp,
-            fontFamily = FontFamily.Monospace,
-            fontWeight = FontWeight.Bold
+        // 1. Top Telemetry Header & Status Capsule
+        TopRadioHeader(
+            activeTransport = activeTransport,
+            bluetoothState = btState,
+            isModelReady = isModelReady,
+            onOpenSettings = onNavigateToSettings,
+            onBluetoothClick = {
+                viewModel.setTransport(TransportType.BLUETOOTH)
+                viewModel.refreshBondedBluetoothDevices()
+                showBtSheet = true
+            },
+            onWifiClick = {
+                viewModel.setTransport(TransportType.WIFI)
+            },
+            onModelClick = {
+                onNavigateToModelAudit()
+            }
         )
 
-        Spacer(modifier = Modifier.height(4.dp))
+        Spacer(modifier = Modifier.height(10.dp))
 
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(6.dp),
-            modifier = Modifier
-                .fillMaxWidth()
-                .horizontalScroll(rememberScrollState())
-        ) {
-            IndicLanguage.entries.forEach { lang ->
-                val isSelected = lang == activeLang
-                Box(
-                    modifier = Modifier
-                        .background(
-                            if (isSelected) RadarGreen else TacticalSurface,
-                            RoundedCornerShape(6.dp)
-                        )
-                        .border(
-                            1.dp,
-                            if (isSelected) RadarGreen else TacticalBorder,
-                            RoundedCornerShape(6.dp)
-                        )
-                        .clickable { viewModel.setLanguage(lang) }
-                        .padding(horizontal = 10.dp, vertical = 6.dp)
-                ) {
-                    Text(
-                        text = "${lang.displayName} (${lang.nativeName})",
-                        color = if (isSelected) TacticalBackground else TextPrimary,
-                        fontSize = 12.sp,
-                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
-                    )
-                }
-            }
-        }
+        // 2. Language Selector Pill (Dropdown opening 10 Indic languages + AUTO)
+        LanguageSelectorPill(
+            currentMode = languageMode,
+            onModeSelected = { viewModel.setLanguageMode(it) }
+        )
 
         Spacer(modifier = Modifier.height(10.dp))
 
-        // Transport Selector Chip Row
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(6.dp),
+        // 3. Audio Activity Oscilloscope Spectrum
+        WaveformVisualizer(
+            pttState = pttState,
             modifier = Modifier.fillMaxWidth()
-        ) {
-            TransportType.entries.forEach { type ->
-                val isSelected = type == activeTransport
-                Box(
-                    modifier = Modifier
-                        .weight(1f)
-                        .background(
-                            if (isSelected) SignalBlue else TacticalSurface,
-                            RoundedCornerShape(6.dp)
-                        )
-                        .border(
-                            1.dp,
-                            if (isSelected) SignalBlue else TacticalBorder,
-                            RoundedCornerShape(6.dp)
-                        )
-                        .clickable { viewModel.setTransport(type) }
-                        .padding(vertical = 6.dp),
-                    contentAlignment = Alignment.Center
-                ) {
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        // 4. Live Speech / Transmission Ticker
+        if (lastTranscribed.isNotBlank()) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(radioColors.surfaceHighlight)
+                    .border(1.dp, radioColors.border.copy(alpha = 0.5f), RoundedCornerShape(8.dp))
+                    .padding(horizontal = 10.dp, vertical = 6.dp)
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
-                        text = when (type) {
-                            TransportType.WIFI -> "WI-FI"
-                            TransportType.BLUETOOTH -> "BT SPP"
-                            TransportType.LOOPBACK -> "LOOP"
-                            TransportType.EMBEDDED_RADIO -> "SDR"
-                        },
-                        color = if (isSelected) TacticalBackground else TextSecondary,
+                        text = "LAST TX: ",
+                        color = if (radioColors.isDark) radioColors.sage else radioColors.forest,
                         fontSize = 11.sp,
                         fontWeight = FontWeight.Bold,
                         fontFamily = FontFamily.Monospace
                     )
+                    Text(
+                        text = lastTranscribed,
+                        color = radioColors.textPrimary,
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Medium,
+                        maxLines = 1
+                    )
+                }
+            }
+            Spacer(modifier = Modifier.height(6.dp))
+        }
+
+        // 5. Radio Activity Log Preview (Compact feed showing last transmission)
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f)
+        ) {
+            if (history.isEmpty()) {
+                Box(
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(
+                            text = "CH-1 IDLE // READY FOR TRANSMISSION",
+                            color = radioColors.textTertiary,
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Bold,
+                            fontFamily = FontFamily.Monospace,
+                            letterSpacing = 0.5.sp
+                        )
+                        Spacer(modifier = Modifier.height(2.dp))
+                        Text(
+                            text = if (activeTransport == TransportType.BLUETOOTH) "Bluetooth Classic RFCOMM Active" else "Wi-Fi Multicast 224.0.0.251 Active",
+                            color = radioColors.textTertiary,
+                            fontSize = 10.sp,
+                            fontFamily = FontFamily.Monospace
+                        )
+                    }
+                }
+            } else {
+                LazyColumn(
+                    verticalArrangement = Arrangement.spacedBy(6.dp),
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    // Show up to the 2 most recent messages in the home screen feed
+                    items(history.take(2)) { record ->
+                        RadioTranscriptRow(record = record)
+                    }
                 }
             }
         }
 
-        if (activeTransport == TransportType.BLUETOOTH) {
-            Spacer(modifier = Modifier.height(6.dp))
-            val btState by viewModel.bluetoothTransportState.collectAsState()
-            val bondedPeers by viewModel.bondedBluetoothDevices.collectAsState()
+        Spacer(modifier = Modifier.height(10.dp))
 
+        // 6. Central Large Circular PTT Control (Touch target covers 564, 2020)
+        RadioPttControl(
+            pttState = pttState,
+            isContinuousMode = isContinuous,
+            onPressStart = { viewModel.startPtt() },
+            onPressRelease = { viewModel.stopPtt() }
+        )
+
+        Spacer(modifier = Modifier.height(14.dp))
+
+        // 7. Auxiliary Quick Controls: Mode Toggle & Neural Loopback
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            // Mode Toggle (PTT vs Continuous Phone Mode)
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .clip(RoundedCornerShape(10.dp))
+                    .background(if (isContinuous) radioColors.surfaceHighlight else radioColors.surface)
+                    .border(
+                        1.dp,
+                        if (isContinuous) (if (radioColors.isDark) radioColors.sage else radioColors.forest) else radioColors.border.copy(alpha = 0.4f),
+                        RoundedCornerShape(10.dp)
+                    )
+                    .clickable { viewModel.toggleContinuousMode() }
+                    .padding(horizontal = 12.dp, vertical = 8.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Radio,
+                    contentDescription = null,
+                    tint = if (isContinuous) (if (radioColors.isDark) radioColors.sage else radioColors.forest) else radioColors.textSecondary,
+                    modifier = Modifier.size(16.dp)
+                )
+                Spacer(modifier = Modifier.width(6.dp))
+                Text(
+                    text = if (isContinuous) "CONTINUOUS" else "WALKIE PTT",
+                    color = radioColors.textPrimary,
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Bold,
+                    fontFamily = FontFamily.Monospace
+                )
+            }
+
+            // Quick Neural Loopback Test button
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .clip(RoundedCornerShape(10.dp))
+                    .background(radioColors.surface)
+                    .border(1.dp, radioColors.border.copy(alpha = 0.4f), RoundedCornerShape(10.dp))
+                    .clickable { viewModel.testNeuralLoopback() }
+                    .padding(horizontal = 12.dp, vertical = 8.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.PlayArrow,
+                    contentDescription = null,
+                    tint = if (radioColors.isDark) radioColors.sage else radioColors.forest,
+                    modifier = Modifier.size(16.dp)
+                )
+                Spacer(modifier = Modifier.width(4.dp))
+                Text(
+                    text = "TEST PACKET",
+                    color = radioColors.textPrimary,
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Bold,
+                    fontFamily = FontFamily.Monospace
+                )
+            }
+        }
+    }
+
+    // Bluetooth Peer Selection Bottom Sheet
+    if (showBtSheet) {
+        ModalBottomSheet(
+            onDismissRequest = { showBtSheet = false },
+            sheetState = btSheetState,
+            containerColor = radioColors.surface,
+            contentColor = radioColors.textPrimary
+        ) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(TacticalSurface, RoundedCornerShape(6.dp))
-                    .border(1.dp, TacticalBorder, RoundedCornerShape(6.dp))
-                    .padding(8.dp)
+                    .padding(horizontal = 20.dp, vertical = 10.dp)
             ) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -194,217 +287,131 @@ fun MainTransceiverScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = "BT SPP: $btState",
-                        color = when (btState) {
-                            org.sih.itantra.core.transport.TransportState.CONNECTED -> RadarGreen
-                            org.sih.itantra.core.transport.TransportState.CONNECTING -> SignalBlue
-                            org.sih.itantra.core.transport.TransportState.LISTENING -> TextSecondary
-                            else -> DistressRed
-                        },
-                        fontSize = 11.sp,
+                        text = "BLUETOOTH RFCOMM PEERS",
+                        color = radioColors.textSecondary,
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold,
                         fontFamily = FontFamily.Monospace,
-                        fontWeight = FontWeight.Bold
+                        letterSpacing = 1.sp
                     )
-                    Box(
+
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier
                             .clickable { viewModel.refreshBondedBluetoothDevices() }
-                            .padding(horizontal = 6.dp, vertical = 2.dp)
+                            .padding(4.dp)
                     ) {
-                        Text(
-                            text = "[REFRESH]",
-                            color = SignalBlue,
-                            fontSize = 10.sp,
-                            fontFamily = FontFamily.Monospace
+                        Icon(
+                            imageVector = Icons.Default.Refresh,
+                            contentDescription = "Refresh",
+                            tint = if (radioColors.isDark) radioColors.sage else radioColors.forest,
+                            modifier = Modifier.size(14.dp)
                         )
-                    }
-                }
-
-                if (bondedPeers.isEmpty()) {
-                    Text(
-                        text = "NO BONDED PEER (Pair devices in Android Settings)",
-                        color = DistressRed,
-                        fontSize = 10.sp,
-                        fontFamily = FontFamily.Monospace,
-                        modifier = Modifier.padding(top = 4.dp)
-                    )
-                } else {
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .horizontalScroll(rememberScrollState()),
-                        horizontalArrangement = Arrangement.spacedBy(6.dp)
-                    ) {
-                        bondedPeers.forEach { peer ->
-                            val isConnected = peer.isConnected && btState == org.sih.itantra.core.transport.TransportState.CONNECTED
-                            Box(
-                                modifier = Modifier
-                                    .background(
-                                        if (isConnected) RadarGreen.copy(alpha = 0.2f) else TacticalBackground,
-                                        RoundedCornerShape(4.dp)
-                                    )
-                                    .border(
-                                        1.dp,
-                                        if (isConnected) RadarGreen else TacticalBorder,
-                                        RoundedCornerShape(4.dp)
-                                    )
-                                    .clickable { viewModel.connectBluetooth(peer.address) }
-                                    .padding(horizontal = 8.dp, vertical = 4.dp)
-                            ) {
-                                Text(
-                                    text = if (isConnected) "CONNECTED: ${peer.name}" else "CONNECT: ${peer.name}",
-                                    color = if (isConnected) RadarGreen else TextPrimary,
-                                    fontSize = 11.sp,
-                                    fontFamily = FontFamily.Monospace
-                                )
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        Spacer(modifier = Modifier.height(10.dp))
-
-        // Real-Time Oscilloscope Visualizer
-        WaveformVisualizer(pttState = pttState)
-
-        Spacer(modifier = Modifier.height(6.dp))
-
-        // Live transcription ticker
-        if (lastTranscribed.isNotBlank()) {
-            Text(
-                text = "TX >> $lastTranscribed",
-                color = RadarGreen,
-                fontSize = 12.sp,
-                fontFamily = FontFamily.Monospace,
-                maxLines = 1
-            )
-        }
-
-        Spacer(modifier = Modifier.height(6.dp))
-
-        // Transcript Log (Incoming & Outgoing Messages)
-        LazyColumn(
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-            modifier = Modifier
-                .weight(1f)
-                .fillMaxWidth()
-        ) {
-            if (history.isEmpty()) {
-                item {
-                    Box(
-                        contentAlignment = Alignment.Center,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(top = 20.dp)
-                    ) {
+                        Spacer(modifier = Modifier.width(4.dp))
                         Text(
-                            text = "RADIO CHANNEL QUIET // PRESS TALK OR SEND ALERT",
-                            color = TextSecondary.copy(alpha = 0.5f),
+                            text = "Refresh",
+                            color = if (radioColors.isDark) radioColors.sage else radioColors.forest,
                             fontSize = 11.sp,
                             fontFamily = FontFamily.Monospace
                         )
                     }
                 }
-            } else {
-                items(history) { record ->
-                    TranscriptBubble(record = record)
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                Text(
+                    text = "Current State: $btState",
+                    color = when (btState) {
+                        TransportState.CONNECTED -> radioColors.success
+                        TransportState.CONNECTING -> Color(0xFF0288D1)
+                        TransportState.LISTENING -> radioColors.textSecondary
+                        else -> radioColors.alert
+                    },
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Bold,
+                    fontFamily = FontFamily.Monospace
+                )
+
+                Spacer(modifier = Modifier.height(10.dp))
+
+                if (bondedPeers.isEmpty()) {
+                    Text(
+                        text = "No bonded Bluetooth devices found. Pair Phone A and Phone B in Android Settings first.",
+                        color = radioColors.alert,
+                        fontSize = 12.sp,
+                        lineHeight = 16.sp
+                    )
+                } else {
+                    LazyColumn(modifier = Modifier.fillMaxWidth().height(220.dp)) {
+                        items(bondedPeers) { peer ->
+                            val isConnected = peer.isConnected && btState == TransportState.CONNECTED
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clip(RoundedCornerShape(10.dp))
+                                    .background(if (isConnected) radioColors.surfaceHighlight else radioColors.surface)
+                                    .border(
+                                        1.dp,
+                                        if (isConnected) radioColors.success else radioColors.border.copy(alpha = 0.4f),
+                                        RoundedCornerShape(10.dp)
+                                    )
+                                    .clickable {
+                                        viewModel.connectBluetooth(peer.address)
+                                        showBtSheet = false
+                                    }
+                                    .padding(horizontal = 12.dp, vertical = 10.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Box(
+                                        modifier = Modifier
+                                            .size(32.dp)
+                                            .background(
+                                                if (isConnected) radioColors.success.copy(alpha = 0.15f) else radioColors.capsule,
+                                                CircleShape
+                                            ),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.Bluetooth,
+                                            contentDescription = null,
+                                            tint = if (isConnected) radioColors.success else radioColors.textSecondary,
+                                            modifier = Modifier.size(18.dp)
+                                        )
+                                    }
+                                    Spacer(modifier = Modifier.width(10.dp))
+                                    Column {
+                                        Text(
+                                            text = peer.name.ifEmpty { "Unknown" },
+                                            color = radioColors.textPrimary,
+                                            fontSize = 13.sp,
+                                            fontWeight = FontWeight.SemiBold
+                                        )
+                                        Text(
+                                            text = peer.address,
+                                            color = radioColors.textTertiary,
+                                            fontSize = 10.sp,
+                                            fontFamily = FontFamily.Monospace
+                                        )
+                                    }
+                                }
+
+                                Text(
+                                    text = if (isConnected) "CONNECTED" else "CONNECT",
+                                    color = if (isConnected) radioColors.success else (if (radioColors.isDark) radioColors.sage else radioColors.forest),
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    fontFamily = FontFamily.Monospace
+                                )
+                            }
+                            Spacer(modifier = Modifier.height(6.dp))
+                        }
+                    }
                 }
+
+                Spacer(modifier = Modifier.height(16.dp))
             }
         }
-
-        Spacer(modifier = Modifier.height(10.dp))
-
-        // Bottom Controls: PTT + Continuous Mode + Emergency Distress
-        Row(
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            // Mode Toggle (PTT vs Continuous Phone Mode)
-            Box(
-                modifier = Modifier
-                    .background(
-                        if (isContinuous) SignalBlue.copy(alpha = 0.2f) else TacticalSurface,
-                        RoundedCornerShape(8.dp)
-                    )
-                    .border(
-                        1.dp,
-                        if (isContinuous) SignalBlue else TacticalBorder,
-                        RoundedCornerShape(8.dp)
-                    )
-                    .clickable { viewModel.toggleContinuousMode() }
-                    .padding(horizontal = 12.dp, vertical = 10.dp)
-            ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(
-                        text = "MODE",
-                        color = TextSecondary,
-                        fontSize = 9.sp,
-                        fontFamily = FontFamily.Monospace
-                    )
-                    Text(
-                        text = if (isContinuous) "CONTINUOUS" else "WALKIE PTT",
-                        color = if (isContinuous) SignalBlue else TextPrimary,
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.Bold,
-                        fontFamily = FontFamily.Monospace
-                    )
-                }
-            }
-
-            // Central Tactical PTT Push Button
-            TacticalPttButton(
-                pttState = pttState,
-                isContinuousMode = isContinuous,
-                onPressStart = { viewModel.startPtt() },
-                onPressRelease = { viewModel.stopPtt() }
-            )
-
-            // Emergency Distress Trigger
-            Box(
-                modifier = Modifier
-                    .background(DistressRed.copy(alpha = 0.2f), RoundedCornerShape(8.dp))
-                    .border(1.dp, DistressRed, RoundedCornerShape(8.dp))
-                    .clickable { viewModel.sendEmergencyDistress() }
-                    .padding(horizontal = 12.dp, vertical = 10.dp)
-            ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Icon(
-                        imageVector = Icons.Default.Warning,
-                        contentDescription = "Distress Icon",
-                        tint = DistressRed,
-                        modifier = Modifier.size(18.dp)
-                    )
-                    Text(
-                        text = "DISTRESS",
-                        color = DistressRed,
-                        fontSize = 10.sp,
-                        fontWeight = FontWeight.Black,
-                        fontFamily = FontFamily.Monospace
-                    )
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun NavPill(text: String, onClick: () -> Unit) {
-    Box(
-        modifier = Modifier
-            .background(TacticalSurface, RoundedCornerShape(4.dp))
-            .border(1.dp, TacticalBorder, RoundedCornerShape(4.dp))
-            .clickable { onClick() }
-            .padding(horizontal = 8.dp, vertical = 4.dp)
-    ) {
-        Text(
-            text = text,
-            color = TextSecondary,
-            fontSize = 10.sp,
-            fontWeight = FontWeight.Bold,
-            fontFamily = FontFamily.Monospace
-        )
     }
 }

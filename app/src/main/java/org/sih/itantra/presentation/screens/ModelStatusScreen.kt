@@ -19,32 +19,25 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import org.sih.itantra.core.stt.LanguageModelRegistry
-import org.sih.itantra.presentation.theme.AlertAmber
-import org.sih.itantra.presentation.theme.RadarGreen
-import org.sih.itantra.presentation.theme.SignalBlue
-import org.sih.itantra.presentation.theme.TacticalBackground
-import org.sih.itantra.presentation.theme.TacticalBorder
-import org.sih.itantra.presentation.theme.TacticalSurface
-import org.sih.itantra.presentation.theme.TextPrimary
-import org.sih.itantra.presentation.theme.TextSecondary
+import org.sih.itantra.presentation.theme.LocalRadioColors
 
 @Composable
 fun ModelStatusScreen(
     onBack: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val radioColors = LocalRadioColors.current
     val capabilities = LanguageModelRegistry.getCapabilities()
 
     Column(
         modifier = modifier
             .fillMaxSize()
-            .background(TacticalBackground)
+            .background(radioColors.background)
             .padding(16.dp)
     ) {
         Row(
@@ -53,31 +46,31 @@ fun ModelStatusScreen(
             modifier = Modifier.fillMaxWidth()
         ) {
             Text(
-                text = "10-LANGUAGE STATUS AUDIT",
-                color = RadarGreen,
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Black,
-                fontFamily = FontFamily.Monospace
+                text = "10-LANGUAGE AUDIT",
+                color = if (radioColors.isDark) radioColors.sage else radioColors.forest,
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold,
+                fontFamily = FontFamily.SansSerif
             )
             Button(
                 onClick = onBack,
-                colors = ButtonDefaults.buttonColors(containerColor = TacticalSurface)
+                colors = ButtonDefaults.buttonColors(containerColor = radioColors.surface)
             ) {
-                Text("CLOSE", color = TextPrimary, fontFamily = FontFamily.Monospace, fontSize = 11.sp)
+                Text("CLOSE", color = radioColors.textPrimary, fontFamily = FontFamily.Monospace, fontSize = 11.sp)
             }
         }
 
-        Spacer(modifier = Modifier.height(10.dp))
+        Spacer(modifier = Modifier.height(8.dp))
 
         Text(
             text = "VERIFICATION AUDIT: ZERO-FABRICATION STATUS",
-            color = AlertAmber,
+            color = radioColors.warning,
             fontSize = 11.sp,
             fontFamily = FontFamily.Monospace,
             fontWeight = FontWeight.Bold
         )
 
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(12.dp))
 
         LazyColumn(
             verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -87,9 +80,9 @@ fun ModelStatusScreen(
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .background(TacticalSurface, RoundedCornerShape(6.dp))
-                        .border(1.dp, TacticalBorder, RoundedCornerShape(6.dp))
-                        .padding(10.dp)
+                        .background(radioColors.surface, RoundedCornerShape(10.dp))
+                        .border(1.dp, radioColors.border.copy(alpha = 0.5f), RoundedCornerShape(10.dp))
+                        .padding(12.dp)
                 ) {
                     Row(
                         horizontalArrangement = Arrangement.SpaceBetween,
@@ -97,14 +90,14 @@ fun ModelStatusScreen(
                     ) {
                         Text(
                             text = "${cap.language.displayName.uppercase()} [${cap.language.isoCode}]",
-                            color = TextPrimary,
+                            color = radioColors.textPrimary,
                             fontWeight = FontWeight.Bold,
                             fontSize = 13.sp
                         )
                         val isVerified = cap.verificationNotes.contains("VERIFIED")
                         Text(
                             text = if (isVerified) "VERIFIED NEURAL" else if (cap.isOfflineReady) "SYSTEM READY" else "FALLBACK-ONLY",
-                            color = if (isVerified) RadarGreen else if (cap.isOfflineReady) SignalBlue else AlertAmber,
+                            color = if (isVerified) radioColors.success else if (cap.isOfflineReady) radioColors.sage else radioColors.warning,
                             fontSize = 10.sp,
                             fontWeight = FontWeight.Bold,
                             fontFamily = FontFamily.Monospace
@@ -114,19 +107,19 @@ fun ModelStatusScreen(
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
                         text = "STT: ${cap.sttEngine}",
-                        color = SignalBlue,
+                        color = if (radioColors.isDark) radioColors.sage else radioColors.forest,
                         fontSize = 11.sp,
                         fontFamily = FontFamily.Monospace
                     )
                     Text(
                         text = "TTS: ${cap.ttsEngine}",
-                        color = TextSecondary,
+                        color = radioColors.textSecondary,
                         fontSize = 11.sp,
                         fontFamily = FontFamily.Monospace
                     )
                     Text(
                         text = "Status: ${cap.verificationNotes}",
-                        color = if (cap.isOfflineReady) TextPrimary.copy(alpha = 0.8f) else AlertAmber.copy(alpha = 0.8f),
+                        color = if (cap.isOfflineReady) radioColors.textPrimary.copy(alpha = 0.8f) else radioColors.warning,
                         fontSize = 10.sp,
                         fontFamily = FontFamily.Monospace,
                         modifier = Modifier.padding(top = 2.dp)
