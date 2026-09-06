@@ -29,6 +29,8 @@ data class TtsPerfMetrics(
     val language: IndicLanguage,
     val text: String,
     val tTtsReqNanos: Long,
+    val tPreprocessStartNanos: Long = 0L,
+    val tPreprocessEndNanos: Long = 0L,
     val tModelLookupNanos: Long,
     val tModelLoadStartNanos: Long,
     val tModelLoadEndNanos: Long,
@@ -38,6 +40,7 @@ data class TtsPerfMetrics(
     val tTrackPrepEndNanos: Long,
     val tFirstFrameWrittenNanos: Long,
     val tPlaybackCompleteNanos: Long,
+    val preprocessMs: Double = 0.0,
     val modelLoadMs: Double,
     val synthMs: Double,
     val trackPrepMs: Double,
@@ -212,10 +215,15 @@ class SherpaOnnxTtsEngine(
         }
 
         return try {
+            val isMms = (language == IndicLanguage.TAMIL || language == IndicLanguage.KANNADA || language == IndicLanguage.ODIA)
+            val threads = if (language == IndicLanguage.TAMIL) 4 else 2
+            val maxSentences = if (language == IndicLanguage.TAMIL) 2 else 1
+
             val vitsConfig = OfflineTtsVitsModelConfig().apply {
                 model = spec.modelFile.absolutePath
                 tokens = spec.tokensFile.absolutePath
-                dataDir = modelAssetManager.sharedEspeakDataDir.absolutePath
+                // Meta MMS models are character-based and do not use eSpeak phoneme tables
+                dataDir = if (isMms) "" else modelAssetManager.sharedEspeakDataDir.absolutePath
                 noiseScale = spec.noiseScale
                 noiseScaleW = spec.noiseScaleW
                 lengthScale = spec.lengthScale
@@ -223,14 +231,14 @@ class SherpaOnnxTtsEngine(
 
             val modelConfig = OfflineTtsModelConfig().apply {
                 vits = vitsConfig
-                numThreads = 2
+                numThreads = threads
                 debug = false
                 provider = "cpu"
             }
 
             val ttsConfig = OfflineTtsConfig().apply {
                 this.model = modelConfig
-                this.maxNumSentences = 1
+                this.maxNumSentences = maxSentences
                 this.silenceScale = 0.2f
             }
 
@@ -238,7 +246,7 @@ class SherpaOnnxTtsEngine(
             activeTts = engine
             activeLanguage = language
             isInitialized = true
-            Log.i(tag, "Sherpa-ONNX VITS TTS initialized successfully for ${language.displayName}! SampleRate: ${engine.sampleRate()} (single active model resident)")
+            Log.i(tag, "Sherpa-ONNX VITS TTS initialized successfully for ${language.displayName}! SampleRate: ${engine.sampleRate()} threads=$threads maxSentences=$maxSentences (single active model resident)")
             engine
         } catch (e: Throwable) {
             Log.e(tag, "Failed to initialize SherpaOnnxTtsEngine for ${language.displayName}", e)
@@ -286,6 +294,19 @@ class SherpaOnnxTtsEngine(
                 _ttsState.value = TtsState.SYNTHESIZING
                 Log.i(tag, "Synthesizing ${language.displayName} text: '$text'")
 
+                val tPreprocessStart = System.nanoTime()
+                val textToSynthesize = if (language == IndicLanguage.TAMIL) {
+                    val processed = TamilTextPreprocessor.process(text)
+                    if (processed != text) {
+                        Log.i(tag, "Tamil text preprocessed: '$text' -> '$processed'")
+                    }
+                    processed.ifBlank { text }
+                } else {
+                    text
+                }
+                val tPreprocessEnd = System.nanoTime()
+                val preprocessMs = (tPreprocessEnd - tPreprocessStart) / 1_000_000.0
+
                 val tModelLookup = System.nanoTime()
                 var tModelLoadStart = tModelLookup
                 var tModelLoadEnd = tModelLookup
@@ -308,7 +329,7 @@ class SherpaOnnxTtsEngine(
                         null
                     } else {
                         synthStartRecorded = System.nanoTime()
-                        val genAudio = currentTts.generate(text = text, sid = 0, speed = 1.0f)
+                        val genAudio = currentTts.generate(text = textToSynthesize, sid = 0, speed = 1.0f)
                         synthEndRecorded = System.nanoTime()
                         genAudio
                     }
@@ -369,6 +390,8 @@ class SherpaOnnxTtsEngine(
                     language = language,
                     text = text,
                     tTtsReqNanos = tTtsReq,
+                    tPreprocessStartNanos = tPreprocessStart,
+                    tPreprocessEndNanos = tPreprocessEnd,
                     tModelLookupNanos = tModelLookup,
                     tModelLoadStartNanos = tModelLoadStart,
                     tModelLoadEndNanos = tModelLoadEnd,
@@ -378,6 +401,7 @@ class SherpaOnnxTtsEngine(
                     tTrackPrepEndNanos = tTrackPrepEnd,
                     tFirstFrameWrittenNanos = tFirstFrameWritten,
                     tPlaybackCompleteNanos = tPlaybackComplete,
+                    preprocessMs = preprocessMs,
                     modelLoadMs = modelLoadMs,
                     synthMs = synthMs,
                     trackPrepMs = trackPrepMs,
@@ -389,9 +413,10 @@ class SherpaOnnxTtsEngine(
 
                 val logMsg = String.format(
                     Locale.US,
-                    "[TTS-PERF] lang=%s req=%d lookup=%d load_start=%d load_end=%d synth_start=%d synth_end=%d track_start=%d track_end=%d first_frame=%d playback_complete=%d | load_ms=%.2f synth_ms=%.2f track_prep_ms=%.2f time_to_first_audio_ms=%.2f playback_duration_ms=%.2f total_tts_stage_ms=%.2f",
+                    "[TTS-PERF] lang=%s req=%d prep_ms=%.2f lookup=%d load_start=%d load_end=%d synth_start=%d synth_end=%d track_start=%d track_end=%d first_frame=%d playback_complete=%d | preprocess_ms=%.2f load_ms=%.2f synth_ms=%.2f track_prep_ms=%.2f time_to_first_audio_ms=%.2f playback_duration_ms=%.2f total_tts_stage_ms=%.2f",
                     language.name,
                     tTtsReq,
+                    preprocessMs,
                     tModelLookup,
                     tModelLoadStart,
                     tModelLoadEnd,
@@ -401,6 +426,7 @@ class SherpaOnnxTtsEngine(
                     tTrackPrepEnd,
                     tFirstFrameWritten,
                     tPlaybackComplete,
+                    preprocessMs,
                     modelLoadMs,
                     synthMs,
                     trackPrepMs,
