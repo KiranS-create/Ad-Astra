@@ -108,7 +108,7 @@ class TacticalPacketScheduler(
 
     /**
      * Enqueue a batch of packets (e.g. fragments of a single message) atomically.
-     * Guarantees fragment order within the same priority level is preserved.
+     * Preserves fragment order within the same priority level.
      */
     fun enqueueBatch(
         packets: List<Packet>,

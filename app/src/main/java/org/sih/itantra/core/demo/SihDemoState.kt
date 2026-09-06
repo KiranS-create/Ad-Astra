@@ -69,10 +69,84 @@ enum class StageState {
 }
 
 /**
+ * Statistical metric representation capturing MIN, MEDIAN, MEAN, MAX over repeated samples.
+ */
+data class StatisticalMetric(
+    val min: Long = 0L,
+    val median: Long = 0L,
+    val mean: Long = 0L,
+    val max: Long = 0L,
+    val unit: String = "µs"
+) {
+    companion object {
+        fun fromSamples(samples: List<Long>, unit: String = "µs"): StatisticalMetric {
+            if (samples.isEmpty()) return StatisticalMetric(0L, 0L, 0L, 0L, unit)
+            val sorted = samples.sorted()
+            val min = sorted.first()
+            val max = sorted.last()
+            val median = if (sorted.size % 2 == 1) {
+                sorted[sorted.size / 2]
+            } else {
+                (sorted[sorted.size / 2 - 1] + sorted[sorted.size / 2]) / 2
+            }
+            val mean = sorted.average().toLong()
+            return StatisticalMetric(min, median, mean, max, unit)
+        }
+    }
+}
+
+/**
+ * Result of a single benchmark scenario execution.
+ */
+data class SihBenchmarkScenarioResult(
+    val scenarioKey: String,
+    val scenarioName: String,
+    val isSimulated: Boolean = true,
+    val payloadBytes: Int,
+    val wireBytes: Int,
+    val fragmentCount: Int,
+    val savingsVsRawPcmPercent: Double,
+    val payloadSavingsPercent: Double?,
+    val executionLatency: StatisticalMetric,
+    val details: String
+)
+
+/**
+ * Suite result containing all benchmark scenario measurements and component timings.
+ */
+data class SihBenchmarkSuiteResult(
+    val timestampMs: Long = System.currentTimeMillis(),
+    val sampleCountPerMetric: Int = 10,
+    val sttLatencyMs: Long? = null,
+    val ttsLatencyMs: Long? = null,
+    val semanticClassificationMicros: StatisticalMetric = StatisticalMetric(0, 0, 0, 0, "µs"),
+    val hmacGenerationMicros: StatisticalMetric = StatisticalMetric(0, 0, 0, 0, "µs"),
+    val hmacVerificationMicros: StatisticalMetric = StatisticalMetric(0, 0, 0, 0, "µs"),
+    val qosSchedulingMicros: StatisticalMetric = StatisticalMetric(0, 0, 0, 0, "µs"),
+    val fragmentationReassemblyMicros: StatisticalMetric = StatisticalMetric(0, 0, 0, 0, "µs"),
+    val deliveryReceiptMicros: StatisticalMetric = StatisticalMetric(0, 0, 0, 0, "µs"),
+    val multiHopTransitMicros: StatisticalMetric = StatisticalMetric(0, 0, 0, 0, "µs"),
+    val scenarios: List<SihBenchmarkScenarioResult> = emptyList()
+)
+
+/**
+ * Real device readiness indicators reflecting actual runtime subsystem availability.
+ */
+data class DeviceReadinessState(
+    val sttStatus: String = "READY",
+    val ttsStatus: String = "READY",
+    val networkStatus: String = "READY",
+    val securityStatus: String = "READY",
+    val manetServiceStatus: String = "STOPPED",
+    val topologyStatus: String = "AVAILABLE",
+    val demoStatus: String = "READY"
+)
+
+/**
  * Measured low-bitrate and wire layout metrics for the active demo scenario.
  */
 data class LowBitrateMetrics(
-    val rawAudioBytes: Long = 64_000L,       // 2 sec 16kHz 16-bit PCM = 64 KB
+    val rawAudioBytes: Long = 64_000L,       // 2 sec 16kHz 16-bit PCM = 64 KB (Illustrative baseline calculation)
     val originalTextBytes: Int = 0,          // String byte count
     val payloadBytes: Int = 0,               // Actual transmitted payload
     val semanticBytes: Int? = null,          // 6 bytes if semantic compression active
@@ -119,6 +193,8 @@ data class SihDemoState(
     val currentStepIndex: Int = 0,
     val totalSteps: Int = 8,
     val isAutoRunning: Boolean = false,
+    val elapsedSeconds: Int = 0,             // Live Demo Timer
+    val isTimerRunning: Boolean = false,
     val stageStates: Map<PipelineStage, StageState> = PipelineStage.entries.associateWith { StageState.IDLE },
     val statusSummary: String = "DEMO READY · SELECT SCENARIO OR TAP START",
     val activeLanguage: IndicLanguage = IndicLanguage.ENGLISH,
@@ -126,6 +202,12 @@ data class SihDemoState(
     val recognizedText: String = "",
     val lowBitrateMetrics: LowBitrateMetrics = LowBitrateMetrics(),
     val benchmarkMetrics: BenchmarkMetrics = BenchmarkMetrics(),
+    val benchmarkSuiteResult: SihBenchmarkSuiteResult? = null,
+    val isBenchmarkRunning: Boolean = false,
+    val deviceReadiness: DeviceReadinessState = DeviceReadinessState(),
+    val manualInputText: String = "",
+    val isManualFallbackActive: Boolean = false,
+    val failureMessage: String? = null,
     val securityStatus: String = "HMAC-SHA256 AUTHENTICATED",
     val replayWindowStatus: String = "64-PACKET BITMASK WINDOW OK",
     val networkPath: List<DemoRouteHop> = emptyList(),

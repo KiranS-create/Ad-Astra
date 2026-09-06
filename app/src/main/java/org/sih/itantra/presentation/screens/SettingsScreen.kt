@@ -718,7 +718,7 @@ fun SettingsScreen(
                 Spacer(modifier = Modifier.height(6.dp))
 
                 Text(
-                    text = "Broadcasts a high-priority distress alert packet with guaranteed delivery override. Protected by hold-to-send guard.",
+                    text = "Broadcasts a high-priority distress alert packet with store-and-forward resilience and priority queue override. Protected by hold-to-send guard.",
                     color = radioColors.textSecondary,
                     fontSize = 11.sp,
                     lineHeight = 15.sp

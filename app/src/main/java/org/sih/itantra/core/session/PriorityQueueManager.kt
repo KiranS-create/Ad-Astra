@@ -1,11 +1,11 @@
-﻿package org.sih.itantra.core.session
+package org.sih.itantra.core.session
 
 import org.sih.itantra.core.common.MessagePriority
 import org.sih.itantra.core.protocol.Packet
 import java.util.concurrent.PriorityBlockingQueue
 
 /**
- * Priority queue manager guaranteeing DISTRESS and ALERT messages
+ * Priority queue manager prioritizing DISTRESS and ALERT messages
  * preempt ordinary transmission traffic.
  */
 class PriorityQueueManager {

@@ -25,9 +25,8 @@ import java.util.Locale
  * Coordinates multi-step visual walkthroughs of all 9 core subsystems:
  * VOICE -> STT -> SEMANTIC/TEXT -> AUTH -> QOS -> ROUTE -> TX/RELAY -> ACK -> TTS.
  *
- * Reuses production protocol components (SemanticEmergencyClassifier, TacticalPacketScheduler,
- * PacketSerializer, PacketAuthenticator, ManetSimulator) while operating strictly in
- * SIMULATION mode to ensure zero real radio or distress emissions.
+ * Operates strictly inside DemoSafetyBoundary in SIMULATION mode to ensure zero real radio,
+ * location, or distress emissions.
  */
 class SihDemoCoordinator(
     private val manetSimulator: ManetSimulator = ManetSimulator(),
@@ -44,7 +43,8 @@ class SihDemoCoordinator(
     val state: StateFlow<SihDemoState> = _state.asStateFlow()
 
     private var autoRunJob: Job? = null
-    private val demoScheduler = TacticalPacketScheduler(autoTransmit = false)
+    private var timerJob: Job? = null
+    private val benchmarkRunner = SihBenchmarkRunner(manetSimulator, sampleCount = 10)
 
     init {
         selectScenario(DemoScenario.NORMAL_VOICE)
@@ -60,6 +60,8 @@ class SihDemoCoordinator(
             currentStepIndex = 0,
             totalSteps = 8,
             isAutoRunning = false,
+            elapsedSeconds = 0,
+            isTimerRunning = false,
             stageStates = PipelineStage.entries.associateWith { StageState.IDLE },
             statusSummary = "DEMO READY · SELECT SCENARIO OR TAP START",
             activeLanguage = IndicLanguage.ENGLISH,
@@ -75,13 +77,13 @@ class SihDemoCoordinator(
                 fragmentCount = 1
             ),
             benchmarkMetrics = BenchmarkMetrics(
-                sttLatencyMs = 210L,
+                sttLatencyMs = 185L,
                 semanticClassificationMicros = 0L,
                 hmacGenMicros = 42L,
                 qosDispatchMicros = 15L,
                 meshHopLatencyMs = 18L,
                 ackRttMs = 38L,
-                ttsLatencyMs = 195L
+                ttsLatencyMs = 190L
             ),
             securityStatus = "HMAC-SHA256 AUTHENTICATED",
             replayWindowStatus = "64-PACKET BITMASK WINDOW OK",
@@ -103,8 +105,7 @@ class SihDemoCoordinator(
      * Select a demonstration scenario and configure its deterministic parameters.
      */
     fun selectScenario(scenario: DemoScenario) {
-        autoRunJob?.cancel()
-        autoRunJob = null
+        stopAutoRun()
 
         val sampleText = when (scenario) {
             DemoScenario.NORMAL_VOICE -> "Base camp, patrol team alpha status normal. Standing by."
@@ -124,8 +125,7 @@ class SihDemoCoordinator(
         val semanticBytes = semanticCmd?.let { SemanticCommand.SIZE_BYTES }
         val wireBytes = 25 + payloadBytes + 8 + 4 // header + payload + auth + crc
 
-        // Calculate real savings vs original text and raw PCM
-        val rawAudioBytes = 64_000L // 2 sec 16kHz 16-bit PCM
+        val rawAudioBytes = 64_000L // 2 sec 16kHz 16-bit PCM (Illustrative baseline calculation)
         val payloadSavings = if (semanticCmd != null) {
             ((textBytes.toDouble() - payloadBytes.toDouble()) / textBytes.toDouble()) * 100.0
         } else {
@@ -150,6 +150,10 @@ class SihDemoCoordinator(
             selectedScenario = scenario,
             currentStepIndex = 0,
             isAutoRunning = false,
+            elapsedSeconds = 0,
+            isTimerRunning = false,
+            isManualFallbackActive = false,
+            failureMessage = null,
             stageStates = PipelineStage.entries.associateWith { StageState.IDLE },
             statusSummary = "[SIMULATION] ${scenario.badgeLabel}: ${scenario.title} READY",
             sampleUtterance = sampleText,
@@ -173,7 +177,7 @@ class SihDemoCoordinator(
                 ttsLatencyMs = 190L
             ),
             networkPath = path,
-            activeRouteHops = if (scenario == DemoScenario.FAILURE_RESILIENCE) 2 else 2,
+            activeRouteHops = 2,
             deliveryStatus = "READY",
             queueDepth = if (scenario == DemoScenario.CONGESTION_PREEMPTION) 35 else 0,
             congestionState = if (scenario == DemoScenario.CONGESTION_PREEMPTION) "BUSY" else "NORMAL",
@@ -186,6 +190,7 @@ class SihDemoCoordinator(
      * Start the demonstration for the selected scenario.
      */
     fun startDemo() {
+        startTimerIfNeeded()
         if (_state.value.currentStepIndex == 0) {
             nextStep()
         }
@@ -195,10 +200,10 @@ class SihDemoCoordinator(
      * Advance to the next step in the demonstration pipeline.
      */
     fun nextStep() {
+        startTimerIfNeeded()
         val current = _state.value
         val nextStepIndex = current.currentStepIndex + 1
         if (nextStepIndex > current.totalSteps) {
-            // Already completed; wrap to completed status
             return
         }
 
@@ -207,44 +212,37 @@ class SihDemoCoordinator(
 
         when (nextStepIndex) {
             1 -> {
-                // Step 1: Voice Capture
                 updatedStages[PipelineStage.VOICE] = StageState.ACTIVE
             }
             2 -> {
-                // Step 2: STT Conversion
                 updatedStages[PipelineStage.VOICE] = StageState.SUCCESS
                 updatedStages[PipelineStage.STT] = StageState.ACTIVE
             }
             3 -> {
-                // Step 3: Semantic / Text Encoding
                 updatedStages[PipelineStage.STT] = StageState.SUCCESS
                 updatedStages[PipelineStage.SEMANTIC_OR_TEXT] = StageState.ACTIVE
             }
             4 -> {
-                // Step 4: HMAC-SHA256 Security
                 updatedStages[PipelineStage.SEMANTIC_OR_TEXT] = StageState.SUCCESS
                 updatedStages[PipelineStage.AUTH] = StageState.ACTIVE
             }
             5 -> {
-                // Step 5: Tactical QoS Scheduling
                 updatedStages[PipelineStage.AUTH] = StageState.SUCCESS
                 updatedStages[PipelineStage.QOS] = StageState.ACTIVE
             }
             6 -> {
-                // Step 6: MANET Routing
                 updatedStages[PipelineStage.QOS] = StageState.SUCCESS
                 updatedStages[PipelineStage.ROUTE] = StageState.ACTIVE
             }
             7 -> {
-                // Step 7: Mesh Relay / Delivery
                 updatedStages[PipelineStage.ROUTE] = StageState.SUCCESS
                 updatedStages[PipelineStage.TX_RELAY] = StageState.ACTIVE
             }
             8 -> {
-                // Step 8: ACK + TTS Playback
                 updatedStages[PipelineStage.TX_RELAY] = StageState.SUCCESS
                 updatedStages[PipelineStage.ACK] = StageState.SUCCESS
                 updatedStages[PipelineStage.TTS] = StageState.SUCCESS
+                stopTimer()
             }
         }
 
@@ -266,7 +264,8 @@ class SihDemoCoordinator(
      * Execute the full demonstration automatically with timed pauses.
      */
     fun runFullDemo() {
-        autoRunJob?.cancel()
+        stopAutoRun()
+        startTimerIfNeeded()
         _state.value = _state.value.copy(isAutoRunning = true)
 
         autoRunJob = scope.launch {
@@ -278,6 +277,7 @@ class SihDemoCoordinator(
                 nextStep()
             }
             _state.value = _state.value.copy(isAutoRunning = false)
+            stopTimer()
         }
     }
 
@@ -288,16 +288,120 @@ class SihDemoCoordinator(
         autoRunJob?.cancel()
         autoRunJob = null
         _state.value = _state.value.copy(isAutoRunning = false)
+        stopTimer()
+    }
+
+    /**
+     * Operator Manual Text Input Fallback (for microphone-independent demos).
+     */
+    fun processManualTextInput(text: String) {
+        val trimmed = text.trim()
+        if (trimmed.isEmpty()) return
+
+        stopAutoRun()
+        val textBytes = trimmed.toByteArray(Charsets.UTF_8).size
+        val semanticCmd = SemanticEmergencyClassifier.classify(trimmed.lowercase(Locale.ROOT))
+        val payloadBytes = semanticCmd?.let { SemanticCommand.SIZE_BYTES } ?: textBytes
+        val wireBytes = 25 + payloadBytes + 8 + 4
+        val rawAudioBytes = 64_000L
+        val payloadSavings = if (semanticCmd != null) {
+            ((textBytes - payloadBytes).toDouble() / textBytes.toDouble()) * 100.0
+        } else {
+            ((rawAudioBytes - payloadBytes).toDouble() / rawAudioBytes.toDouble()) * 100.0
+        }
+
+        val updatedStages = PipelineStage.entries.associateWith { StageState.IDLE }.toMutableMap()
+        updatedStages[PipelineStage.VOICE] = StageState.SUCCESS // Manual bypassed mic
+        updatedStages[PipelineStage.STT] = StageState.SUCCESS   // Manual bypassed STT
+        updatedStages[PipelineStage.SEMANTIC_OR_TEXT] = StageState.ACTIVE
+
+        _state.value = _state.value.copy(
+            sampleUtterance = trimmed,
+            recognizedText = trimmed,
+            currentStepIndex = 3,
+            isManualFallbackActive = true,
+            manualInputText = trimmed,
+            stageStates = updatedStages,
+            statusSummary = "[SIMULATION] MANUAL INPUT PROCESSED: ${if (semanticCmd != null) "SEMANTIC DISTRESS DETECTED" else "TACTICAL TEXT"}",
+            lowBitrateMetrics = LowBitrateMetrics(
+                rawAudioBytes = rawAudioBytes,
+                originalTextBytes = textBytes,
+                payloadBytes = payloadBytes,
+                semanticBytes = semanticCmd?.let { SemanticCommand.SIZE_BYTES },
+                wireBytes = wireBytes,
+                payloadSavingsPercent = payloadSavings,
+                fragmentCount = 1
+            ),
+            judgeScriptNarration = if (semanticCmd != null) {
+                "Manual fallback: Emergency keyword detected! Text ($textBytes B) compressed to 6-byte semantic frame (${String.format(Locale.ROOT, "%.1f", payloadSavings)}% savings)."
+            } else {
+                "Manual fallback: Text serialized into $wireBytes-byte authenticated frame without microphone."
+            }
+        )
+    }
+
+    /**
+     * Run the reproducible N=10 benchmark suite.
+     */
+    fun runBenchmarks() {
+        if (_state.value.isBenchmarkRunning) return
+        _state.value = _state.value.copy(isBenchmarkRunning = true, statusSummary = "[SIMULATION] RUNNING BENCHMARKS (N=10 SAMPLES)...")
+
+        scope.launch(Dispatchers.Default) {
+            val result = benchmarkRunner.runFullBenchmarkSuite()
+            _state.value = _state.value.copy(
+                isBenchmarkRunning = false,
+                benchmarkSuiteResult = result,
+                statusSummary = "[SIMULATION] REPRODUCIBLE BENCHMARK COMPLETE (N=10 SAMPLES)"
+            )
+        }
+    }
+
+    /**
+     * Update device readiness indicators from real runtime state.
+     */
+    fun updateDeviceReadiness(readiness: DeviceReadinessState) {
+        _state.value = _state.value.copy(deviceReadiness = readiness)
+    }
+
+    /**
+     * Set failure notice without crashing.
+     */
+    fun triggerFailureNotice(message: String) {
+        _state.value = _state.value.copy(failureMessage = message)
+    }
+
+    fun clearFailureNotice() {
+        _state.value = _state.value.copy(failureMessage = null)
     }
 
     /**
      * Safely resets demo state to clean defaults without modifying real hardware or user radio settings.
      */
     fun resetDemo() {
-        autoRunJob?.cancel()
-        autoRunJob = null
+        stopAutoRun()
+        timerJob?.cancel()
+        timerJob = null
         val currentScenario = _state.value.selectedScenario
         selectScenario(currentScenario)
+    }
+
+    private fun startTimerIfNeeded() {
+        if (timerJob == null || !timerJob!!.isActive) {
+            _state.value = _state.value.copy(isTimerRunning = true)
+            timerJob = scope.launch {
+                while (_state.value.isTimerRunning) {
+                    delay(1000L)
+                    _state.value = _state.value.copy(elapsedSeconds = _state.value.elapsedSeconds + 1)
+                }
+            }
+        }
+    }
+
+    private fun stopTimer() {
+        timerJob?.cancel()
+        timerJob = null
+        _state.value = _state.value.copy(isTimerRunning = false)
     }
 
     /**
@@ -306,8 +410,8 @@ class SihDemoCoordinator(
     private fun getNarrationForStep(scenario: DemoScenario, step: Int): String {
         return when (step) {
             0 -> when (scenario) {
-                DemoScenario.NORMAL_VOICE -> "1. Ready: Tap 'START' to demonstrate voice-to-text-to-mesh delivery with delivery receipt."
-                DemoScenario.SEMANTIC_COMPRESSION -> "1. Ready: Demonstrates dynamic 6-byte semantic compression on emergency speech (90.3% savings)."
+                DemoScenario.NORMAL_VOICE -> "1. Ready: Demonstrates voice-to-text-to-mesh delivery with authenticated delivery receipt."
+                DemoScenario.SEMANTIC_COMPRESSION -> "1. Ready: Demonstrates deterministic 6-byte semantic compression on emergency speech (90.3% savings)."
                 DemoScenario.MULTI_HOP_DISTRESS -> "1. Ready: Demonstrates 2-hop AODV route discovery and priority emergency distress forwarding."
                 DemoScenario.CONGESTION_PREEMPTION -> "1. Ready: Demonstrates queue saturation where high-priority DISTRESS pre-empts normal packets."
                 DemoScenario.FAILURE_RESILIENCE -> "1. Ready: Demonstrates mid-mission node failure, RERR broadcast, and automated alternate reroute."
@@ -315,7 +419,7 @@ class SihDemoCoordinator(
             1 -> "2. [MIC] Operator speaks utterance. Silero VAD detects speech boundary with 0.1s threshold."
             2 -> "3. [STT] On-device neural speech recognizer transcribes audio strictly offline in under 220ms."
             3 -> when (scenario) {
-                DemoScenario.SEMANTIC_COMPRESSION -> "4. [ENC] Semantic Classifier compresses 62-byte emergency phrase into a 6-byte binary payload (90.3% savings!)."
+                DemoScenario.SEMANTIC_COMPRESSION -> "4. [ENC] Deterministic Semantic Classifier compresses 62-byte emergency phrase into a 6-byte binary payload (90.3% savings!)."
                 else -> "4. [ENC] Payload serialized into compact binary format with ISO language tag and sequence header."
             }
             4 -> "5. [AUTH] 8-byte HMAC-SHA256 authentication tag appended. Anti-replay sliding bitmask window verified."
@@ -331,7 +435,7 @@ class SihDemoCoordinator(
                 DemoScenario.FAILURE_RESILIENCE -> "8. [TX] Packet relayed across alternate Node D link. TTL decremented and CRC32 validated."
                 else -> "8. [TX] Packet forwarded over RFCOMM / Wi-Fi multicast mesh relay to destination."
             }
-            8 -> "9. [ACK+TTS] Destination receives packet, dispatches 35-byte Delivery ACK, and synthesizes neural voice via offline TTS."
+            8 -> "9. [ACK+TTS] Destination receives packet, dispatches 35-byte Delivery ACK, and synthesizes voice via offline TTS."
             else -> "Tactical pipeline demonstration completed successfully."
         }
     }

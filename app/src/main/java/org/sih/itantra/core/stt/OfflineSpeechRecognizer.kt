@@ -1,4 +1,4 @@
-﻿package org.sih.itantra.core.stt
+package org.sih.itantra.core.stt
 
 import android.content.Context
 import android.content.Intent
@@ -18,7 +18,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 
 /**
  * On-device Speech Recognizer supporting the 10 official languages.
- * Configured with EXTRA_PREFER_OFFLINE to guarantee zero network traffic.
+ * Configured with EXTRA_PREFER_OFFLINE ensuring zero network traffic.
  */
 class OfflineSpeechRecognizer(
     private val context: Context,

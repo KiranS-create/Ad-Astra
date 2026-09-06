@@ -540,6 +540,18 @@ class ManetSimulator {
     }
 
     /**
+     * Set specific node online or offline state.
+     */
+    fun setNodeOnline(nodeId: Int, online: Boolean) {
+        val node = nodesMap[nodeId] ?: return
+        node.isOnline = online
+        if (!online) {
+            _activeRoute = null
+        }
+        publishState()
+    }
+
+    /**
      * Reset topology to clean initial state.
      */
     fun resetTopology() {

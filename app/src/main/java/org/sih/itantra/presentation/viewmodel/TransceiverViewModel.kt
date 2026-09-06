@@ -247,6 +247,29 @@ class TransceiverViewModel(application: Application) : AndroidViewModel(applicat
     fun runFullDemo() = sihDemoCoordinator.runFullDemo()
     fun stopAutoRun() = sihDemoCoordinator.stopAutoRun()
     fun resetDemo() = sihDemoCoordinator.resetDemo()
+    fun runDemoBenchmarks() = sihDemoCoordinator.runBenchmarks()
+    fun processManualDemoInput(text: String) = sihDemoCoordinator.processManualTextInput(text)
+
+    fun refreshDemoReadiness() {
+        val sttReady = if (isModelReady.value) "READY" else "NOT READY"
+        val ttsReady = if (coordinator.tts.ttsState.value != org.sih.itantra.core.tts.TtsState.ERROR) "READY" else "NOT READY"
+        val netReady = if (bluetoothTransportState.value != TransportState.ERROR) "READY" else "NOT READY"
+        val secReady = if (org.sih.itantra.core.crypto.NetworkKeyManager.hasKey()) "READY" else "NOT READY"
+        val manetReady = if (_isNodeModeEnabled.value) "RUNNING" else "STOPPED"
+        val topReady = if (_nodeRouteCount.value > 0 || _meshTopologySnapshot.value.nodes.isNotEmpty()) "AVAILABLE" else "NO DATA"
+
+        sihDemoCoordinator.updateDeviceReadiness(
+            org.sih.itantra.core.demo.DeviceReadinessState(
+                sttStatus = sttReady,
+                ttsStatus = ttsReady,
+                networkStatus = netReady,
+                securityStatus = secReady,
+                manetServiceStatus = manetReady,
+                topologyStatus = topReady,
+                demoStatus = "READY"
+            )
+        )
+    }
 
     private val _isSimulationMode = MutableStateFlow(false)
     val isSimulationMode: StateFlow<Boolean> = _isSimulationMode.asStateFlow()
