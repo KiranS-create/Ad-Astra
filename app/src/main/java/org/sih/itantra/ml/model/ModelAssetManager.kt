@@ -5,6 +5,7 @@ import android.content.res.AssetManager
 import android.util.Log
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import org.sih.itantra.core.common.IndicLanguage
 import java.io.File
 import java.io.FileOutputStream
 import java.io.InputStream
@@ -19,6 +20,36 @@ class ModelAssetManager(private val context: Context) {
 
     private val tag = "ModelAssetManager"
     private val modelsBaseDir = File(context.filesDir, "models")
+
+    // AI4Bharat IndicConformer NeMo CTC STT paths (Native Indic SOTA)
+    val indicConformerDir = File(modelsBaseDir, "stt/indicconformer")
+    val indicConformerTokensFile = File(indicConformerDir, "tokens.txt")
+
+    fun getIndicConformerModelFile(language: IndicLanguage): File {
+        val langCode = when (language) {
+            IndicLanguage.HINDI -> "hi"
+            IndicLanguage.GUJARATI -> "gu"
+            IndicLanguage.MARATHI -> "mr"
+            IndicLanguage.KANNADA -> "kn"
+            IndicLanguage.MALAYALAM -> "ml"
+            IndicLanguage.TAMIL -> "ta"
+            IndicLanguage.TELUGU -> "te"
+            IndicLanguage.BENGALI -> "bn"
+            else -> ""
+        }
+        return File(indicConformerDir, "$langCode/model.int8.onnx")
+    }
+
+    fun isIndicConformerSttReady(language: IndicLanguage): Boolean {
+        val model = getIndicConformerModelFile(language)
+        return indicConformerTokensFile.exists() && indicConformerTokensFile.length() > 50_000L &&
+                model.exists() && model.length() > 100_000_000L
+    }
+
+    // Dolphin Small Multi-Lang Quantized CTC STT paths (Native Indic / Odia)
+    val dolphinDir = File(modelsBaseDir, "stt/dolphin")
+    val dolphinModelFile = File(dolphinDir, "model.int8.onnx")
+    val dolphinTokensFile = File(dolphinDir, "tokens.txt")
 
     // Whisper Tiny Quantized STT paths
     val sttDir = File(modelsBaseDir, "stt/whisper-tiny")
@@ -80,20 +111,26 @@ class ModelAssetManager(private val context: Context) {
     val enVitsModelFile = File(enTtsDir, "en_US-lessac-medium.onnx")
     val enVitsTokensFile = File(enTtsDir, "tokens.txt")
 
+    fun isDolphinSttReady(): Boolean {
+        return dolphinModelFile.exists() && dolphinModelFile.length() > 200_000_000L &&
+                dolphinTokensFile.exists() && dolphinTokensFile.length() > 400_000L
+    }
+
     fun isWhisperSttReady(): Boolean {
         return whisperEncoderFile.exists() && whisperEncoderFile.length() > 10_000_000L &&
                 whisperDecoderFile.exists() && whisperDecoderFile.length() > 50_000_000L &&
                 whisperTokensFile.exists() && whisperTokensFile.length() > 100_000L
     }
 
-    fun isHindiSttReady(): Boolean = isWhisperSttReady()
-    fun isGujaratiSttReady(): Boolean = isWhisperSttReady()
-    fun isMarathiSttReady(): Boolean = isWhisperSttReady()
-    fun isKannadaSttReady(): Boolean = isWhisperSttReady()
-    fun isMalayalamSttReady(): Boolean = isWhisperSttReady()
-    fun isTamilSttReady(): Boolean = isWhisperSttReady()
-    fun isTeluguSttReady(): Boolean = isWhisperSttReady()
-    fun isBengaliSttReady(): Boolean = isWhisperSttReady()
+    fun isHindiSttReady(): Boolean = isIndicConformerSttReady(IndicLanguage.HINDI) || isDolphinSttReady() || isWhisperSttReady()
+    fun isGujaratiSttReady(): Boolean = isIndicConformerSttReady(IndicLanguage.GUJARATI) || isDolphinSttReady() || isWhisperSttReady()
+    fun isMarathiSttReady(): Boolean = isIndicConformerSttReady(IndicLanguage.MARATHI) || isDolphinSttReady() || isWhisperSttReady()
+    fun isKannadaSttReady(): Boolean = isIndicConformerSttReady(IndicLanguage.KANNADA) || isWhisperSttReady()
+    fun isMalayalamSttReady(): Boolean = isIndicConformerSttReady(IndicLanguage.MALAYALAM) || isDolphinSttReady() || isWhisperSttReady()
+    fun isTamilSttReady(): Boolean = isIndicConformerSttReady(IndicLanguage.TAMIL) || isDolphinSttReady() || isWhisperSttReady()
+    fun isTeluguSttReady(): Boolean = isIndicConformerSttReady(IndicLanguage.TELUGU) || isDolphinSttReady() || isWhisperSttReady()
+    fun isOdiaSttReady(): Boolean = isDolphinSttReady()
+    fun isBengaliSttReady(): Boolean = isIndicConformerSttReady(IndicLanguage.BENGALI) || isDolphinSttReady() || isWhisperSttReady()
     fun isEnglishSttReady(): Boolean = isWhisperSttReady()
 
     fun isHindiTtsReady(): Boolean {
@@ -157,6 +194,29 @@ class ModelAssetManager(private val context: Context) {
         try {
             if (!modelsBaseDir.exists()) {
                 modelsBaseDir.mkdirs()
+            }
+
+            // Extract IndicConformer STT if present in assets and not ready
+            try {
+                val indicAssets = context.assets.list("models/stt/indicconformer")
+                if (indicAssets != null && indicAssets.isNotEmpty()) {
+                    if (!indicConformerTokensFile.exists()) {
+                        Log.i(tag, "Extracting IndicConformer STT model assets to ${indicConformerDir.absolutePath}...")
+                        copyAssetFolder(context.assets, "models/stt/indicconformer", indicConformerDir)
+                        Log.i(tag, "IndicConformer STT extraction complete.")
+                    }
+                }
+            } catch (e: Exception) {
+                Log.d(tag, "IndicConformer assets check: ${e.message}")
+            }
+
+            // Extract Dolphin STT if not ready
+            if (!isDolphinSttReady()) {
+                Log.i(tag, "Extracting Dolphin Small Multi-Lang STT model assets to ${dolphinDir.absolutePath}...")
+                copyAssetFolder(context.assets, "models/stt/dolphin", dolphinDir)
+                Log.i(tag, "Dolphin STT extraction complete. Ready: ${isDolphinSttReady()}")
+            } else {
+                Log.i(tag, "Dolphin STT models already ready at ${dolphinDir.absolutePath}")
             }
 
             // Extract Whisper STT if not ready

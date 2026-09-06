@@ -3,7 +3,9 @@ package org.sih.itantra.ml.stt
 import android.content.Context
 import android.util.Log
 import com.k2fsa.sherpa.onnx.FeatureConfig
+import com.k2fsa.sherpa.onnx.OfflineDolphinModelConfig
 import com.k2fsa.sherpa.onnx.OfflineModelConfig
+import com.k2fsa.sherpa.onnx.OfflineNemoEncDecCtcModelConfig
 import com.k2fsa.sherpa.onnx.OfflineRecognizer
 import com.k2fsa.sherpa.onnx.OfflineRecognizerConfig
 import com.k2fsa.sherpa.onnx.OfflineWhisperModelConfig
@@ -23,7 +25,10 @@ import java.nio.ByteOrder
 import java.util.concurrent.atomic.AtomicBoolean
 
 /**
- * Real On-Device Neural Speech Recognizer powered by Sherpa-ONNX Whisper-Tiny (quantized INT8).
+ * Real On-Device Neural Speech Recognizer powered by Sherpa-ONNX.
+ * Uses Dolphin Small Multi-Lang CTC (INT8) for native Indic languages:
+ * Hindi, Marathi, Gujarati, Bengali, Tamil, Telugu, Odia (direct native script decoding).
+ * Uses Whisper-Tiny (INT8) for English.
  * Executes genuine offline inference without cloud APIs or network requests.
  */
 class SherpaOnnxSpeechRecognizer(
@@ -47,48 +52,113 @@ class SherpaOnnxSpeechRecognizer(
     fun getOrInitRecognizer(language: IndicLanguage): OfflineRecognizer? {
         recognizers[language]?.let { return it }
 
-        if (!modelAssetManager.isWhisperSttReady()) {
-            Log.w(tag, "Whisper model files not ready on disk yet")
-            return null
+        // 1. IndicConformer NeMo CTC for supported Indic languages (SOTA accuracy)
+        if (language != IndicLanguage.ODIA && language != IndicLanguage.ENGLISH && modelAssetManager.isIndicConformerSttReady(language)) {
+            try {
+                val nemoConfig = OfflineNemoEncDecCtcModelConfig(
+                    model = modelAssetManager.getIndicConformerModelFile(language).absolutePath
+                )
+                val modelConfig = OfflineModelConfig().apply {
+                    nemo = nemoConfig
+                    tokens = modelAssetManager.indicConformerTokensFile.absolutePath
+                    numThreads = 2
+                    debug = false
+                    provider = "cpu"
+                }
+                val featConfig = FeatureConfig().apply {
+                    sampleRate = 16000
+                    featureDim = 80
+                }
+                val config = OfflineRecognizerConfig().apply {
+                    this.featConfig = featConfig
+                    this.modelConfig = modelConfig
+                    this.decodingMethod = "greedy_search"
+                }
+                val rec = OfflineRecognizer(assetManager = null, config = config)
+                recognizers[language] = rec
+                isInitialized = true
+                Log.i(tag, "Sherpa-ONNX IndicConformer NeMo CTC STT initialized successfully for ${language.displayName} (${language.isoCode})!")
+                return rec
+            } catch (e: Throwable) {
+                Log.e(tag, "Failed to initialize IndicConformer CTC for ${language.displayName}, attempting Dolphin fallback", e)
+            }
         }
 
-        return try {
-            val whisperConfig = OfflineWhisperModelConfig().apply {
-                encoder = modelAssetManager.whisperEncoderFile.absolutePath
-                decoder = modelAssetManager.whisperDecoderFile.absolutePath
-                this.language = language.isoCode
-                task = "transcribe"
-                tailPaddings = -1
+        // 2. Dolphin CTC for Odia or fallback
+        val isIndic = language != IndicLanguage.ENGLISH
+        if (isIndic && modelAssetManager.isDolphinSttReady()) {
+            try {
+                val dolphinConfig = OfflineDolphinModelConfig(
+                    model = modelAssetManager.dolphinModelFile.absolutePath
+                )
+                val modelConfig = OfflineModelConfig().apply {
+                    dolphin = dolphinConfig
+                    tokens = modelAssetManager.dolphinTokensFile.absolutePath
+                    numThreads = 2
+                    debug = false
+                    provider = "cpu"
+                }
+                val featConfig = FeatureConfig().apply {
+                    sampleRate = 16000
+                    featureDim = 80
+                }
+                val config = OfflineRecognizerConfig().apply {
+                    this.featConfig = featConfig
+                    this.modelConfig = modelConfig
+                    this.decodingMethod = "greedy_search"
+                }
+                val rec = OfflineRecognizer(assetManager = null, config = config)
+                recognizers[language] = rec
+                isInitialized = true
+                Log.i(tag, "Sherpa-ONNX Dolphin CTC STT initialized successfully for ${language.displayName} (${language.isoCode})!")
+                return rec
+            } catch (e: Throwable) {
+                Log.e(tag, "Failed to initialize Dolphin CTC for ${language.displayName}, attempting Whisper fallback", e)
             }
-
-            val modelConfig = OfflineModelConfig().apply {
-                whisper = whisperConfig
-                tokens = modelAssetManager.whisperTokensFile.absolutePath
-                numThreads = 2
-                debug = false
-                provider = "cpu"
-            }
-
-            val featConfig = FeatureConfig().apply {
-                sampleRate = 16000
-                featureDim = 80
-            }
-
-            val config = OfflineRecognizerConfig().apply {
-                this.featConfig = featConfig
-                this.modelConfig = modelConfig
-                this.decodingMethod = "greedy_search"
-            }
-
-            val rec = OfflineRecognizer(assetManager = null, config = config)
-            recognizers[language] = rec
-            isInitialized = true
-            Log.i(tag, "Sherpa-ONNX Whisper STT initialized successfully for ${language.displayName} (${language.isoCode})!")
-            rec
-        } catch (e: Throwable) {
-            Log.e(tag, "Failed to initialize SherpaOnnxSpeechRecognizer for ${language.displayName}", e)
-            null
         }
+
+        // Whisper-Tiny for English or fallback
+        if (modelAssetManager.isWhisperSttReady()) {
+            try {
+                val whisperConfig = OfflineWhisperModelConfig().apply {
+                    encoder = modelAssetManager.whisperEncoderFile.absolutePath
+                    decoder = modelAssetManager.whisperDecoderFile.absolutePath
+                    this.language = language.isoCode
+                    task = "transcribe"
+                    tailPaddings = -1
+                }
+
+                val modelConfig = OfflineModelConfig().apply {
+                    whisper = whisperConfig
+                    tokens = modelAssetManager.whisperTokensFile.absolutePath
+                    numThreads = 2
+                    debug = false
+                    provider = "cpu"
+                }
+
+                val featConfig = FeatureConfig().apply {
+                    sampleRate = 16000
+                    featureDim = 80
+                }
+
+                val config = OfflineRecognizerConfig().apply {
+                    this.featConfig = featConfig
+                    this.modelConfig = modelConfig
+                    this.decodingMethod = "greedy_search"
+                }
+
+                val rec = OfflineRecognizer(assetManager = null, config = config)
+                recognizers[language] = rec
+                isInitialized = true
+                Log.i(tag, "Sherpa-ONNX Whisper STT initialized successfully for ${language.displayName} (${language.isoCode})!")
+                return rec
+            } catch (e: Throwable) {
+                Log.e(tag, "Failed to initialize Whisper STT for ${language.displayName}", e)
+            }
+        }
+
+        Log.w(tag, "No STT model ready for ${language.displayName}")
+        return null
     }
 
     @Synchronized

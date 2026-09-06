@@ -27,16 +27,16 @@ class NeuralSpeechRouter(
 
     private fun isNeuralSttSupported(language: IndicLanguage): Boolean {
         return when (language) {
-            IndicLanguage.HINDI,
-            IndicLanguage.GUJARATI,
-            IndicLanguage.MARATHI,
-            IndicLanguage.KANNADA,
-            IndicLanguage.MALAYALAM,
-            IndicLanguage.TAMIL,
-            IndicLanguage.TELUGU,
-            IndicLanguage.BENGALI,
-            IndicLanguage.ENGLISH -> modelAssetManager.isWhisperSttReady()
-            else -> false
+            IndicLanguage.HINDI -> modelAssetManager.isHindiSttReady()
+            IndicLanguage.GUJARATI -> modelAssetManager.isGujaratiSttReady()
+            IndicLanguage.MARATHI -> modelAssetManager.isMarathiSttReady()
+            IndicLanguage.KANNADA -> modelAssetManager.isKannadaSttReady()
+            IndicLanguage.MALAYALAM -> modelAssetManager.isMalayalamSttReady()
+            IndicLanguage.TAMIL -> modelAssetManager.isTamilSttReady()
+            IndicLanguage.TELUGU -> modelAssetManager.isTeluguSttReady()
+            IndicLanguage.ODIA -> modelAssetManager.isOdiaSttReady()
+            IndicLanguage.BENGALI -> modelAssetManager.isBengaliSttReady()
+            IndicLanguage.ENGLISH -> modelAssetManager.isEnglishSttReady()
         }
     }
 
