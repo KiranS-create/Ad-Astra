@@ -25,8 +25,13 @@ import org.sih.itantra.core.persistence.MessageDirection
 import org.sih.itantra.core.persistence.MessageHistoryStore
 import org.sih.itantra.core.persistence.MessageRecord
 import org.sih.itantra.core.protocol.AdaptiveCompressor
+import org.sih.itantra.core.protocol.EmergencyCategory
+import org.sih.itantra.core.protocol.EmergencySeverity
+import org.sih.itantra.core.protocol.EmergencySubtype
 import org.sih.itantra.core.protocol.Packet
 import org.sih.itantra.core.protocol.PacketSerializer
+import org.sih.itantra.core.protocol.SemanticCommand
+import org.sih.itantra.core.protocol.SemanticEmergencyClassifier
 import org.sih.itantra.core.stt.OfflineSpeechRecognizer
 import org.sih.itantra.core.stt.SentenceFinalizer
 import org.sih.itantra.core.stt.SpeechRecognizer
@@ -276,22 +281,43 @@ class TransceiverCoordinator(
         val tEncodeStart = BenchmarkClock.nowNanos()
 
         val rawBytes = finalText.toByteArray(Charsets.UTF_8)
-        val compressionResult = AdaptiveCompressor.compress(rawBytes)
+        val semanticCmd = SemanticEmergencyClassifier.classify(finalText)
 
-        val flags = if (compressionResult.isCompressed) Packet.FLAG_COMPRESSED.toByte() else 0.toByte()
+        val isSemantic = semanticCmd != null
+        val semanticSummary = semanticCmd?.toBadgeString()
+        val semanticSavings = if (semanticCmd != null) (rawBytes.size - SemanticCommand.SIZE_BYTES).coerceAtLeast(0) else null
+
+        val (packetPayload, flags, effectivePriority) = if (semanticCmd != null) {
+            val cmdBytes = semanticCmd.serialize()
+            val flagVal = Packet.FLAG_SEMANTIC.toByte()
+            val prio = when (semanticCmd.severity) {
+                EmergencySeverity.CRITICAL -> MessagePriority.DISTRESS
+                EmergencySeverity.ALERT -> MessagePriority.ALERT
+                EmergencySeverity.IMPORTANT -> MessagePriority.IMPORTANT
+                EmergencySeverity.NORMAL -> priority
+            }
+            Log.i(tag, "SEMANTIC COMPRESSION: '$finalText' -> ${semanticCmd.toBadgeString()} (${rawBytes.size}B -> ${cmdBytes.size}B, -$semanticSavings B)")
+            Triple(cmdBytes, flagVal, prio)
+        } else {
+            val compressionResult = AdaptiveCompressor.compress(rawBytes)
+            val flagVal = if (compressionResult.isCompressed) Packet.FLAG_COMPRESSED.toByte() else 0.toByte()
+            Triple(compressionResult.bytes, flagVal, priority)
+        }
+
         val seq = sequenceCounter.getAndIncrement().toShort()
 
         val packet = Packet(
             version = Packet.PROTOCOL_VERSION,
-            msgType = if (priority.isEmergency) Packet.TYPE_ALERT else Packet.TYPE_TEXT,
-            priority = priority,
+            msgType = if (effectivePriority.isEmergency) Packet.TYPE_ALERT else Packet.TYPE_TEXT,
+            priority = effectivePriority,
             flags = flags,
             sequenceNumber = seq,
             timestamp = System.currentTimeMillis(),
             sourceDeviceId = localDeviceId,
             destinationDeviceId = Packet.BROADCAST_ID,
             language = lang,
-            payload = compressionResult.bytes
+            payload = packetPayload,
+            semanticCommand = semanticCmd
         )
 
         val tEncodeEnd = BenchmarkClock.nowNanos()
@@ -318,7 +344,7 @@ class TransceiverCoordinator(
             durationMs = durationMs,
             packetBytes = serializedBytes.size,
             text = finalText,
-            compressed = compressionResult.isCompressed
+            compressed = (flags.toInt() and Packet.FLAG_COMPRESSED) != 0
         )
 
         DiagnosticsRepository.recordTransmission(
@@ -334,12 +360,15 @@ class TransceiverCoordinator(
                 timestamp = System.currentTimeMillis(),
                 direction = MessageDirection.SENT,
                 language = lang,
-                priority = priority,
-                text = finalText,
+                priority = effectivePriority,
+                text = if (isSemantic) semanticCmd!!.toDisplayString() else finalText,
                 peer = "Broadcast",
                 packetSizeBytes = serializedBytes.size,
                 rawAudioEquivalentBytes = rawAudioBytes,
-                measuredLatencyMs = sttLatencyMs + encodingLatencyMs + transportLatencyMs
+                measuredLatencyMs = sttLatencyMs + encodingLatencyMs + transportLatencyMs,
+                isSemantic = isSemantic,
+                semanticSummary = semanticSummary,
+                semanticSavingsBytes = semanticSavings
             )
         )
 
@@ -360,10 +389,21 @@ class TransceiverCoordinator(
     suspend fun sendEmergencyDistress(messageText: String, location: org.sih.itantra.core.protocol.GeoLocation?): Boolean {
         val lang = _activeLanguage.value
         val rawBytes = messageText.toByteArray(Charsets.UTF_8)
-        val compressionResult = AdaptiveCompressor.compress(rawBytes)
+        val semanticCmd = SemanticEmergencyClassifier.classify(messageText)
+
+        val isSemantic = semanticCmd != null
+        val semanticSummary = semanticCmd?.toBadgeString()
+        val semanticSavings = if (semanticCmd != null) (rawBytes.size - SemanticCommand.SIZE_BYTES).coerceAtLeast(0) else null
+
         val hasLoc = location != null
-        val flags = ((if (compressionResult.isCompressed) Packet.FLAG_COMPRESSED else 0) or
-                (if (hasLoc) Packet.FLAG_HAS_LOCATION else 0)).toByte()
+        val (payloadBytes, flagMask) = if (semanticCmd != null) {
+            Pair(semanticCmd.serialize(), Packet.FLAG_SEMANTIC)
+        } else {
+            val compressionResult = AdaptiveCompressor.compress(rawBytes)
+            Pair(compressionResult.bytes, if (compressionResult.isCompressed) Packet.FLAG_COMPRESSED else 0)
+        }
+
+        val flags = (flagMask or (if (hasLoc) Packet.FLAG_HAS_LOCATION else 0)).toByte()
         val seq = sequenceCounter.getAndIncrement().toShort()
 
         val packet = Packet(
@@ -376,8 +416,9 @@ class TransceiverCoordinator(
             sourceDeviceId = localDeviceId,
             destinationDeviceId = Packet.BROADCAST_ID,
             language = lang,
-            payload = compressionResult.bytes,
-            location = location
+            payload = payloadBytes,
+            location = location,
+            semanticCommand = semanticCmd
         )
 
         val tSendStart = BenchmarkClock.nowNanos()
@@ -398,7 +439,7 @@ class TransceiverCoordinator(
             bandwidth = BandwidthMetrics(
                 transmittedPacketBytes = serializedBytes.size.toLong(),
                 utf8Bytes = rawBytes.size,
-                isCompressed = compressionResult.isCompressed
+                isCompressed = (flags.toInt() and Packet.FLAG_COMPRESSED) != 0
             )
         )
         DiagnosticsRepository.recordDistressSent(hasLocation = hasLoc, seq = seq)
@@ -410,16 +451,19 @@ class TransceiverCoordinator(
                 direction = MessageDirection.SENT,
                 language = lang,
                 priority = MessagePriority.DISTRESS,
-                text = messageText,
+                text = if (isSemantic) semanticCmd!!.toDisplayString() else messageText,
                 peer = "Broadcast",
                 packetSizeBytes = serializedBytes.size,
                 rawAudioEquivalentBytes = 0L,
                 measuredLatencyMs = transportLatencyMs,
-                location = location
+                location = location,
+                isSemantic = isSemantic,
+                semanticSummary = semanticSummary,
+                semanticSavingsBytes = semanticSavings
             )
         )
 
-        Log.i(tag, "Transmitted DISTRESS: '$messageText' (locAttached=$hasLoc) | Packet: ${serializedBytes.size}B")
+        Log.i(tag, "Transmitted DISTRESS: '$messageText' (semantic=$isSemantic, locAttached=$hasLoc) | Packet: ${serializedBytes.size}B")
         return sentSuccess
     }
 
@@ -465,9 +509,34 @@ class TransceiverCoordinator(
         val tRx = BenchmarkClock.nowNanos()
         stateMachine.transitionTo(PttState.RECEIVED)
 
-        val decompressedBytes = AdaptiveCompressor.decompress(packet.payload, packet.isCompressed)
-        val text = String(decompressedBytes, Charsets.UTF_8)
-        _lastReceivedText.value = text
+        val isSemantic: Boolean
+        val displayText: String
+        val ttsSpeechText: String
+        val semanticSummary: String?
+
+        if (packet.isSemantic) {
+            val cmd = packet.semanticCommand ?: SemanticCommand.deserialize(packet.payload)
+            if (cmd != null) {
+                isSemantic = true
+                displayText = cmd.toDisplayString()
+                ttsSpeechText = cmd.toTtsText(packet.language)
+                semanticSummary = cmd.toBadgeString()
+            } else {
+                val decompressedBytes = AdaptiveCompressor.decompress(packet.payload, packet.isCompressed)
+                displayText = String(decompressedBytes, Charsets.UTF_8)
+                ttsSpeechText = displayText
+                isSemantic = false
+                semanticSummary = null
+            }
+        } else {
+            val decompressedBytes = AdaptiveCompressor.decompress(packet.payload, packet.isCompressed)
+            displayText = String(decompressedBytes, Charsets.UTF_8)
+            ttsSpeechText = displayText
+            isSemantic = false
+            semanticSummary = null
+        }
+
+        _lastReceivedText.value = displayText
 
         val isUrgent = packet.priority.isEmergency
         stateMachine.transitionTo(PttState.TTS_PROCESSING)
@@ -479,7 +548,7 @@ class TransceiverCoordinator(
 
         val tTtsStart = BenchmarkClock.nowNanos()
         stateMachine.transitionTo(PttState.PLAYING)
-        tts.synthesize(text, packet.language, isUrgent)
+        tts.synthesize(ttsSpeechText, packet.language, isUrgent)
         val tTtsEnd = BenchmarkClock.nowNanos()
 
         val ttsLatencyMs = BenchmarkClock.elapsedMs(tTtsStart, tTtsEnd)
@@ -508,18 +577,20 @@ class TransceiverCoordinator(
                 direction = MessageDirection.RECEIVED,
                 language = packet.language,
                 priority = packet.priority,
-                text = text,
+                text = displayText,
                 peer = peerLabel,
                 packetSizeBytes = packet.payload.size + Packet.MIN_PACKET_SIZE + (if (packet.hasLocation) Packet.LOCATION_SIZE_BYTES else 0),
                 rawAudioEquivalentBytes = 0L,
                 measuredLatencyMs = ttsLatencyMs,
                 isRelayed = packet.isForwarded || hopCount > 0,
                 hopCount = hopCount,
-                location = packet.location
+                location = packet.location,
+                isSemantic = isSemantic,
+                semanticSummary = semanticSummary
             )
         )
 
-        Log.i(tag, "Received '${text}' (${packet.language}) from Node #${packet.sourceDeviceId} (Priority: ${packet.priority}, Relayed=${packet.isForwarded}, Hop=$hopCount)")
+        Log.i(tag, "Received '${displayText}' (${packet.language}) from Node #${packet.sourceDeviceId} (Semantic=$isSemantic, Priority=${packet.priority}, Relayed=${packet.isForwarded}, Hop=$hopCount)")
 
         if (_isContinuousMode.value) {
             stateMachine.transitionTo(PttState.RECORDING)

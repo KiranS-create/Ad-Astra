@@ -15,9 +15,17 @@ class CorruptPacketException(message: String) : Exception(message)
 object PacketSerializer {
 
     fun serialize(packet: Packet): ByteArray {
-        val hasLocation = (packet.flags.toInt() and Packet.FLAG_HAS_LOCATION) != 0 && packet.location != null
+        val hasSemantic = ((packet.flags.toInt() and Packet.FLAG_SEMANTIC) != 0) || packet.semanticCommand != null
+        val payload = if (hasSemantic && packet.payload.isEmpty() && packet.semanticCommand != null) {
+            packet.semanticCommand.serialize()
+        } else {
+            packet.payload
+        }
+        val flags = if (hasSemantic) (packet.flags.toInt() or Packet.FLAG_SEMANTIC).toByte() else packet.flags
+
+        val hasLocation = (flags.toInt() and Packet.FLAG_HAS_LOCATION) != 0 && packet.location != null
         val locBytes = if (hasLocation) Packet.LOCATION_SIZE_BYTES else 0
-        val totalLength = Packet.HEADER_SIZE_BYTES + locBytes + packet.payload.size + Packet.CRC_SIZE_BYTES
+        val totalLength = Packet.HEADER_SIZE_BYTES + locBytes + payload.size + Packet.CRC_SIZE_BYTES
         val buffer = ByteBuffer.allocate(totalLength).order(ByteOrder.BIG_ENDIAN)
 
         buffer.putShort(packet.magic)
@@ -25,13 +33,13 @@ object PacketSerializer {
         buffer.put(packet.msgType)
         buffer.put(packet.priority.id)
         buffer.put(packet.ttl)
-        buffer.put(packet.flags)
+        buffer.put(flags)
         buffer.putShort(packet.sequenceNumber)
         buffer.putLong(packet.timestamp)
         buffer.putInt(packet.sourceDeviceId)
         buffer.putInt(packet.destinationDeviceId)
         buffer.put(packet.language.id)
-        buffer.putShort(packet.payload.size.toShort())
+        buffer.putShort(payload.size.toShort())
 
         if (hasLocation) {
             val loc = packet.location!!
@@ -42,11 +50,11 @@ object PacketSerializer {
             buffer.putFloat(loc.altitude?.toFloat() ?: Float.NaN)
         }
 
-        buffer.put(packet.payload)
+        buffer.put(payload)
 
         // Calculate CRC32 over all bytes preceding CRC (header + optional location + payload)
         val crc = CRC32()
-        crc.update(buffer.array(), 0, Packet.HEADER_SIZE_BYTES + locBytes + packet.payload.size)
+        crc.update(buffer.array(), 0, Packet.HEADER_SIZE_BYTES + locBytes + payload.size)
         val calculatedCrc = crc.value
 
         buffer.putInt(calculatedCrc.toInt())
@@ -116,6 +124,12 @@ object PacketSerializer {
             throw CorruptPacketException("CRC-32 checksum mismatch: received $receivedCrc, computed $computedCrc")
         }
 
+        val hasSemantic = (flags.toInt() and Packet.FLAG_SEMANTIC) != 0
+        val semanticCommand = if (hasSemantic) {
+            SemanticCommand.deserialize(payload)
+                ?: throw CorruptPacketException("Malformed semantic command payload: size ${payload.size} (min ${SemanticCommand.SIZE_BYTES})")
+        } else null
+
         return Packet(
             magic = magic,
             version = version,
@@ -130,6 +144,7 @@ object PacketSerializer {
             language = IndicLanguage.fromId(languageId),
             payload = payload,
             location = location,
+            semanticCommand = semanticCommand,
             crc32 = receivedCrc
         )
     }

@@ -25,6 +25,7 @@ data class Packet(
     val language: IndicLanguage,
     val payload: ByteArray,
     val location: GeoLocation? = null,
+    val semanticCommand: SemanticCommand? = null,
     val crc32: Long = 0L
 ) {
     val isCompressed: Boolean
@@ -42,6 +43,9 @@ data class Packet(
     val hasLocation: Boolean
         get() = (flags.toInt() and FLAG_HAS_LOCATION) != 0 && location != null
 
+    val isSemantic: Boolean
+        get() = (flags.toInt() and FLAG_SEMANTIC) != 0 || semanticCommand != null
+
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
@@ -50,6 +54,7 @@ data class Packet(
         if (sourceDeviceId != other.sourceDeviceId) return false
         if (timestamp != other.timestamp) return false
         if (location != other.location) return false
+        if (semanticCommand != other.semanticCommand) return false
         if (!payload.contentEquals(other.payload)) return false
         return true
     }
@@ -59,6 +64,7 @@ data class Packet(
         result = 31 * result + sourceDeviceId
         result = 31 * result + timestamp.hashCode()
         result = 31 * result + (location?.hashCode() ?: 0)
+        result = 31 * result + (semanticCommand?.hashCode() ?: 0)
         result = 31 * result + payload.contentHashCode()
         return result
     }
@@ -88,6 +94,7 @@ data class Packet(
         const val FLAG_REQUIRES_ACK: Int = 1 shl 2
         const val FLAG_FORWARDED: Int = 1 shl 3
         const val FLAG_HAS_LOCATION: Int = 1 shl 4
+        const val FLAG_SEMANTIC: Int = 1 shl 5
 
         const val DEFAULT_TTL: Byte = 3
 

@@ -185,6 +185,42 @@ fun RadioTranscriptRow(
                 Spacer(modifier = Modifier.height(6.dp))
             }
 
+            // Semantic Emergency Compression Badge
+            if (record.isSemantic && record.semanticSummary != null) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(6.dp))
+                        .background((if (radioColors.isDark) radioColors.sage else radioColors.forest).copy(alpha = 0.15f))
+                        .border(1.dp, (if (radioColors.isDark) radioColors.sage else radioColors.forest).copy(alpha = 0.4f), RoundedCornerShape(6.dp))
+                        .padding(horizontal = 8.dp, vertical = 4.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = record.semanticSummary,
+                            color = if (radioColors.isDark) radioColors.sage else radioColors.forest,
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Bold,
+                            fontFamily = FontFamily.Monospace
+                        )
+                        record.semanticSavingsBytes?.let { savings ->
+                            Text(
+                                text = "SAVED: ${savings}B",
+                                color = radioColors.success,
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.Bold,
+                                fontFamily = FontFamily.Monospace
+                            )
+                        }
+                    }
+                }
+                Spacer(modifier = Modifier.height(6.dp))
+            }
+
             // Body: Transcribed / Synthesized Speech Content
             Text(
                 text = record.text,

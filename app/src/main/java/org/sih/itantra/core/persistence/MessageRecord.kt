@@ -22,5 +22,8 @@ data class MessageRecord(
     val measuredLatencyMs: Double,
     val isRelayed: Boolean = false,
     val hopCount: Int = 0,
-    val location: GeoLocation? = null
+    val location: GeoLocation? = null,
+    val isSemantic: Boolean = false,
+    val semanticSummary: String? = null,
+    val semanticSavingsBytes: Int? = null
 )
