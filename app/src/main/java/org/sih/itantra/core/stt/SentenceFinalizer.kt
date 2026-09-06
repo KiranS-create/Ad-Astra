@@ -1,4 +1,4 @@
-﻿package org.sih.itantra.core.stt
+package org.sih.itantra.core.stt
 
 import org.sih.itantra.core.common.IndicLanguage
 
@@ -14,8 +14,11 @@ object SentenceFinalizer {
      * Cleans and finalizes recognized speech into a clean, radio-transmittable sentence.
      */
     fun finalizeSentence(rawText: String, language: IndicLanguage): String {
-        val trimmed = rawText.trim().replace("\\s+".toRegex(), " ")
+        var trimmed = rawText.trim().replace("\\s+".toRegex(), " ")
         if (trimmed.isEmpty()) return ""
+
+        // Suppress repetitive loop artifacts common in CTC decoding under noisy conditions
+        trimmed = cleanRepetitiveLoops(trimmed)
 
         val lastChar = trimmed.last()
         val hasTerminator = lastChar in TERMINATORS
@@ -30,6 +33,16 @@ object SentenceFinalizer {
         } else {
             "$trimmed$defaultTerminator"
         }
+    }
+
+    private fun cleanRepetitiveLoops(text: String): String {
+        val words = text.split(" ")
+        if (words.size < 6) return text
+        val half = words.size / 2
+        if (words.subList(0, half) == words.subList(half, 2 * half)) {
+            return words.subList(0, half).joinToString(" ")
+        }
+        return text
     }
 
     /**

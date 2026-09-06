@@ -177,10 +177,30 @@ class SherpaOnnxSpeechRecognizer(
             try {
                 // Convert 16-bit Mono PCM bytes (16kHz, little-endian) to FloatArray normalized [-1.0, 1.0]
                 val numSamples = pcmBytes.size / 2
-                val samples = FloatArray(numSamples)
                 val buffer = ByteBuffer.wrap(pcmBytes).order(ByteOrder.LITTLE_ENDIAN).asShortBuffer()
+                val rawSamples = FloatArray(numSamples)
+                var sumSq = 0.0
                 for (i in 0 until numSamples) {
-                    samples[i] = buffer.get(i) / 32768.0f
+                    val s = buffer.get(i) / 32768.0f
+                    rawSamples[i] = s
+                    sumSq += s * s
+                }
+
+                // RMS Normalization (target: -20 dBFS = 0.10f) with gain clamped to avoid amplifying noise
+                val rms = kotlin.math.sqrt(sumSq / numSamples.coerceAtLeast(1)).toFloat()
+                val targetRms = 0.10f
+                val gain = if (rms > 1e-4f) {
+                    (targetRms / rms).coerceIn(0.2f, 4.0f)
+                } else {
+                    1.0f
+                }
+
+                // Silence padding (150ms = 2400 samples at 16kHz) to preserve boundary phonemes in CTC acoustic models
+                val padSamples = (16000 * 0.15f).toInt()
+                val totalSamples = rawSamples.size + 2 * padSamples
+                val samples = FloatArray(totalSamples)
+                for (i in 0 until numSamples) {
+                    samples[padSamples + i] = (rawSamples[i] * gain).coerceIn(-1.0f, 1.0f)
                 }
 
                 val stream = currentRecognizer.createStream()
