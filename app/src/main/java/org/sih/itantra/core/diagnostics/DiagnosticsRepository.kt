@@ -30,7 +30,16 @@ data class DiagnosticsState(
     val manetRoutesExpired: Long = 0L,
     val manetRerrCount: Long = 0L,
     val manetPacketsRouted: Long = 0L,
-    val manetRouteRediscoveries: Long = 0L
+    val manetRouteRediscoveries: Long = 0L,
+    // Emergency & Distress counters
+    val distressSent: Long = 0L,
+    val distressReceived: Long = 0L,
+    val distressLocationAttached: Long = 0L,
+    val distressLocationUnavailable: Long = 0L,
+    val lastDistressSource: Int? = null,
+    val lastDistressSeq: Short? = null,
+    val lastDistressHops: Int? = null,
+    val lastDistressStatus: String? = null
 )
 
 object DiagnosticsRepository {
@@ -104,6 +113,30 @@ object DiagnosticsRepository {
             manetRerrCount          = stats.rerrCount,
             manetPacketsRouted      = stats.packetsRouted,
             manetRouteRediscoveries = stats.routeRediscoveries
+        )
+    }
+
+    fun recordDistressSent(hasLocation: Boolean, seq: Short = 0) {
+        val current = _state.value
+        _state.value = current.copy(
+            distressSent = current.distressSent + 1,
+            distressLocationAttached = if (hasLocation) current.distressLocationAttached + 1 else current.distressLocationAttached,
+            distressLocationUnavailable = if (!hasLocation) current.distressLocationUnavailable + 1 else current.distressLocationUnavailable,
+            lastDistressSeq = seq,
+            lastDistressStatus = if (hasLocation) "SENT · LOCATION ATTACHED" else "SENT · LOCATION NOT ATTACHED"
+        )
+    }
+
+    fun recordDistressReceived(hasLocation: Boolean, source: Int, hops: Int, seq: Short = 0) {
+        val current = _state.value
+        _state.value = current.copy(
+            distressReceived = current.distressReceived + 1,
+            distressLocationAttached = if (hasLocation) current.distressLocationAttached + 1 else current.distressLocationAttached,
+            distressLocationUnavailable = if (!hasLocation) current.distressLocationUnavailable + 1 else current.distressLocationUnavailable,
+            lastDistressSource = source,
+            lastDistressSeq = seq,
+            lastDistressHops = hops,
+            lastDistressStatus = if (hasLocation) "RECEIVED · LOCATION ATTACHED" else "RECEIVED · NO LOCATION"
         )
     }
 }

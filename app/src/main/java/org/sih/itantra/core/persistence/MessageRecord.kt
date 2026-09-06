@@ -2,6 +2,7 @@ package org.sih.itantra.core.persistence
 
 import org.sih.itantra.core.common.IndicLanguage
 import org.sih.itantra.core.common.MessagePriority
+import org.sih.itantra.core.protocol.GeoLocation
 
 enum class MessageDirection {
     SENT,
@@ -20,5 +21,6 @@ data class MessageRecord(
     val rawAudioEquivalentBytes: Long,
     val measuredLatencyMs: Double,
     val isRelayed: Boolean = false,
-    val hopCount: Int = 0
+    val hopCount: Int = 0,
+    val location: GeoLocation? = null
 )

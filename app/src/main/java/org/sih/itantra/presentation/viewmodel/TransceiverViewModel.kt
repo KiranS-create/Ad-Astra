@@ -19,6 +19,7 @@ import kotlinx.coroutines.launch
 import org.sih.itantra.core.common.IndicLanguage
 import org.sih.itantra.core.diagnostics.DiagnosticsRepository
 import org.sih.itantra.core.diagnostics.DiagnosticsState
+import org.sih.itantra.core.location.LocationProviderHelper
 import org.sih.itantra.core.persistence.MessageHistoryStore
 import org.sih.itantra.core.persistence.MessageRecord
 import org.sih.itantra.core.session.PttState
@@ -313,14 +314,53 @@ class TransceiverViewModel(application: Application) : AndroidViewModel(applicat
         }
     }
 
-    fun sendEmergencyDistress() {
-        val alert = when (coordinator.activeLanguage.value) {
-            IndicLanguage.HINDI   -> "आपातकालीन संकट! तत्काल सहायता की आवश्यकता है!"
-            IndicLanguage.TAMIL   -> "அவசர உதவி தேவை! உடனடியாக உதவவும்!"
-            IndicLanguage.TELUGU  -> "అత్యవసర పరిస్థితి! వెంటనే సహాయం కావాలి!"
-            else -> "EMERGENCY DISTRESS! IMMEDIATE ASSISTANCE REQUIRED!"
+    private val _distressStatus = MutableStateFlow<String?>(null)
+    val distressStatus: StateFlow<String?> = _distressStatus.asStateFlow()
+
+    fun clearDistressStatus() {
+        _distressStatus.value = null
+    }
+
+    fun hasLocationPermission(): Boolean =
+        LocationProviderHelper.hasLocationPermission(getApplication())
+
+    /**
+     * Sends an offline emergency distress packet with highest priority over MANET.
+     * Captures freshest on-device GPS/Network location if permission is granted.
+     * If permission is denied or location is unavailable, transmits immediately without location.
+     */
+    fun sendDistress(customText: String? = null, onComplete: ((Boolean, String) -> Unit)? = null) {
+        viewModelScope.launch {
+            val defaultText = when (activeLanguage.value) {
+                IndicLanguage.HINDI     -> "आपातकालीन संकट संकेत! तत्काल सहायता की आवश्यकता है।"
+                IndicLanguage.TAMIL     -> "அவசர உதவி தேவை! உடனடி உதவி தேவைப்படுகிறது."
+                IndicLanguage.TELUGU    -> "అత్యవసర సహాయం కావాలి! తక్షణ సహాయం అవసరం."
+                IndicLanguage.KANNADA   -> "ತುರ್ತು ಸಹಾಯ ಬೇಕು! ತಕ್ಷಣದ ನೆರವು ಅಗತ್ಯವಿದೆ."
+                IndicLanguage.MALAYALAM -> "അടിയന്തര സഹായം ആവശ്യമാണ്! ഉടൻ സഹായം വേണം."
+                IndicLanguage.BENGALI   -> "জরুরি সাহায্য প্রয়োজন! অবিলম্বে সহায়তা দরকার।"
+                IndicLanguage.MARATHI   -> "तातडीची मदत हवी आहे! त्वरित सहाय्य आवश्यक आहे."
+                IndicLanguage.GUJARATI  -> "કટોકટી સહાયની જરૂર છે! તાત્કાલિક મદદની જરૂર છે."
+                IndicLanguage.ODIA      -> "ଜରୁରୀ ସାହାଯ୍ୟ ଦରକାର! ତୁରନ୍ତ ସହାୟତା ଆବଶ୍ୟକ।"
+                else -> "Emergency distress signal from Node #${coordinator.relayRouter.localDeviceId}! Immediate assistance required."
+            }
+            val textToSend = customText?.ifBlank { defaultText } ?: defaultText
+
+            // Fetch one-shot fresh location (offline, fails fast in 3s max)
+            val location = LocationProviderHelper.getFreshLocation(getApplication())
+
+            val success = coordinator.sendEmergencyDistress(textToSend, location)
+            val statusMsg = if (location != null) {
+                "DISTRESS SENT · LOCATION ATTACHED"
+            } else {
+                "DISTRESS SENT · LOCATION NOT ATTACHED"
+            }
+            _distressStatus.value = statusMsg
+            onComplete?.invoke(success, statusMsg)
         }
-        coordinator.sendAlert(alert, isDistress = true)
+    }
+
+    fun sendEmergencyDistress() {
+        sendDistress()
     }
 
     fun testNeuralLoopback() {

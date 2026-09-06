@@ -245,9 +245,40 @@ fun DiagnosticsScreen(
         DiagnosticRow(label = "Packets Received", value = "${diag.packetsReceived}")
         DiagnosticRow(label = "Cloud Inference Dependence", value = "0.0% (STRICTLY OFFLINE)")
 
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Emergency & Distress Telemetry
+        Text(
+            text = "EMERGENCY & DISTRESS TELEMETRY",
+            color = radioColors.alert,
+            fontSize = 11.sp,
+            fontFamily = FontFamily.Monospace,
+            fontWeight = FontWeight.Bold,
+            letterSpacing = 1.sp
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        DiagnosticRow(label = "Distress Packets Sent", value = "${diag.distressSent}")
+        DiagnosticRow(label = "Distress Packets Received", value = "${diag.distressReceived}")
+        DiagnosticRow(label = "Location Attached", value = "${diag.distressLocationAttached}")
+        DiagnosticRow(label = "Location Unavailable", value = "${diag.distressLocationUnavailable}")
+        diag.lastDistressStatus?.let {
+            DiagnosticRow(label = "Last Distress State", value = it)
+        }
+        diag.lastDistressSource?.let {
+            DiagnosticRow(label = "Last Distress Source", value = "Node #$it")
+        }
+        diag.lastDistressSeq?.let {
+            DiagnosticRow(label = "Last Distress Seq", value = "#$it")
+        }
+        diag.lastDistressHops?.let {
+            DiagnosticRow(label = "Last Distress Hops", value = "$it")
+        }
+
         Spacer(modifier = Modifier.height(18.dp))
 
-        // 5. Diagnostics Action Controls
+        // 6. Diagnostics Action Controls
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(8.dp)

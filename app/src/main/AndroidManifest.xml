@@ -22,6 +22,10 @@
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.VIBRATE" />
 
+    <!-- Offline Emergency Distress Location (Requested strictly on-demand during SEND DISTRESS) -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+
     <!--
         Foreground Service — MANET Node Mode
         FOREGROUND_SERVICE: required to call startForeground() on any API level.

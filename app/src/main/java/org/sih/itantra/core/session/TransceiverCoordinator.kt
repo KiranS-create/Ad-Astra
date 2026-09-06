@@ -353,6 +353,77 @@ class TransceiverCoordinator(
     }
 
     /**
+     * Emergency Distress Transmission:
+     * Broadcasts an emergency distress signal with highest priority over MANET/transport.
+     * Attaches compact GeoLocation metadata if available.
+     */
+    suspend fun sendEmergencyDistress(messageText: String, location: org.sih.itantra.core.protocol.GeoLocation?): Boolean {
+        val lang = _activeLanguage.value
+        val rawBytes = messageText.toByteArray(Charsets.UTF_8)
+        val compressionResult = AdaptiveCompressor.compress(rawBytes)
+        val hasLoc = location != null
+        val flags = ((if (compressionResult.isCompressed) Packet.FLAG_COMPRESSED else 0) or
+                (if (hasLoc) Packet.FLAG_HAS_LOCATION else 0)).toByte()
+        val seq = sequenceCounter.getAndIncrement().toShort()
+
+        val packet = Packet(
+            version = Packet.PROTOCOL_VERSION,
+            msgType = Packet.TYPE_DISTRESS,
+            priority = MessagePriority.DISTRESS,
+            flags = flags,
+            sequenceNumber = seq,
+            timestamp = System.currentTimeMillis(),
+            sourceDeviceId = localDeviceId,
+            destinationDeviceId = Packet.BROADCAST_ID,
+            language = lang,
+            payload = compressionResult.bytes,
+            location = location
+        )
+
+        val tSendStart = BenchmarkClock.nowNanos()
+        val sentSuccess = if (manetRouter.isEnabled.value) {
+            manetRouter.routeAndSend(packet)
+        } else {
+            transportManager.send(packet)
+        }
+        val tSendEnd = BenchmarkClock.nowNanos()
+        val transportLatencyMs = BenchmarkClock.elapsedMs(tSendStart, tSendEnd)
+
+        val serializedBytes = PacketSerializer.serialize(packet)
+
+        DiagnosticsRepository.recordTransmission(
+            packetBytes = serializedBytes.size,
+            rawAudioBytes = 0L,
+            latency = LatencyMetrics(transportLatencyMs = transportLatencyMs, language = lang),
+            bandwidth = BandwidthMetrics(
+                transmittedPacketBytes = serializedBytes.size.toLong(),
+                utf8Bytes = rawBytes.size,
+                isCompressed = compressionResult.isCompressed
+            )
+        )
+        DiagnosticsRepository.recordDistressSent(hasLocation = hasLoc, seq = seq)
+
+        MessageHistoryStore.addRecord(
+            MessageRecord(
+                id = UUID.randomUUID().toString(),
+                timestamp = System.currentTimeMillis(),
+                direction = MessageDirection.SENT,
+                language = lang,
+                priority = MessagePriority.DISTRESS,
+                text = messageText,
+                peer = "Broadcast",
+                packetSizeBytes = serializedBytes.size,
+                rawAudioEquivalentBytes = 0L,
+                measuredLatencyMs = transportLatencyMs,
+                location = location
+            )
+        )
+
+        Log.i(tag, "Transmitted DISTRESS: '$messageText' (locAttached=$hasLoc) | Packet: ${serializedBytes.size}B")
+        return sentSuccess
+    }
+
+    /**
      * Incoming Pipeline: Transport -> Mesh Relay / Protocol Decode -> TTS Synthesize -> Playback
      */
     private suspend fun handleIncomingPacket(packet: Packet) {
@@ -421,6 +492,15 @@ class TransceiverCoordinator(
             "Node #${packet.sourceDeviceId}"
         }
 
+        if (packet.msgType == Packet.TYPE_DISTRESS || packet.priority == MessagePriority.DISTRESS) {
+            DiagnosticsRepository.recordDistressReceived(
+                hasLocation = packet.hasLocation,
+                source = packet.sourceDeviceId,
+                hops = hopCount,
+                seq = packet.sequenceNumber
+            )
+        }
+
         MessageHistoryStore.addRecord(
             MessageRecord(
                 id = UUID.randomUUID().toString(),
@@ -430,11 +510,12 @@ class TransceiverCoordinator(
                 priority = packet.priority,
                 text = text,
                 peer = peerLabel,
-                packetSizeBytes = packet.payload.size + Packet.MIN_PACKET_SIZE,
+                packetSizeBytes = packet.payload.size + Packet.MIN_PACKET_SIZE + (if (packet.hasLocation) Packet.LOCATION_SIZE_BYTES else 0),
                 rawAudioEquivalentBytes = 0L,
                 measuredLatencyMs = ttsLatencyMs,
                 isRelayed = packet.isForwarded || hopCount > 0,
-                hopCount = hopCount
+                hopCount = hopCount,
+                location = packet.location
             )
         )
 

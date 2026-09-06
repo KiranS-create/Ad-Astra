@@ -1,7 +1,10 @@
 package org.sih.itantra.presentation.components
 
+import android.content.Intent
+import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -25,6 +28,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -152,6 +156,35 @@ fun RadioTranscriptRow(
 
             Spacer(modifier = Modifier.height(5.dp))
 
+            // Emergency Distress Banner
+            if (record.priority == MessagePriority.DISTRESS) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(6.dp))
+                        .background(radioColors.alert.copy(alpha = 0.15f))
+                        .padding(horizontal = 8.dp, vertical = 4.dp)
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            imageVector = Icons.Default.WarningAmber,
+                            contentDescription = null,
+                            tint = radioColors.alert,
+                            modifier = Modifier.size(13.dp)
+                        )
+                        Spacer(modifier = Modifier.width(5.dp))
+                        Text(
+                            text = "⚠ DISTRESS ${if (record.location != null) "· LOCATION ATTACHED" else "· LOCATION UNAVAILABLE"}",
+                            color = radioColors.alert,
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Bold,
+                            fontFamily = FontFamily.Monospace
+                        )
+                    }
+                }
+                Spacer(modifier = Modifier.height(6.dp))
+            }
+
             // Body: Transcribed / Synthesized Speech Content
             Text(
                 text = record.text,
@@ -160,6 +193,86 @@ fun RadioTranscriptRow(
                 fontWeight = FontWeight.Medium,
                 lineHeight = 18.sp
             )
+
+            // Location Metadata Box with Open Map Action
+            if (record.location != null) {
+                val loc = record.location
+                val context = LocalContext.current
+                val latStr = String.format(Locale.US, "%.6f° %s", Math.abs(loc.latitude), if (loc.latitude >= 0) "N" else "S")
+                val lonStr = String.format(Locale.US, "%.6f° %s", Math.abs(loc.longitude), if (loc.longitude >= 0) "E" else "W")
+
+                Spacer(modifier = Modifier.height(6.dp))
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(radioColors.surfaceHighlight)
+                        .border(1.dp, radioColors.alert.copy(alpha = 0.4f), RoundedCornerShape(8.dp))
+                        .padding(8.dp)
+                ) {
+                    Column {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "LOCATION: $latStr, $lonStr",
+                                color = radioColors.alert,
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Bold,
+                                fontFamily = FontFamily.Monospace
+                            )
+
+                            Box(
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(4.dp))
+                                    .background(radioColors.alert.copy(alpha = 0.2f))
+                                    .border(1.dp, radioColors.alert.copy(alpha = 0.5f), RoundedCornerShape(4.dp))
+                                    .clickable {
+                                        try {
+                                            val uri = "geo:${loc.latitude},${loc.longitude}?q=${loc.latitude},${loc.longitude}(Distress+Node)"
+                                            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(uri))
+                                            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                            context.startActivity(intent)
+                                        } catch (_: Exception) {
+                                            android.widget.Toast.makeText(context, "No map application installed", android.widget.Toast.LENGTH_SHORT).show()
+                                        }
+                                    }
+                                    .padding(horizontal = 6.dp, vertical = 2.dp)
+                            ) {
+                                Text(
+                                    text = "OPEN MAP",
+                                    color = radioColors.alert,
+                                    fontSize = 10.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    fontFamily = FontFamily.Monospace
+                                )
+                            }
+                        }
+                        Spacer(modifier = Modifier.height(2.dp))
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text(
+                                text = "ACCURACY: ±${loc.accuracy.toInt()}m${if (loc.altitude != null) " · ALT: ${loc.altitude.toInt()}m" else ""}",
+                                color = radioColors.textTertiary,
+                                fontSize = 10.sp,
+                                fontFamily = FontFamily.Monospace
+                            )
+                            if (record.hopCount > 0) {
+                                Text(
+                                    text = "HOPS: ${record.hopCount}",
+                                    color = radioColors.textTertiary,
+                                    fontSize = 10.sp,
+                                    fontFamily = FontFamily.Monospace
+                                )
+                            }
+                        }
+                    }
+                }
+            }
 
             Spacer(modifier = Modifier.height(6.dp))
 

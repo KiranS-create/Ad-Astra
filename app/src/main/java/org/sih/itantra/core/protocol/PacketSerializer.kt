@@ -15,7 +15,9 @@ class CorruptPacketException(message: String) : Exception(message)
 object PacketSerializer {
 
     fun serialize(packet: Packet): ByteArray {
-        val totalLength = Packet.HEADER_SIZE_BYTES + packet.payload.size + Packet.CRC_SIZE_BYTES
+        val hasLocation = (packet.flags.toInt() and Packet.FLAG_HAS_LOCATION) != 0 && packet.location != null
+        val locBytes = if (hasLocation) Packet.LOCATION_SIZE_BYTES else 0
+        val totalLength = Packet.HEADER_SIZE_BYTES + locBytes + packet.payload.size + Packet.CRC_SIZE_BYTES
         val buffer = ByteBuffer.allocate(totalLength).order(ByteOrder.BIG_ENDIAN)
 
         buffer.putShort(packet.magic)
@@ -30,11 +32,21 @@ object PacketSerializer {
         buffer.putInt(packet.destinationDeviceId)
         buffer.put(packet.language.id)
         buffer.putShort(packet.payload.size.toShort())
+
+        if (hasLocation) {
+            val loc = packet.location!!
+            buffer.putDouble(loc.latitude)
+            buffer.putDouble(loc.longitude)
+            buffer.putFloat(loc.accuracy)
+            buffer.putLong(loc.timestamp)
+            buffer.putFloat(loc.altitude?.toFloat() ?: Float.NaN)
+        }
+
         buffer.put(packet.payload)
 
-        // Calculate CRC32 over all bytes preceding CRC
+        // Calculate CRC32 over all bytes preceding CRC (header + optional location + payload)
         val crc = CRC32()
-        crc.update(buffer.array(), 0, Packet.HEADER_SIZE_BYTES + packet.payload.size)
+        crc.update(buffer.array(), 0, Packet.HEADER_SIZE_BYTES + locBytes + packet.payload.size)
         val calculatedCrc = crc.value
 
         buffer.putInt(calculatedCrc.toInt())
@@ -68,9 +80,28 @@ object PacketSerializer {
         val languageId = buffer.get()
         val payloadLen = buffer.short.toInt() and 0xFFFF
 
-        if (rawBytes.size < Packet.HEADER_SIZE_BYTES + payloadLen + Packet.CRC_SIZE_BYTES) {
-            throw CorruptPacketException("Declared payload length ($payloadLen) exceeds buffer size (${rawBytes.size})")
+        val hasLocation = (flags.toInt() and Packet.FLAG_HAS_LOCATION) != 0
+        val locBytes = if (hasLocation) Packet.LOCATION_SIZE_BYTES else 0
+
+        if (rawBytes.size < Packet.HEADER_SIZE_BYTES + locBytes + payloadLen + Packet.CRC_SIZE_BYTES) {
+            throw CorruptPacketException("Declared payload length ($payloadLen) + location ($locBytes) exceeds buffer size (${rawBytes.size})")
         }
+
+        val location = if (hasLocation) {
+            val lat = buffer.double
+            val lon = buffer.double
+            val acc = buffer.float
+            val time = buffer.long
+            val altRaw = buffer.float
+            val alt = if (altRaw.isNaN()) null else altRaw.toDouble()
+            GeoLocation(
+                latitude = lat,
+                longitude = lon,
+                accuracy = acc,
+                timestamp = time,
+                altitude = alt
+            )
+        } else null
 
         val payload = ByteArray(payloadLen)
         buffer.get(payload)
@@ -78,7 +109,7 @@ object PacketSerializer {
         val receivedCrc = buffer.int.toLong() and 0xFFFFFFFFL
 
         val crc = CRC32()
-        crc.update(rawBytes, 0, Packet.HEADER_SIZE_BYTES + payloadLen)
+        crc.update(rawBytes, 0, Packet.HEADER_SIZE_BYTES + locBytes + payloadLen)
         val computedCrc = crc.value
 
         if (receivedCrc != computedCrc) {
@@ -98,6 +129,7 @@ object PacketSerializer {
             destinationDeviceId = destId,
             language = IndicLanguage.fromId(languageId),
             payload = payload,
+            location = location,
             crc32 = receivedCrc
         )
     }

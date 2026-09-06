@@ -1,5 +1,8 @@
 package org.sih.itantra.presentation.screens
 
+import android.Manifest
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -24,6 +27,9 @@ import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Radio
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ModalBottomSheet
@@ -76,6 +82,16 @@ fun MainTransceiverScreen(
 
     var showBtSheet by remember { mutableStateOf(false) }
     val btSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+
+    val distressStatus by viewModel.distressStatus.collectAsState()
+    var showDistressDialog by remember { mutableStateOf(false) }
+
+    val locationPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestMultiplePermissions()
+    ) { _ ->
+        // On permission result (granted or denied), send distress immediately
+        viewModel.sendDistress()
+    }
 
     Column(
         modifier = modifier
@@ -204,7 +220,73 @@ fun MainTransceiverScreen(
             onPressRelease = { viewModel.stopPtt() }
         )
 
-        Spacer(modifier = Modifier.height(14.dp))
+        Spacer(modifier = Modifier.height(10.dp))
+
+        // Emergency Distress Status Ticker (if active)
+        distressStatus?.let { status ->
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(radioColors.surfaceHighlight)
+                    .border(1.dp, radioColors.alert.copy(alpha = 0.6f), RoundedCornerShape(8.dp))
+                    .padding(horizontal = 10.dp, vertical = 6.dp)
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = status,
+                        color = radioColors.alert,
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold,
+                        fontFamily = FontFamily.Monospace
+                    )
+                    Text(
+                        text = "[DISMISS]",
+                        color = radioColors.textTertiary,
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.Bold,
+                        fontFamily = FontFamily.Monospace,
+                        modifier = Modifier.clickable { viewModel.clearDistressStatus() }
+                    )
+                }
+            }
+            Spacer(modifier = Modifier.height(6.dp))
+        }
+
+        // Emergency Distress Trigger Action
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center,
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(10.dp))
+                .background(radioColors.alert.copy(alpha = 0.15f))
+                .border(1.5.dp, radioColors.alert, RoundedCornerShape(10.dp))
+                .clickable { showDistressDialog = true }
+                .padding(horizontal = 12.dp, vertical = 8.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Default.Warning,
+                contentDescription = "Send Distress",
+                tint = radioColors.alert,
+                modifier = Modifier.size(16.dp)
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(
+                text = "SEND DISTRESS (EMERGENCY)",
+                color = radioColors.alert,
+                fontSize = 11.sp,
+                fontWeight = FontWeight.Black,
+                fontFamily = FontFamily.Monospace,
+                letterSpacing = 1.sp
+            )
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
 
         // 7. Auxiliary Quick Controls: Mode Toggle & Neural Loopback
         Row(
@@ -415,5 +497,79 @@ fun MainTransceiverScreen(
                 Spacer(modifier = Modifier.height(16.dp))
             }
         }
+    }
+
+    // Emergency Distress Confirmation Dialog
+    if (showDistressDialog) {
+        AlertDialog(
+            onDismissRequest = { showDistressDialog = false },
+            containerColor = radioColors.surface,
+            titleContentColor = radioColors.alert,
+            textContentColor = radioColors.textPrimary,
+            icon = {
+                Icon(
+                    imageVector = Icons.Default.Warning,
+                    contentDescription = null,
+                    tint = radioColors.alert,
+                    modifier = Modifier.size(32.dp)
+                )
+            },
+            title = {
+                Text(
+                    text = "CONFIRM EMERGENCY DISTRESS",
+                    fontWeight = FontWeight.Bold,
+                    fontFamily = FontFamily.Monospace,
+                    fontSize = 14.sp
+                )
+            },
+            text = {
+                Text(
+                    text = "This will immediately broadcast a highest-priority emergency distress packet over the MANET mesh network.\n\nCurrent on-device GPS location will be attached if available. If permission is denied or location is unavailable, distress is still transmitted immediately.",
+                    fontSize = 12.sp,
+                    lineHeight = 16.sp,
+                    fontFamily = FontFamily.Monospace
+                )
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        showDistressDialog = false
+                        if (viewModel.hasLocationPermission()) {
+                            viewModel.sendDistress()
+                        } else {
+                            locationPermissionLauncher.launch(
+                                arrayOf(
+                                    Manifest.permission.ACCESS_FINE_LOCATION,
+                                    Manifest.permission.ACCESS_COARSE_LOCATION
+                                )
+                            )
+                        }
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = radioColors.alert)
+                ) {
+                    Text(
+                        text = "CONFIRM & TRANSMIT",
+                        fontWeight = FontWeight.Bold,
+                        fontFamily = FontFamily.Monospace,
+                        fontSize = 11.sp,
+                        color = Color.White
+                    )
+                }
+            },
+            dismissButton = {
+                Button(
+                    onClick = { showDistressDialog = false },
+                    colors = ButtonDefaults.buttonColors(containerColor = radioColors.surfaceHighlight)
+                ) {
+                    Text(
+                        text = "CANCEL",
+                        fontWeight = FontWeight.Bold,
+                        fontFamily = FontFamily.Monospace,
+                        fontSize = 11.sp,
+                        color = radioColors.textSecondary
+                    )
+                }
+            }
+        )
     }
 }

@@ -3,6 +3,14 @@ package org.sih.itantra.core.protocol
 import org.sih.itantra.core.common.IndicLanguage
 import org.sih.itantra.core.common.MessagePriority
 
+data class GeoLocation(
+    val latitude: Double,
+    val longitude: Double,
+    val accuracy: Float,
+    val timestamp: Long,
+    val altitude: Double? = null
+)
+
 data class Packet(
     val magic: Short = MAGIC,
     val version: Byte = PROTOCOL_VERSION,
@@ -16,6 +24,7 @@ data class Packet(
     val destinationDeviceId: Int = BROADCAST_ID,
     val language: IndicLanguage,
     val payload: ByteArray,
+    val location: GeoLocation? = null,
     val crc32: Long = 0L
 ) {
     val isCompressed: Boolean
@@ -30,6 +39,9 @@ data class Packet(
     val isForwarded: Boolean
         get() = (flags.toInt() and FLAG_FORWARDED) != 0 || ttl < DEFAULT_TTL
 
+    val hasLocation: Boolean
+        get() = (flags.toInt() and FLAG_HAS_LOCATION) != 0 && location != null
+
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
@@ -37,6 +49,7 @@ data class Packet(
         if (sequenceNumber != other.sequenceNumber) return false
         if (sourceDeviceId != other.sourceDeviceId) return false
         if (timestamp != other.timestamp) return false
+        if (location != other.location) return false
         if (!payload.contentEquals(other.payload)) return false
         return true
     }
@@ -45,6 +58,7 @@ data class Packet(
         var result = sequenceNumber.toInt()
         result = 31 * result + sourceDeviceId
         result = 31 * result + timestamp.hashCode()
+        result = 31 * result + (location?.hashCode() ?: 0)
         result = 31 * result + payload.contentHashCode()
         return result
     }
@@ -66,15 +80,20 @@ data class Packet(
         const val TYPE_ROUTE_REPLY: Byte   = 9
         const val TYPE_ROUTE_ERROR: Byte   = 10
 
+        // Emergency Distress
+        const val TYPE_DISTRESS: Byte      = 11
+
         const val FLAG_COMPRESSED: Int = 1 shl 0
         const val FLAG_FRAGMENTED: Int = 1 shl 1
         const val FLAG_REQUIRES_ACK: Int = 1 shl 2
         const val FLAG_FORWARDED: Int = 1 shl 3
+        const val FLAG_HAS_LOCATION: Int = 1 shl 4
 
         const val DEFAULT_TTL: Byte = 3
 
         const val BROADCAST_ID: Int = -1 // 0xFFFFFFFF
         const val HEADER_SIZE_BYTES = 28
+        const val LOCATION_SIZE_BYTES = 32 // 8B lat + 8B lon + 4B acc + 8B time + 4B alt
         const val CRC_SIZE_BYTES = 4
         const val MIN_PACKET_SIZE = HEADER_SIZE_BYTES + CRC_SIZE_BYTES // 32 bytes
     }
