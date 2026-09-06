@@ -47,6 +47,13 @@ import org.sih.itantra.ml.tts.NeuralTtsRouter
 import org.sih.itantra.core.mesh.PacketRelayRouter
 import org.sih.itantra.core.mesh.RelayAction
 import org.sih.itantra.core.mesh.ManetRouter
+import org.sih.itantra.core.protocol.DeliveryReceipt
+import org.sih.itantra.core.protocol.DeliveryStatus
+import org.sih.itantra.core.protocol.PacketFragment
+import org.sih.itantra.core.protocol.PacketFragmenter
+import org.sih.itantra.core.protocol.PendingTransferTracker
+import org.sih.itantra.core.protocol.ReassemblyBuffer
+import org.sih.itantra.core.protocol.ReassemblyResult
 import java.util.UUID
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -70,6 +77,7 @@ class TransceiverCoordinator(
 
     val stateMachine = PttStateMachine()
     private val sequenceCounter = AtomicInteger(1)
+    private val transferSequence = AtomicInteger(1)
     private val localDeviceId: Int = (Math.random() * 900000 + 100000).toInt()
     val relayRouter = PacketRelayRouter(localDeviceId)
     val manetRouter = ManetRouter(
@@ -79,6 +87,10 @@ class TransceiverCoordinator(
         relayRouter      = relayRouter,
         scope            = scope
     )
+
+    val fragmenter = PacketFragmenter(Packet.MAX_FRAGMENT_PAYLOAD)
+    val reassemblyBuffer = ReassemblyBuffer()
+    val pendingTransferTracker = PendingTransferTracker()
 
     private val _activeLanguage = MutableStateFlow(IndicLanguage.HINDI)
     val activeLanguage: StateFlow<IndicLanguage> = _activeLanguage.asStateFlow()
@@ -304,32 +316,82 @@ class TransceiverCoordinator(
             Triple(compressionResult.bytes, flagVal, priority)
         }
 
-        val seq = sequenceCounter.getAndIncrement().toShort()
+        val messageId = UUID.randomUUID().toString()
+        val isFragmented = PacketFragmenter.needsFragmentation(packetPayload.size)
+        val transferId = (transferSequence.getAndIncrement() and 0x7FFF).toShort()
+        val originalMsgType = if (effectivePriority.isEmergency) Packet.TYPE_ALERT else Packet.TYPE_TEXT
 
-        val packet = Packet(
-            version = Packet.PROTOCOL_VERSION,
-            msgType = if (effectivePriority.isEmergency) Packet.TYPE_ALERT else Packet.TYPE_TEXT,
-            priority = effectivePriority,
-            flags = flags,
-            sequenceNumber = seq,
-            timestamp = System.currentTimeMillis(),
-            sourceDeviceId = localDeviceId,
-            destinationDeviceId = Packet.BROADCAST_ID,
-            language = lang,
-            payload = packetPayload,
-            semanticCommand = semanticCmd
-        )
+        val fragments = if (isFragmented) {
+            fragmenter.fragment(
+                payload = packetPayload,
+                transferId = transferId,
+                originalMsgType = originalMsgType,
+                originalFlags = flags
+            )
+        } else emptyList()
 
         val tEncodeEnd = BenchmarkClock.nowNanos()
         val encodingLatencyMs = BenchmarkClock.elapsedMs(tEncodeStart, tEncodeEnd)
 
         stateMachine.transitionTo(PttState.TRANSMITTING)
         val tSendStart = BenchmarkClock.nowNanos()
-        val sentSuccess = transportManager.send(packet)
+        var totalWireBytes = 0
+
+        val sentSuccess = if (isFragmented) {
+            var allSent = true
+            for (frag in fragments) {
+                val fragPacket = Packet(
+                    version = Packet.PROTOCOL_VERSION,
+                    msgType = originalMsgType,
+                    priority = effectivePriority,
+                    flags = (Packet.FLAG_FRAGMENTED or Packet.FLAG_REQUIRES_ACK).toByte(),
+                    sequenceNumber = sequenceCounter.getAndIncrement().toShort(),
+                    timestamp = System.currentTimeMillis(),
+                    sourceDeviceId = localDeviceId,
+                    destinationDeviceId = Packet.BROADCAST_ID,
+                    language = lang,
+                    payload = frag.toPayload()
+                )
+                val ok = transportManager.send(fragPacket)
+                allSent = allSent && ok
+                totalWireBytes += PacketSerializer.serialize(fragPacket).size
+            }
+            pendingTransferTracker.registerTransfer(
+                transferId = transferId,
+                messageId = messageId,
+                destinationDeviceId = Packet.BROADCAST_ID,
+                fragmentCount = fragments.size,
+                payloadBytes = packetPayload.size,
+                totalWireBytes = totalWireBytes
+            )
+            DiagnosticsRepository.recordFragmentsSent(
+                count = fragments.size,
+                payloadBytes = packetPayload.size,
+                wireBytes = totalWireBytes,
+                transferId = transferId
+            )
+            allSent
+        } else {
+            val packet = Packet(
+                version = Packet.PROTOCOL_VERSION,
+                msgType = originalMsgType,
+                priority = effectivePriority,
+                flags = flags,
+                sequenceNumber = transferId,
+                timestamp = System.currentTimeMillis(),
+                sourceDeviceId = localDeviceId,
+                destinationDeviceId = Packet.BROADCAST_ID,
+                language = lang,
+                payload = packetPayload,
+                semanticCommand = semanticCmd
+            )
+            val ok = transportManager.send(packet)
+            totalWireBytes = PacketSerializer.serialize(packet).size
+            ok
+        }
+
         val tSendEnd = BenchmarkClock.nowNanos()
         val transportLatencyMs = BenchmarkClock.elapsedMs(tSendStart, tSendEnd)
-
-        val serializedBytes = PacketSerializer.serialize(packet)
         val rawAudioBytes = (durationMs * 32000L) / 1000L
 
         val latencyMetrics = LatencyMetrics(
@@ -342,13 +404,13 @@ class TransceiverCoordinator(
 
         val bandwidthMetrics = BandwidthMetrics.fromAudioDuration(
             durationMs = durationMs,
-            packetBytes = serializedBytes.size,
+            packetBytes = totalWireBytes,
             text = finalText,
             compressed = (flags.toInt() and Packet.FLAG_COMPRESSED) != 0
         )
 
         DiagnosticsRepository.recordTransmission(
-            packetBytes = serializedBytes.size,
+            packetBytes = totalWireBytes,
             rawAudioBytes = rawAudioBytes,
             latency = latencyMetrics,
             bandwidth = bandwidthMetrics
@@ -356,23 +418,26 @@ class TransceiverCoordinator(
 
         MessageHistoryStore.addRecord(
             MessageRecord(
-                id = UUID.randomUUID().toString(),
+                id = messageId,
                 timestamp = System.currentTimeMillis(),
                 direction = MessageDirection.SENT,
                 language = lang,
                 priority = effectivePriority,
                 text = if (isSemantic) semanticCmd!!.toDisplayString() else finalText,
                 peer = "Broadcast",
-                packetSizeBytes = serializedBytes.size,
+                packetSizeBytes = totalWireBytes,
                 rawAudioEquivalentBytes = rawAudioBytes,
                 measuredLatencyMs = sttLatencyMs + encodingLatencyMs + transportLatencyMs,
                 isSemantic = isSemantic,
                 semanticSummary = semanticSummary,
-                semanticSavingsBytes = semanticSavings
+                semanticSavingsBytes = semanticSavings,
+                deliveryStatus = if (isFragmented) DeliveryStatus.PENDING else DeliveryStatus.NONE,
+                transferId = if (isFragmented) transferId else null,
+                fragmentCount = if (isFragmented) fragments.size else null
             )
         )
 
-        Log.i(tag, "Transmitted '${finalText}' ($lang) | Packet: ${serializedBytes.size}B vs Audio: ${rawAudioBytes}B (-${bandwidthMetrics.bandwidthReductionPercent}%)")
+        Log.i(tag, "Transmitted '${finalText}' ($lang, frags=${if (isFragmented) fragments.size else 1}) | Wire: ${totalWireBytes}B vs Audio: ${rawAudioBytes}B (-${bandwidthMetrics.bandwidthReductionPercent}%)")
 
         if (_isContinuousMode.value) {
             stateMachine.transitionTo(PttState.RECORDING)
@@ -404,66 +469,124 @@ class TransceiverCoordinator(
         }
 
         val flags = (flagMask or (if (hasLoc) Packet.FLAG_HAS_LOCATION else 0)).toByte()
-        val seq = sequenceCounter.getAndIncrement().toShort()
+        val messageId = UUID.randomUUID().toString()
+        val isFragmented = PacketFragmenter.needsFragmentation(payloadBytes.size)
+        val transferId = (transferSequence.getAndIncrement() and 0x7FFF).toShort()
 
-        val packet = Packet(
-            version = Packet.PROTOCOL_VERSION,
-            msgType = Packet.TYPE_DISTRESS,
-            priority = MessagePriority.DISTRESS,
-            flags = flags,
-            sequenceNumber = seq,
-            timestamp = System.currentTimeMillis(),
-            sourceDeviceId = localDeviceId,
-            destinationDeviceId = Packet.BROADCAST_ID,
-            language = lang,
-            payload = payloadBytes,
-            location = location,
-            semanticCommand = semanticCmd
-        )
+        val fragments = if (isFragmented) {
+            fragmenter.fragment(
+                payload = payloadBytes,
+                transferId = transferId,
+                originalMsgType = Packet.TYPE_DISTRESS,
+                originalFlags = flags
+            )
+        } else emptyList()
 
+        var totalWireBytes = 0
         val tSendStart = BenchmarkClock.nowNanos()
-        val sentSuccess = if (manetRouter.isEnabled.value) {
-            manetRouter.routeAndSend(packet)
+
+        val sentSuccess = if (isFragmented) {
+            var allSent = true
+            for (frag in fragments) {
+                val fragPacket = Packet(
+                    version = Packet.PROTOCOL_VERSION,
+                    msgType = Packet.TYPE_DISTRESS,
+                    priority = MessagePriority.DISTRESS,
+                    flags = (Packet.FLAG_FRAGMENTED or Packet.FLAG_REQUIRES_ACK or (if (hasLoc) Packet.FLAG_HAS_LOCATION else 0)).toByte(),
+                    sequenceNumber = sequenceCounter.getAndIncrement().toShort(),
+                    timestamp = System.currentTimeMillis(),
+                    sourceDeviceId = localDeviceId,
+                    destinationDeviceId = Packet.BROADCAST_ID,
+                    language = lang,
+                    payload = frag.toPayload(),
+                    location = location
+                )
+                val ok = if (manetRouter.isEnabled.value) {
+                    manetRouter.routeAndSend(fragPacket)
+                } else {
+                    transportManager.send(fragPacket)
+                }
+                allSent = allSent && ok
+                totalWireBytes += PacketSerializer.serialize(fragPacket).size
+            }
+            pendingTransferTracker.registerTransfer(
+                transferId = transferId,
+                messageId = messageId,
+                destinationDeviceId = Packet.BROADCAST_ID,
+                fragmentCount = fragments.size,
+                payloadBytes = payloadBytes.size,
+                totalWireBytes = totalWireBytes
+            )
+            DiagnosticsRepository.recordFragmentsSent(
+                count = fragments.size,
+                payloadBytes = payloadBytes.size,
+                wireBytes = totalWireBytes,
+                transferId = transferId
+            )
+            allSent
         } else {
-            transportManager.send(packet)
+            val packet = Packet(
+                version = Packet.PROTOCOL_VERSION,
+                msgType = Packet.TYPE_DISTRESS,
+                priority = MessagePriority.DISTRESS,
+                flags = flags,
+                sequenceNumber = transferId,
+                timestamp = System.currentTimeMillis(),
+                sourceDeviceId = localDeviceId,
+                destinationDeviceId = Packet.BROADCAST_ID,
+                language = lang,
+                payload = payloadBytes,
+                location = location,
+                semanticCommand = semanticCmd
+            )
+            val ok = if (manetRouter.isEnabled.value) {
+                manetRouter.routeAndSend(packet)
+            } else {
+                transportManager.send(packet)
+            }
+            val serializedBytes = PacketSerializer.serialize(packet)
+            totalWireBytes = serializedBytes.size
+            ok
         }
+
         val tSendEnd = BenchmarkClock.nowNanos()
         val transportLatencyMs = BenchmarkClock.elapsedMs(tSendStart, tSendEnd)
 
-        val serializedBytes = PacketSerializer.serialize(packet)
-
         DiagnosticsRepository.recordTransmission(
-            packetBytes = serializedBytes.size,
+            packetBytes = totalWireBytes,
             rawAudioBytes = 0L,
             latency = LatencyMetrics(transportLatencyMs = transportLatencyMs, language = lang),
             bandwidth = BandwidthMetrics(
-                transmittedPacketBytes = serializedBytes.size.toLong(),
+                transmittedPacketBytes = totalWireBytes.toLong(),
                 utf8Bytes = rawBytes.size,
                 isCompressed = (flags.toInt() and Packet.FLAG_COMPRESSED) != 0
             )
         )
-        DiagnosticsRepository.recordDistressSent(hasLocation = hasLoc, seq = seq)
+        DiagnosticsRepository.recordDistressSent(hasLocation = hasLoc, seq = transferId)
 
         MessageHistoryStore.addRecord(
             MessageRecord(
-                id = UUID.randomUUID().toString(),
+                id = messageId,
                 timestamp = System.currentTimeMillis(),
                 direction = MessageDirection.SENT,
                 language = lang,
                 priority = MessagePriority.DISTRESS,
                 text = if (isSemantic) semanticCmd!!.toDisplayString() else messageText,
                 peer = "Broadcast",
-                packetSizeBytes = serializedBytes.size,
+                packetSizeBytes = totalWireBytes,
                 rawAudioEquivalentBytes = 0L,
                 measuredLatencyMs = transportLatencyMs,
                 location = location,
                 isSemantic = isSemantic,
                 semanticSummary = semanticSummary,
-                semanticSavingsBytes = semanticSavings
+                semanticSavingsBytes = semanticSavings,
+                deliveryStatus = if (isFragmented) DeliveryStatus.PENDING else DeliveryStatus.NONE,
+                transferId = if (isFragmented) transferId else null,
+                fragmentCount = if (isFragmented) fragments.size else null
             )
         )
 
-        Log.i(tag, "Transmitted DISTRESS: '$messageText' (semantic=$isSemantic, locAttached=$hasLoc) | Packet: ${serializedBytes.size}B")
+        Log.i(tag, "Transmitted DISTRESS: '$messageText' (semantic=$isSemantic, locAttached=$hasLoc, frags=${if (isFragmented) fragments.size else 1}) | Wire: ${totalWireBytes}B")
         return sentSuccess
     }
 
@@ -471,11 +594,35 @@ class TransceiverCoordinator(
      * Incoming Pipeline: Transport -> Mesh Relay / Protocol Decode -> TTS Synthesize -> Playback
      */
     private suspend fun handleIncomingPacket(packet: Packet) {
-        // 1. MANET control packets — dispatch and return; do NOT deliver as voice/TTS
+        // 0. Periodically prune expired outgoing and reassembly transfers
+        val timedOutTransfers = pendingTransferTracker.pruneExpired()
+        for (t in timedOutTransfers) {
+            MessageHistoryStore.updateRecordDelivery(t.transferId, DeliveryStatus.TIMEOUT)
+        }
+        val timedOutReassemblies = reassemblyBuffer.pruneExpired()
+        if (timedOutReassemblies > 0) {
+            DiagnosticsRepository.recordReassemblyTimeout()
+        }
+
+        // 1. DELIVERY RECEIPT ACK handling — if packet is TYPE_ACK, correlate and consume
+        if (packet.msgType == Packet.TYPE_ACK) {
+            val receipt = DeliveryReceipt.deserialize(packet.payload)
+            if (receipt != null) {
+                val tracked = pendingTransferTracker.onReceiptReceived(receipt)
+                if (tracked != null) {
+                    MessageHistoryStore.updateRecordDelivery(receipt.transferId, DeliveryStatus.DELIVERED, tracked.deliveryRttMs)
+                    DiagnosticsRepository.recordDeliveryAckReceived(receipt.transferId, tracked.deliveryRttMs ?: 0L)
+                    Log.i(tag, "Delivery ACK confirmed for transfer 0x${Integer.toHexString(receipt.transferId.toInt() and 0xFFFF)} in ${tracked.deliveryRttMs}ms")
+                }
+            }
+            return
+        }
+
+        // 2. MANET control packets — dispatch and return; do NOT deliver as voice/TTS
         val isControl = manetRouter.handleControlPacket(packet)
         if (isControl) return
 
-        // 2. DATA / ALERT / DISTRESS — relay evaluation
+        // 3. DATA / ALERT / DISTRESS — relay evaluation
         val decision = relayRouter.evaluatePacket(packet)
         when (decision) {
             is RelayAction.DropSelf -> {
@@ -506,6 +653,93 @@ class TransceiverCoordinator(
             }
         }
 
+        // 4. Fragmentation Reassembly or Single-Packet Extraction
+        val effectivePayload: ByteArray
+        val effectiveFlags: Byte
+        val effectiveMsgType: Byte
+        val fragmentCountForLog: Int?
+
+        if (packet.isFragmented) {
+            DiagnosticsRepository.recordFragmentReceived()
+            val fragment = PacketFragment.fromPayload(packet.payload)
+            if (fragment == null) {
+                Log.w(tag, "Malformed fragment payload rejected from Node #${packet.sourceDeviceId}")
+                return
+            }
+            val result = reassemblyBuffer.addFragment(packet.sourceDeviceId, fragment)
+            if (result == null) {
+                // Incomplete transfer; awaiting remaining fragments
+                return
+            }
+            effectivePayload = result.payload
+            effectiveFlags = result.originalFlags
+            effectiveMsgType = result.originalMsgType
+            fragmentCountForLog = result.fragmentCount
+
+            DiagnosticsRepository.recordMessageReassembled(result.fragmentCount, result.reassemblyTimeMs.toDouble(), result.transferId)
+
+            // Send single DELIVERY_RECEIPT ACK packet back to sender
+            val ackPayload = DeliveryReceipt(result.transferId, DeliveryReceipt.STATUS_DELIVERED).serialize()
+            val ackPacket = Packet(
+                version = Packet.PROTOCOL_VERSION,
+                msgType = Packet.TYPE_ACK,
+                priority = packet.priority,
+                flags = 0,
+                sequenceNumber = sequenceCounter.getAndIncrement().toShort(),
+                timestamp = System.currentTimeMillis(),
+                sourceDeviceId = localDeviceId,
+                destinationDeviceId = packet.sourceDeviceId,
+                language = packet.language,
+                payload = ackPayload
+            )
+            scope.launch {
+                try {
+                    if (manetRouter.isEnabled.value) {
+                        manetRouter.routeAndSend(ackPacket)
+                    } else {
+                        transportManager.send(ackPacket)
+                    }
+                    DiagnosticsRepository.recordDeliveryAckSent()
+                    Log.i(tag, "Sent DELIVERY_RECEIPT for transfer 0x${Integer.toHexString(result.transferId.toInt() and 0xFFFF)} to Node #${packet.sourceDeviceId}")
+                } catch (e: Exception) {
+                    Log.e(tag, "Failed to send delivery receipt: ${e.message}", e)
+                }
+            }
+        } else {
+            effectivePayload = packet.payload
+            effectiveFlags = packet.flags
+            effectiveMsgType = packet.msgType
+            fragmentCountForLog = null
+
+            if (packet.requiresAck) {
+                val ackPayload = DeliveryReceipt(packet.sequenceNumber, DeliveryReceipt.STATUS_DELIVERED).serialize()
+                val ackPacket = Packet(
+                    version = Packet.PROTOCOL_VERSION,
+                    msgType = Packet.TYPE_ACK,
+                    priority = packet.priority,
+                    flags = 0,
+                    sequenceNumber = sequenceCounter.getAndIncrement().toShort(),
+                    timestamp = System.currentTimeMillis(),
+                    sourceDeviceId = localDeviceId,
+                    destinationDeviceId = packet.sourceDeviceId,
+                    language = packet.language,
+                    payload = ackPayload
+                )
+                scope.launch {
+                    try {
+                        if (manetRouter.isEnabled.value) {
+                            manetRouter.routeAndSend(ackPacket)
+                        } else {
+                            transportManager.send(ackPacket)
+                        }
+                        DiagnosticsRepository.recordDeliveryAckSent()
+                    } catch (e: Exception) {
+                        Log.e(tag, "Failed to send unfragmented delivery receipt: ${e.message}", e)
+                    }
+                }
+            }
+        }
+
         val tRx = BenchmarkClock.nowNanos()
         stateMachine.transitionTo(PttState.RECEIVED)
 
@@ -514,22 +748,25 @@ class TransceiverCoordinator(
         val ttsSpeechText: String
         val semanticSummary: String?
 
-        if (packet.isSemantic) {
-            val cmd = packet.semanticCommand ?: SemanticCommand.deserialize(packet.payload)
+        val hasSemantic = (effectiveFlags.toInt() and Packet.FLAG_SEMANTIC) != 0 || packet.semanticCommand != null
+        val isCompressed = (effectiveFlags.toInt() and Packet.FLAG_COMPRESSED) != 0
+
+        if (hasSemantic) {
+            val cmd = packet.semanticCommand ?: SemanticCommand.deserialize(effectivePayload)
             if (cmd != null) {
                 isSemantic = true
                 displayText = cmd.toDisplayString()
                 ttsSpeechText = cmd.toTtsText(packet.language)
                 semanticSummary = cmd.toBadgeString()
             } else {
-                val decompressedBytes = AdaptiveCompressor.decompress(packet.payload, packet.isCompressed)
+                val decompressedBytes = AdaptiveCompressor.decompress(effectivePayload, isCompressed)
                 displayText = String(decompressedBytes, Charsets.UTF_8)
                 ttsSpeechText = displayText
                 isSemantic = false
                 semanticSummary = null
             }
         } else {
-            val decompressedBytes = AdaptiveCompressor.decompress(packet.payload, packet.isCompressed)
+            val decompressedBytes = AdaptiveCompressor.decompress(effectivePayload, isCompressed)
             displayText = String(decompressedBytes, Charsets.UTF_8)
             ttsSpeechText = displayText
             isSemantic = false
@@ -552,7 +789,7 @@ class TransceiverCoordinator(
         val tTtsEnd = BenchmarkClock.nowNanos()
 
         val ttsLatencyMs = BenchmarkClock.elapsedMs(tTtsStart, tTtsEnd)
-        DiagnosticsRepository.recordReception(packet.payload.size + Packet.HEADER_SIZE_BYTES + Packet.CRC_SIZE_BYTES)
+        DiagnosticsRepository.recordReception(effectivePayload.size + Packet.HEADER_SIZE_BYTES + Packet.CRC_SIZE_BYTES)
 
         val hopCount = (Packet.DEFAULT_TTL - packet.ttl).coerceAtLeast(0)
         val peerLabel = if (packet.isForwarded || hopCount > 0) {
@@ -579,18 +816,19 @@ class TransceiverCoordinator(
                 priority = packet.priority,
                 text = displayText,
                 peer = peerLabel,
-                packetSizeBytes = packet.payload.size + Packet.MIN_PACKET_SIZE + (if (packet.hasLocation) Packet.LOCATION_SIZE_BYTES else 0),
+                packetSizeBytes = effectivePayload.size + Packet.MIN_PACKET_SIZE + (if (packet.hasLocation) Packet.LOCATION_SIZE_BYTES else 0),
                 rawAudioEquivalentBytes = 0L,
                 measuredLatencyMs = ttsLatencyMs,
                 isRelayed = packet.isForwarded || hopCount > 0,
                 hopCount = hopCount,
                 location = packet.location,
                 isSemantic = isSemantic,
-                semanticSummary = semanticSummary
+                semanticSummary = semanticSummary,
+                fragmentCount = fragmentCountForLog
             )
         )
 
-        Log.i(tag, "Received '${displayText}' (${packet.language}) from Node #${packet.sourceDeviceId} (Semantic=$isSemantic, Priority=${packet.priority}, Relayed=${packet.isForwarded}, Hop=$hopCount)")
+        Log.i(tag, "Received '${displayText}' (${packet.language}) from Node #${packet.sourceDeviceId} (Semantic=$isSemantic, Priority=${packet.priority}, Relayed=${packet.isForwarded}, Hop=$hopCount, Frags=$fragmentCountForLog)")
 
         if (_isContinuousMode.value) {
             stateMachine.transitionTo(PttState.RECORDING)

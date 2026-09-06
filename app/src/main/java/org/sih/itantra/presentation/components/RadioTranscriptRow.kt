@@ -36,6 +36,7 @@ import androidx.compose.ui.unit.sp
 import org.sih.itantra.core.common.MessagePriority
 import org.sih.itantra.core.persistence.MessageDirection
 import org.sih.itantra.core.persistence.MessageRecord
+import org.sih.itantra.core.protocol.DeliveryStatus
 import org.sih.itantra.presentation.theme.LocalRadioColors
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -306,6 +307,84 @@ fun RadioTranscriptRow(
                                 )
                             }
                         }
+                    }
+                }
+            }
+
+            // Reliable Delivery & Fragmentation Status Indicators
+            if ((record.fragmentCount != null && record.fragmentCount > 1) || record.deliveryStatus != DeliveryStatus.NONE) {
+                Spacer(modifier = Modifier.height(5.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    // Fragment badge
+                    if (record.fragmentCount != null && record.fragmentCount > 1) {
+                        val fragLabel = if (isSent) {
+                            "${record.fragmentCount} FRAGMENTS"
+                        } else {
+                            "REASSEMBLED (${record.fragmentCount} FRAGS)"
+                        }
+                        Box(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(4.dp))
+                                .background(radioColors.textTertiary.copy(alpha = 0.15f))
+                                .padding(horizontal = 5.dp, vertical = 1.dp)
+                        ) {
+                            Text(
+                                text = fragLabel,
+                                color = radioColors.textSecondary,
+                                fontSize = 9.sp,
+                                fontWeight = FontWeight.Bold,
+                                fontFamily = FontFamily.Monospace
+                            )
+                        }
+                    } else {
+                        Spacer(modifier = Modifier.width(1.dp))
+                    }
+
+                    // Delivery Status badge
+                    when (record.deliveryStatus) {
+                        DeliveryStatus.DELIVERED -> {
+                            val ackStr = if (record.deliveryLatencyMs != null) "DELIVERED ✓ (${record.deliveryLatencyMs}ms)" else "DELIVERED ✓"
+                            Text(
+                                text = ackStr,
+                                color = radioColors.success,
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.Bold,
+                                fontFamily = FontFamily.Monospace
+                            )
+                        }
+                        DeliveryStatus.PENDING -> {
+                            Text(
+                                text = "DELIVERY PENDING",
+                                color = radioColors.warning,
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.Bold,
+                                fontFamily = FontFamily.Monospace
+                            )
+                        }
+                        DeliveryStatus.TIMEOUT -> {
+                            Text(
+                                text = "DELIVERY TIMEOUT",
+                                color = radioColors.alert,
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.Bold,
+                                fontFamily = FontFamily.Monospace
+                            )
+                        }
+                        DeliveryStatus.SENDING -> {
+                            val count = record.fragmentCount ?: 1
+                            Text(
+                                text = "SENDING ($count fragments)",
+                                color = if (radioColors.isDark) radioColors.sage else radioColors.forest,
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.Bold,
+                                fontFamily = FontFamily.Monospace
+                            )
+                        }
+                        DeliveryStatus.NONE -> {}
                     }
                 }
             }

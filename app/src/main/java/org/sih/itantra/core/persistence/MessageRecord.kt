@@ -2,6 +2,7 @@ package org.sih.itantra.core.persistence
 
 import org.sih.itantra.core.common.IndicLanguage
 import org.sih.itantra.core.common.MessagePriority
+import org.sih.itantra.core.protocol.DeliveryStatus
 import org.sih.itantra.core.protocol.GeoLocation
 
 enum class MessageDirection {
@@ -25,5 +26,10 @@ data class MessageRecord(
     val location: GeoLocation? = null,
     val isSemantic: Boolean = false,
     val semanticSummary: String? = null,
-    val semanticSavingsBytes: Int? = null
+    val semanticSavingsBytes: Int? = null,
+    val deliveryStatus: DeliveryStatus = DeliveryStatus.NONE,
+    val transferId: Short? = null,
+    val fragmentCount: Int? = null,
+    val fragmentIndex: Int? = null,
+    val deliveryLatencyMs: Long? = null
 )

@@ -103,5 +103,11 @@ data class Packet(
         const val LOCATION_SIZE_BYTES = 32 // 8B lat + 8B lon + 4B acc + 8B time + 4B alt
         const val CRC_SIZE_BYTES = 4
         const val MIN_PACKET_SIZE = HEADER_SIZE_BYTES + CRC_SIZE_BYTES // 32 bytes
+
+        // Fragmentation and Reliable Delivery limits
+        const val MAX_FRAGMENT_PAYLOAD: Int = 128
+        const val MAX_REASSEMBLED_BYTES: Int = 16 * 1024 // 16 KB hard ceiling
+        const val REASSEMBLY_TIMEOUT_MS: Long = 30_000L // 30 seconds
+        const val DELIVERY_RECEIPT_TIMEOUT_MS: Long = 30_000L // 30 seconds
     }
 }

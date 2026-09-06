@@ -300,6 +300,42 @@ fun DiagnosticsScreen(
         DiagnosticRow(label = "DTN Evicted / Dropped", value = "${diag.dtnDropped}")
         DiagnosticRow(label = "Active Route Selection", value = diag.lastRouteQualityLabel)
 
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Reliable Delivery & Fragmentation Telemetry
+        Text(
+            text = "RELIABLE DELIVERY & FRAGMENTATION",
+            color = if (radioColors.isDark) radioColors.sage else radioColors.forest,
+            fontSize = 11.sp,
+            fontFamily = FontFamily.Monospace,
+            fontWeight = FontWeight.Bold,
+            letterSpacing = 1.sp
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        DiagnosticRow(label = "Fragments Sent / Received", value = "${diag.fragmentsSent} / ${diag.fragmentsReceived}")
+        DiagnosticRow(label = "Messages Reassembled", value = "${diag.messagesReassembled}")
+        DiagnosticRow(label = "Delivery Receipts (TX / RX)", value = "${diag.deliveryAcksSent} / ${diag.deliveryAcksReceived}")
+        diag.lastTransferId?.let {
+            DiagnosticRow(label = "Last Transfer ID", value = "0x" + Integer.toHexString(it.toInt() and 0xFFFF))
+        }
+        diag.lastFragmentCount?.let {
+            DiagnosticRow(label = "Last Fragment Count", value = "$it frags")
+        }
+        diag.lastFragmentPayloadBytes?.let {
+            DiagnosticRow(label = "Last Payload Bytes", value = "$it B")
+        }
+        diag.lastTotalWireBytes?.let {
+            DiagnosticRow(label = "Last Total Wire Bytes", value = "$it B")
+        }
+        diag.lastReassemblyLatencyMs?.let {
+            DiagnosticRow(label = "Last Reassembly Time", value = String.format(Locale.US, "%.1f ms", it))
+        }
+        diag.lastDeliveryAckLatencyMs?.let {
+            DiagnosticRow(label = "Last Delivery Receipt RTT", value = String.format(Locale.US, "%.1f ms", it))
+        }
+
         Spacer(modifier = Modifier.height(18.dp))
 
         // 6. Diagnostics Action Controls

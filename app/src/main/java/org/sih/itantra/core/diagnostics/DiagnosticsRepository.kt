@@ -53,7 +53,21 @@ data class DiagnosticsState(
     val failoverWifiToBt: Long = 0L,
     val activeTransportName: String = "BT / WIFI (AUTO)",
     // Adaptive Routing metrics
-    val lastRouteQualityLabel: String = "GOOD"
+    val lastRouteQualityLabel: String = "GOOD",
+    // Fragmentation & Reassembly counters
+    val fragmentsSent: Long = 0L,
+    val fragmentsReceived: Long = 0L,
+    val messagesReassembled: Long = 0L,
+    val reassemblyTimeouts: Long = 0L,
+    // Delivery Receipt counters
+    val deliveryAcksSent: Long = 0L,
+    val deliveryAcksReceived: Long = 0L,
+    val lastTransferId: Short? = null,
+    val lastFragmentCount: Int? = null,
+    val lastReassemblyLatencyMs: Double? = null,
+    val lastDeliveryAckLatencyMs: Double? = null,
+    val lastFragmentPayloadBytes: Int? = null,
+    val lastTotalWireBytes: Int? = null
 )
 
 object DiagnosticsRepository {
@@ -209,4 +223,49 @@ object DiagnosticsRepository {
     }
 
     fun setLastRouteQuality(quality: String) = recordRouteSelection(quality)
+
+    fun recordFragmentsSent(count: Int, payloadBytes: Int, wireBytes: Int, transferId: Short) {
+        val current = _state.value
+        _state.value = current.copy(
+            fragmentsSent = current.fragmentsSent + count,
+            lastTransferId = transferId,
+            lastFragmentCount = count,
+            lastFragmentPayloadBytes = payloadBytes,
+            lastTotalWireBytes = wireBytes
+        )
+    }
+
+    fun recordFragmentReceived() {
+        val current = _state.value
+        _state.value = current.copy(fragmentsReceived = current.fragmentsReceived + 1)
+    }
+
+    fun recordMessageReassembled(fragmentCount: Int, latencyMs: Double, transferId: Short) {
+        val current = _state.value
+        _state.value = current.copy(
+            messagesReassembled = current.messagesReassembled + 1,
+            lastTransferId = transferId,
+            lastFragmentCount = fragmentCount,
+            lastReassemblyLatencyMs = latencyMs
+        )
+    }
+
+    fun recordReassemblyTimeout() {
+        val current = _state.value
+        _state.value = current.copy(reassemblyTimeouts = current.reassemblyTimeouts + 1)
+    }
+
+    fun recordDeliveryAckSent() {
+        val current = _state.value
+        _state.value = current.copy(deliveryAcksSent = current.deliveryAcksSent + 1)
+    }
+
+    fun recordDeliveryAckReceived(transferId: Short, rttMs: Long) {
+        val current = _state.value
+        _state.value = current.copy(
+            deliveryAcksReceived = current.deliveryAcksReceived + 1,
+            lastDeliveryAckLatencyMs = rttMs.toDouble(),
+            lastTransferId = transferId
+        )
+    }
 }

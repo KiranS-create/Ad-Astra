@@ -1,8 +1,9 @@
-﻿package org.sih.itantra.core.persistence
+package org.sih.itantra.core.persistence
 
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import org.sih.itantra.core.protocol.DeliveryStatus
 import java.util.concurrent.CopyOnWriteArrayList
 
 /**
@@ -19,6 +20,29 @@ object MessageHistoryStore {
         records.add(0, record) // Most recent first
         _historyFlow.value = records.toList()
     }
+
+    /**
+     * Updates delivery state of an outgoing transfer upon ACK reception or timeout.
+     */
+    fun updateRecordDelivery(transferId: Short, status: DeliveryStatus, latencyMs: Long? = null) {
+        var updated = false
+        for (i in records.indices) {
+            val r = records[i]
+            if (r.transferId == transferId && r.direction == MessageDirection.SENT) {
+                records[i] = r.copy(
+                    deliveryStatus = status,
+                    deliveryLatencyMs = latencyMs ?: r.deliveryLatencyMs
+                )
+                updated = true
+                break
+            }
+        }
+        if (updated) {
+            _historyFlow.value = records.toList()
+        }
+    }
+
+    fun getRecords(): List<MessageRecord> = records.toList()
 
     fun clear() {
         records.clear()
