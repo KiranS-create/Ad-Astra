@@ -1,4 +1,4 @@
-﻿package org.sih.itantra.core.common
+package org.sih.itantra.core.common
 
 /**
  * The 10 official languages supported by iTantra for SIH26173 / ISRO.
@@ -11,6 +11,7 @@ enum class IndicLanguage(
     val nativeName: String,
     val scriptSample: String
 ) {
+    ENGLISH(9, "en", "English", "English", "We are safe."),
     HINDI(0, "hi", "Hindi", "हिंदी", "हम सुरक्षित हैं।"),
     GUJARATI(1, "gu", "Gujarati", "ગુજરાતી", "અમે સુરક્ષિત છીએ."),
     MARATHI(2, "mr", "Marathi", "मराठी", "आम्ही सुरक्षित आहोत."),
@@ -19,8 +20,7 @@ enum class IndicLanguage(
     TAMIL(5, "ta", "Tamil", "தமிழ்", "நாங்கள் பாதுகாப்பாக உள்ளோம்."),
     TELUGU(6, "te", "Telugu", "తెలుగు", "మేము సురక్షితంగా ఉన్నాము."),
     ODIA(7, "or", "Odia", "ଓଡ଼ିଆ", "ଆମେ ସୁରକ୍ଷିତ ଅଛୁ।"),
-    BENGALI(8, "bn", "Bengali", "বাংলা", "আমরা নিরাপদ আছি।"),
-    ENGLISH(9, "en", "English", "English", "We are safe.");
+    BENGALI(8, "bn", "Bengali", "বাংলা", "আমরা নিরাপদ আছি।");
 
     companion object {
         fun fromId(id: Byte): IndicLanguage {

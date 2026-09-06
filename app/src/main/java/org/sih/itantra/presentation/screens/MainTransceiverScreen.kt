@@ -67,9 +67,9 @@ fun MainTransceiverScreen(
     val activeTransport by viewModel.activeTransportType.collectAsState()
     val btState by viewModel.bluetoothTransportState.collectAsState()
     val bondedPeers by viewModel.bondedBluetoothDevices.collectAsState()
-    val isModelReady by viewModel.isModelReady.collectAsState()
+    val voiceStatus by viewModel.voiceEngineStatus.collectAsState()
     val isContinuous by viewModel.isContinuousMode.collectAsState()
-    val languageMode by viewModel.languageMode.collectAsState()
+    val languageState by viewModel.languageState.collectAsState()
     val history by viewModel.messageHistory.collectAsState()
     val lastTranscribed by viewModel.lastTranscribedText.collectAsState()
 
@@ -87,7 +87,7 @@ fun MainTransceiverScreen(
         TopRadioHeader(
             activeTransport = activeTransport,
             bluetoothState = btState,
-            isModelReady = isModelReady,
+            voiceStatus = voiceStatus,
             onOpenSettings = onNavigateToSettings,
             onBluetoothClick = {
                 viewModel.setTransport(TransportType.BLUETOOTH)
@@ -106,7 +106,7 @@ fun MainTransceiverScreen(
 
         // 2. Language Selector Pill (Dropdown opening 10 Indic languages + AUTO)
         LanguageSelectorPill(
-            currentMode = languageMode,
+            currentState = languageState,
             onModeSelected = { viewModel.setLanguageMode(it) }
         )
 

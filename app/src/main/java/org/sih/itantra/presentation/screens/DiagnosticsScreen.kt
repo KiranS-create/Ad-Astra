@@ -79,6 +79,18 @@ fun DiagnosticsScreen(
                 .border(1.5.dp, radioColors.success.copy(alpha = 0.6f), RoundedCornerShape(14.dp))
                 .padding(16.dp)
         ) {
+            val hasTransmissions = diag.packetsSent > 0L && diag.overallSavingsPercent != null
+            val savingsTitle = if (hasTransmissions) {
+                String.format(Locale.US, "%.1f%% SAVINGS", diag.overallSavingsPercent!!)
+            } else {
+                "--.-% (AWAITING TX)"
+            }
+            val subtitle = if (hasTransmissions) {
+                "Transmitted: ${diag.totalBytesTransmitted} B  |  Raw Voice Saved: ${(diag.totalRawAudioBytesSaved / 1024)} KB"
+            } else {
+                "Transmitted: 0 B  |  Raw Voice Saved: 0 KB (Awaiting speech transmission)"
+            }
+
             Column {
                 Text(
                     text = "BANDWIDTH REDUCTION RATIO",
@@ -90,17 +102,17 @@ fun DiagnosticsScreen(
                 )
                 Spacer(modifier = Modifier.height(2.dp))
                 Text(
-                    text = String.format(Locale.US, "%.1f%% SAVINGS", diag.overallSavingsPercent),
-                    color = radioColors.success,
-                    fontSize = 26.sp,
+                    text = savingsTitle,
+                    color = if (hasTransmissions) radioColors.success else radioColors.textTertiary,
+                    fontSize = 24.sp,
                     fontWeight = FontWeight.Black,
                     fontFamily = FontFamily.Monospace
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    text = "Transmitted: ${diag.totalBytesTransmitted} B  |  Raw Voice Saved: ${(diag.totalRawAudioBytesSaved / 1024)} KB",
+                    text = subtitle,
                     color = radioColors.textPrimary,
-                    fontSize = 12.sp,
+                    fontSize = 11.sp,
                     fontFamily = FontFamily.Monospace
                 )
             }
@@ -121,12 +133,13 @@ fun DiagnosticsScreen(
         Spacer(modifier = Modifier.height(8.dp))
 
         val lat = diag.lastLatency
-        DiagnosticRow(label = "Audio Utterance Duration", value = "${lat.audioDurationMs} ms")
-        DiagnosticRow(label = "On-Device STT Inference", value = String.format(Locale.US, "%.1f ms", lat.sttLatencyMs))
-        DiagnosticRow(label = "STT Real-Time Factor (RTF)", value = String.format(Locale.US, "%.2f", lat.realTimeFactor))
-        DiagnosticRow(label = "Protocol Framing + CRC", value = String.format(Locale.US, "%.2f ms", lat.encodingLatencyMs))
-        DiagnosticRow(label = "Wireless Transit Latency", value = String.format(Locale.US, "%.1f ms", lat.transportLatencyMs))
-        DiagnosticRow(label = "On-Device TTS Audio Synthesis", value = String.format(Locale.US, "%.1f ms", lat.ttsLatencyMs))
+        val hasLatency = lat.audioDurationMs > 0L
+        DiagnosticRow(label = "Audio Utterance Duration", value = if (hasLatency) "${lat.audioDurationMs} ms" else "-- ms")
+        DiagnosticRow(label = "On-Device STT Inference", value = if (hasLatency) String.format(Locale.US, "%.1f ms", lat.sttLatencyMs) else "-- ms")
+        DiagnosticRow(label = "STT Real-Time Factor (RTF)", value = if (hasLatency) String.format(Locale.US, "%.2f", lat.realTimeFactor) else "--")
+        DiagnosticRow(label = "Protocol Framing + CRC", value = if (hasLatency) String.format(Locale.US, "%.2f ms", lat.encodingLatencyMs) else "-- ms")
+        DiagnosticRow(label = "Wireless Transit Latency", value = if (hasLatency) String.format(Locale.US, "%.1f ms", lat.transportLatencyMs) else "-- ms")
+        DiagnosticRow(label = "On-Device TTS Audio Synthesis", value = if (hasLatency) String.format(Locale.US, "%.1f ms", lat.ttsLatencyMs) else "-- ms")
 
         Spacer(modifier = Modifier.height(16.dp))
 
@@ -141,6 +154,17 @@ fun DiagnosticsScreen(
         )
 
         Spacer(modifier = Modifier.height(8.dp))
+
+        val bw = diag.lastBandwidth
+        val hasMeasuredBw = bw.transmittedPacketBytes > 0L && lat.audioDurationMs > 0L
+        val durationSec = lat.audioDurationMs / 1000.0
+        val measuredBps = if (hasMeasuredBw && durationSec > 0) {
+            (bw.transmittedPacketBytes * 8) / durationSec
+        } else 0.0
+        val measuredSavings = if (hasMeasuredBw) bw.bandwidthReductionPercent else 0.0
+        val barWidth = if (hasMeasuredBw && measuredBps > 0) {
+            (measuredBps / 256000.0).toFloat().coerceIn(0.02f, 1f)
+        } else 0.02f
 
         Column(
             modifier = Modifier
@@ -165,7 +189,7 @@ fun DiagnosticsScreen(
                     .background(radioColors.alert.copy(alpha = 0.75f), RoundedCornerShape(4.dp))
             )
             Text(
-                text = "256,000 bps (32,000 B/s) — 3s Utterance = 96,000 Bytes",
+                text = "256,000 bps (32,000 B/s) — 16kHz 16-bit PCM",
                 color = radioColors.textTertiary,
                 fontSize = 10.sp,
                 fontFamily = FontFamily.Monospace
@@ -175,7 +199,7 @@ fun DiagnosticsScreen(
 
             Text(
                 text = "iTANTRA NEURAL RADIO ACCESS",
-                color = radioColors.success,
+                color = if (hasMeasuredBw) radioColors.success else radioColors.textSecondary,
                 fontSize = 11.sp,
                 fontFamily = FontFamily.Monospace,
                 fontWeight = FontWeight.Bold
@@ -183,13 +207,17 @@ fun DiagnosticsScreen(
             Spacer(modifier = Modifier.height(4.dp))
             Box(
                 modifier = Modifier
-                    .fillMaxWidth(0.04f)
+                    .fillMaxWidth(barWidth)
                     .height(16.dp)
-                    .background(radioColors.success, RoundedCornerShape(4.dp))
+                    .background(if (hasMeasuredBw) radioColors.success else radioColors.textTertiary, RoundedCornerShape(4.dp))
             )
             Text(
-                text = "~450 bps — 3s Utterance = ~170 Bytes (99.8% Savings)",
-                color = radioColors.success,
+                text = if (hasMeasuredBw) {
+                    String.format(Locale.US, "%.0f bps — %d Bytes (%.1f%% Savings)", measuredBps, bw.transmittedPacketBytes, measuredSavings)
+                } else {
+                    "Awaiting transmission to measure bitrate"
+                },
+                color = if (hasMeasuredBw) radioColors.success else radioColors.textTertiary,
                 fontSize = 10.sp,
                 fontFamily = FontFamily.Monospace,
                 fontWeight = FontWeight.Bold

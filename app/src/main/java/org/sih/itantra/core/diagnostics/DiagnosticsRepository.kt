@@ -1,4 +1,4 @@
-﻿package org.sih.itantra.core.diagnostics
+package org.sih.itantra.core.diagnostics
 
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -11,9 +11,9 @@ data class DiagnosticsState(
     val totalRawAudioBytesSaved: Long = 0L,
     val lastLatency: LatencyMetrics = LatencyMetrics(),
     val lastBandwidth: BandwidthMetrics = BandwidthMetrics(),
-    val overallSavingsPercent: Double = 99.5,
+    val overallSavingsPercent: Double? = null,
     val activeSoC: String = "ARM64-v8a",
-    val ramUsageMb: Float = 48.2f
+    val ramUsageMb: Float = ((Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) / (1024f * 1024f))
 )
 
 object DiagnosticsRepository {
@@ -24,10 +24,10 @@ object DiagnosticsRepository {
         val current = _state.value
         val newSent = current.packetsSent + 1
         val newTransmittedBytes = current.totalBytesTransmitted + packetBytes
-        val newSavedBytes = current.totalRawAudioBytesSaved + (rawAudioBytes - packetBytes)
-        val overallPercent = if (newSavedBytes + newTransmittedBytes > 0) {
+        val newSavedBytes = current.totalRawAudioBytesSaved + maxOf(0L, rawAudioBytes - packetBytes)
+        val overallPercent = if (newSavedBytes + newTransmittedBytes > 0 && newSavedBytes > 0) {
             (newSavedBytes.toDouble() / (newSavedBytes + newTransmittedBytes).toDouble()) * 100.0
-        } else 99.5
+        } else null
 
         val runtime = Runtime.getRuntime()
         val usedRamMb = (runtime.totalMemory() - runtime.freeMemory()) / (1024f * 1024f)
@@ -38,7 +38,7 @@ object DiagnosticsRepository {
             totalRawAudioBytesSaved = newSavedBytes,
             lastLatency = latency,
             lastBandwidth = bandwidth,
-            overallSavingsPercent = overallPercent.coerceIn(0.0, 99.9),
+            overallSavingsPercent = overallPercent?.coerceIn(0.0, 99.9),
             ramUsageMb = usedRamMb
         )
     }

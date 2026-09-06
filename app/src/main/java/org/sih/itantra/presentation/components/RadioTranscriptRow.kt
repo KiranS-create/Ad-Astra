@@ -169,15 +169,15 @@ fun RadioTranscriptRow(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                val savings = if (record.rawAudioEquivalentBytes > 0) {
+                val savingsStr = if (record.rawAudioEquivalentBytes > 0) {
                     val ratio = 100.0 * (1.0 - (record.packetSizeBytes.toDouble() / record.rawAudioEquivalentBytes.toDouble()))
-                    String.format(Locale.US, "%.1f%% saved", ratio.coerceIn(0.0, 99.9))
+                    "  (${String.format(Locale.US, "%.1f%% saved", ratio.coerceIn(0.0, 99.9))})"
                 } else {
-                    "Ultra-compact"
+                    ""
                 }
 
                 Text(
-                    text = "${record.packetSizeBytes} B  ($savings)",
+                    text = "${record.packetSizeBytes} B$savingsStr",
                     color = radioColors.textTertiary,
                     fontSize = 10.sp,
                     fontFamily = FontFamily.Monospace

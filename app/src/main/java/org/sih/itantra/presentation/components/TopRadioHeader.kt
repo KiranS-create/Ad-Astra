@@ -26,8 +26,10 @@ import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import org.sih.itantra.core.transport.TransportState
 import org.sih.itantra.core.transport.TransportType
 import org.sih.itantra.presentation.theme.LocalRadioColors
@@ -41,7 +43,7 @@ import org.sih.itantra.presentation.theme.LocalRadioColors
 fun TopRadioHeader(
     activeTransport: TransportType,
     bluetoothState: TransportState,
-    isModelReady: Boolean,
+    voiceStatus: org.sih.itantra.presentation.viewmodel.VoiceEngineStatus,
     onOpenSettings: () -> Unit,
     onBluetoothClick: () -> Unit,
     onWifiClick: () -> Unit,
@@ -84,7 +86,7 @@ fun TopRadioHeader(
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly,
+                horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 // 1. Bluetooth Status Item
@@ -94,11 +96,11 @@ fun TopRadioHeader(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier
                         .clickable { onBluetoothClick() }
-                        .padding(horizontal = 6.dp, vertical = 4.dp)
+                        .padding(horizontal = 4.dp, vertical = 4.dp)
                 ) {
                     Box(
                         modifier = Modifier
-                            .size(30.dp)
+                            .size(28.dp)
                             .background(
                                 if (isBtConnected) radioColors.success.copy(alpha = 0.15f)
                                 else if (isBtActive) radioColors.alert.copy(alpha = 0.12f)
@@ -113,7 +115,7 @@ fun TopRadioHeader(
                             tint = if (isBtConnected) radioColors.success
                             else if (isBtActive) radioColors.alert
                             else radioColors.textTertiary,
-                            modifier = Modifier.size(18.dp)
+                            modifier = Modifier.size(17.dp)
                         )
                     }
                 }
@@ -124,11 +126,11 @@ fun TopRadioHeader(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier
                         .clickable { onWifiClick() }
-                        .padding(horizontal = 6.dp, vertical = 4.dp)
+                        .padding(horizontal = 4.dp, vertical = 4.dp)
                 ) {
                     Box(
                         modifier = Modifier
-                            .size(30.dp)
+                            .size(28.dp)
                             .background(
                                 if (isWifiActive) radioColors.success.copy(alpha = 0.15f) else Color.Transparent,
                                 CircleShape
@@ -139,54 +141,63 @@ fun TopRadioHeader(
                             imageVector = Icons.Default.Wifi,
                             contentDescription = "Wi-Fi Status",
                             tint = if (isWifiActive) radioColors.success else radioColors.textTertiary,
-                            modifier = Modifier.size(18.dp)
+                            modifier = Modifier.size(17.dp)
                         )
                     }
                 }
 
-                // 3. AI / Model Readiness Status Item
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
+                // 3. Operational Voice Engine Status (READY / LOADING / VOICE / OFFLINE)
+                val (chipBg, chipText) = when (voiceStatus) {
+                    org.sih.itantra.presentation.viewmodel.VoiceEngineStatus.READY -> Pair(radioColors.success.copy(alpha = 0.15f), radioColors.success)
+                    org.sih.itantra.presentation.viewmodel.VoiceEngineStatus.LOADING -> Pair(radioColors.warning.copy(alpha = 0.18f), radioColors.warning)
+                    org.sih.itantra.presentation.viewmodel.VoiceEngineStatus.VOICE -> Pair(Color(0xFF0288D1).copy(alpha = 0.18f), Color(0xFF0288D1))
+                    org.sih.itantra.presentation.viewmodel.VoiceEngineStatus.OFFLINE -> Pair(radioColors.textTertiary.copy(alpha = 0.12f), radioColors.textTertiary)
+                }
+
+                Box(
                     modifier = Modifier
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(chipBg)
                         .clickable { onModelClick() }
-                        .padding(horizontal = 6.dp, vertical = 4.dp)
+                        .padding(horizontal = 9.dp, vertical = 5.dp),
+                    contentAlignment = Alignment.Center
                 ) {
-                    Box(
-                        modifier = Modifier
-                            .size(30.dp)
-                            .background(
-                                if (isModelReady) radioColors.success.copy(alpha = 0.15f)
-                                else radioColors.warning.copy(alpha = 0.15f),
-                                CircleShape
-                            ),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.GraphicEq,
-                            contentDescription = "AI Model Readiness",
-                            tint = if (isModelReady) radioColors.success else radioColors.warning,
-                            modifier = Modifier.size(18.dp)
-                        )
-                    }
-                }
-
-                // 4. Offline / Battery / Field Link indicator
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 4.dp)
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .size(30.dp)
-                            .background(radioColors.success.copy(alpha = 0.12f), CircleShape),
-                        contentAlignment = Alignment.Center
-                    ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
                         Box(
                             modifier = Modifier
-                                .size(8.dp)
-                                .background(radioColors.success, CircleShape)
+                                .size(6.dp)
+                                .background(chipText, CircleShape)
+                        )
+                        Spacer(modifier = Modifier.width(5.dp))
+                        androidx.compose.material3.Text(
+                            text = voiceStatus.label,
+                            color = chipText,
+                            fontSize = 11.sp,
+                            fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
+                            fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace,
+                            letterSpacing = 0.5.sp
                         )
                     }
+                }
+
+                // 4. Channel Link Indicator
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.padding(horizontal = 4.dp, vertical = 4.dp)
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(8.dp)
+                            .background(radioColors.success, CircleShape)
+                    )
+                    Spacer(modifier = Modifier.width(5.dp))
+                    androidx.compose.material3.Text(
+                        text = "CH-1",
+                        color = radioColors.textSecondary,
+                        fontSize = 11.sp,
+                        fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
+                        fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace
+                    )
                 }
             }
         }

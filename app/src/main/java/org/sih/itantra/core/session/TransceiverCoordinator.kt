@@ -383,7 +383,7 @@ class TransceiverCoordinator(
                 text = text,
                 peer = "Node #${packet.sourceDeviceId}",
                 packetSizeBytes = packet.payload.size + Packet.MIN_PACKET_SIZE,
-                rawAudioEquivalentBytes = (text.length * 200L * 32L), // approx equivalent
+                rawAudioEquivalentBytes = 0L,
                 measuredLatencyMs = ttsLatencyMs
             )
         )
@@ -432,7 +432,7 @@ class TransceiverCoordinator(
                     text = cleanText,
                     peer = "Emergency Broadcast",
                     packetSizeBytes = packet.payload.size + Packet.MIN_PACKET_SIZE,
-                    rawAudioEquivalentBytes = (cleanText.length * 200L * 32L),
+                    rawAudioEquivalentBytes = 0L,
                     measuredLatencyMs = 12.0
                 )
             )

@@ -20,6 +20,13 @@ import org.sih.itantra.core.transport.PeerDevice
 import org.sih.itantra.core.transport.TransportState
 import org.sih.itantra.core.transport.TransportType
 
+enum class VoiceEngineStatus(val label: String) {
+    READY("READY"),
+    LOADING("LOADING"),
+    VOICE("VOICE"),
+    OFFLINE("OFFLINE")
+}
+
 class TransceiverViewModel(application: Application) : AndroidViewModel(application) {
 
     val coordinator = TransceiverCoordinator(application.applicationContext)
@@ -45,10 +52,28 @@ class TransceiverViewModel(application: Application) : AndroidViewModel(applicat
     private val _themeMode = MutableStateFlow(org.sih.itantra.presentation.theme.AppThemeMode.SYSTEM)
     val themeMode: StateFlow<org.sih.itantra.presentation.theme.AppThemeMode> = _themeMode.asStateFlow()
 
-    private val _languageMode = MutableStateFlow<org.sih.itantra.core.language.LanguageSelectionMode>(
-        org.sih.itantra.core.language.LanguageSelectionMode.Manual(coordinator.activeLanguage.value)
+    private val languageIdentifier: org.sih.itantra.core.language.LanguageIdentifier =
+        org.sih.itantra.core.language.OfflineLanguageIdentifier()
+
+    private val _languageState = MutableStateFlow<org.sih.itantra.core.language.LanguageSelectionState>(
+        org.sih.itantra.core.language.LanguageSelectionState.Manual(coordinator.activeLanguage.value)
     )
-    val languageMode: StateFlow<org.sih.itantra.core.language.LanguageSelectionMode> = _languageMode.asStateFlow()
+    val languageState: StateFlow<org.sih.itantra.core.language.LanguageSelectionState> = _languageState.asStateFlow()
+
+    val voiceEngineStatus: StateFlow<VoiceEngineStatus> = kotlinx.coroutines.flow.combine(
+        pttState,
+        isModelReady
+    ) { state, ready ->
+        when {
+            state == PttState.RECORDING || state == PttState.SPEECH_DETECTED ||
+            state == PttState.STT_PROCESSING || state == PttState.TRANSMITTING ||
+            state == PttState.RECEIVED || state == PttState.TTS_PROCESSING ||
+            state == PttState.PLAYING -> VoiceEngineStatus.VOICE
+            !ready -> VoiceEngineStatus.LOADING
+            ready -> VoiceEngineStatus.READY
+            else -> VoiceEngineStatus.OFFLINE
+        }
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, VoiceEngineStatus.LOADING)
 
     init {
         viewModelScope.launch {
@@ -56,8 +81,8 @@ class TransceiverViewModel(application: Application) : AndroidViewModel(applicat
         }
         viewModelScope.launch {
             coordinator.activeLanguage.collect { lang ->
-                if (_languageMode.value is org.sih.itantra.core.language.LanguageSelectionMode.Manual) {
-                    _languageMode.value = org.sih.itantra.core.language.LanguageSelectionMode.Manual(lang)
+                if (_languageState.value is org.sih.itantra.core.language.LanguageSelectionState.Manual) {
+                    _languageState.value = org.sih.itantra.core.language.LanguageSelectionState.Manual(lang)
                 }
             }
         }
@@ -68,16 +93,26 @@ class TransceiverViewModel(application: Application) : AndroidViewModel(applicat
     }
 
     fun setLanguageMode(mode: org.sih.itantra.core.language.LanguageSelectionMode) {
-        _languageMode.value = mode
         when (mode) {
             is org.sih.itantra.core.language.LanguageSelectionMode.Manual -> {
                 coordinator.setLanguage(mode.language)
+                _languageState.value = org.sih.itantra.core.language.LanguageSelectionState.Manual(mode.language)
             }
             is org.sih.itantra.core.language.LanguageSelectionMode.Auto -> {
-                // Auto mode defaults safely to Hindi baseline in offline mode
-                coordinator.setLanguage(org.sih.itantra.core.common.IndicLanguage.HINDI)
+                if (languageIdentifier.isAvailable()) {
+                    _languageState.value = org.sih.itantra.core.language.LanguageSelectionState.Auto
+                } else {
+                    // Honestly report AUTO unavailable and require manual selection; do NOT silently substitute Hindi!
+                    _languageState.value = org.sih.itantra.core.language.LanguageSelectionState.AutoUnavailable(
+                        previousLanguage = coordinator.activeLanguage.value
+                    )
+                }
             }
         }
+    }
+
+    fun setLanguage(language: IndicLanguage) {
+        setLanguageMode(org.sih.itantra.core.language.LanguageSelectionMode.Manual(language))
     }
 
     fun clearHistory() {
@@ -96,6 +131,10 @@ class TransceiverViewModel(application: Application) : AndroidViewModel(applicat
     }
 
     fun startPtt() {
+        if (_languageState.value is org.sih.itantra.core.language.LanguageSelectionState.AutoUnavailable) {
+            android.util.Log.w("TransceiverViewModel", "PTT blocked: AUTO unavailable. Manual language selection required.")
+            return
+        }
         coordinator.startPtt()
     }
 
@@ -106,10 +145,6 @@ class TransceiverViewModel(application: Application) : AndroidViewModel(applicat
     fun toggleContinuousMode() {
         val next = !coordinator.isContinuousMode.value
         coordinator.setContinuousMode(next)
-    }
-
-    fun setLanguage(language: IndicLanguage) {
-        coordinator.setLanguage(language)
     }
 
     fun setTransport(type: TransportType) {

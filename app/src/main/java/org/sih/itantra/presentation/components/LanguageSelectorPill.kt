@@ -22,6 +22,7 @@ import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Translate
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -47,20 +48,27 @@ import org.sih.itantra.presentation.theme.LocalRadioColors
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LanguageSelectorPill(
-    currentMode: LanguageSelectionMode,
-    onModeSelected: (LanguageSelectionMode) -> Unit,
+    currentState: org.sih.itantra.core.language.LanguageSelectionState,
+    onModeSelected: (org.sih.itantra.core.language.LanguageSelectionMode) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val radioColors = LocalRadioColors.current
     var showSheet by remember { mutableStateOf(false) }
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
+    val isAutoUnavailable = currentState is org.sih.itantra.core.language.LanguageSelectionState.AutoUnavailable
+    val isAuto = currentState is org.sih.itantra.core.language.LanguageSelectionState.Auto
+
     // Main Pill Button
     Box(
         modifier = modifier
             .clip(RoundedCornerShape(20.dp))
             .background(radioColors.capsule)
-            .border(1.dp, radioColors.border.copy(alpha = 0.6f), RoundedCornerShape(20.dp))
+            .border(
+                1.dp,
+                if (isAutoUnavailable) radioColors.alert.copy(alpha = 0.7f) else radioColors.border.copy(alpha = 0.6f),
+                RoundedCornerShape(20.dp)
+            )
             .clickable { showSheet = true }
             .padding(horizontal = 14.dp, vertical = 7.dp)
     ) {
@@ -69,22 +77,36 @@ fun LanguageSelectorPill(
             horizontalArrangement = Arrangement.Center
         ) {
             Icon(
-                imageVector = if (currentMode is LanguageSelectionMode.Auto) Icons.Default.AutoAwesome else Icons.Default.Translate,
+                imageVector = when {
+                    isAutoUnavailable -> Icons.Default.Warning
+                    isAuto -> Icons.Default.AutoAwesome
+                    else -> Icons.Default.Translate
+                },
                 contentDescription = "Language",
-                tint = radioColors.textSecondary,
+                tint = if (isAutoUnavailable) radioColors.alert else radioColors.textSecondary,
                 modifier = Modifier.size(16.dp)
             )
 
             Spacer(modifier = Modifier.width(8.dp))
 
-            val label = when (currentMode) {
-                is LanguageSelectionMode.Manual -> "${currentMode.language.displayName} (${currentMode.language.nativeName})"
-                is LanguageSelectionMode.Auto -> "AUTO (Offline)"
+            val label = when (currentState) {
+                is org.sih.itantra.core.language.LanguageSelectionState.Manual ->
+                    "${currentState.language.displayName} (${currentState.language.nativeName})"
+                is org.sih.itantra.core.language.LanguageSelectionState.Auto ->
+                    "AUTO"
+                is org.sih.itantra.core.language.LanguageSelectionState.AutoUnavailable ->
+                    "AUTO UNAVAILABLE (Manual Req.)"
+                is org.sih.itantra.core.language.LanguageSelectionState.Detecting ->
+                    "DETECTING..."
+                is org.sih.itantra.core.language.LanguageSelectionState.Detected ->
+                    "${currentState.language.displayName} (${(currentState.confidence * 100).toInt()}%)"
+                is org.sih.itantra.core.language.LanguageSelectionState.Undetermined ->
+                    "UNDETERMINED (Manual Req.)"
             }
 
             Text(
                 text = label,
-                color = radioColors.textPrimary,
+                color = if (isAutoUnavailable) radioColors.alert else radioColors.textPrimary,
                 fontSize = 13.sp,
                 fontWeight = FontWeight.Medium,
                 fontFamily = FontFamily.SansSerif
@@ -124,17 +146,36 @@ fun LanguageSelectorPill(
 
                 Spacer(modifier = Modifier.height(14.dp))
 
+                if (isAutoUnavailable) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(radioColors.alert.copy(alpha = 0.1f))
+                            .border(1.dp, radioColors.alert.copy(alpha = 0.5f), RoundedCornerShape(8.dp))
+                            .padding(10.dp)
+                    ) {
+                        Text(
+                            text = "Offline Language Identification (LID) is not installed. Manual language selection is required for transmission.",
+                            color = radioColors.alert,
+                            fontSize = 12.sp,
+                            lineHeight = 16.sp,
+                            fontFamily = FontFamily.SansSerif
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(10.dp))
+                }
+
                 // AUTO Option
-                val isAutoSelected = currentMode is LanguageSelectionMode.Auto
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(12.dp))
                         .background(
-                            if (isAutoSelected) radioColors.surfaceHighlight else radioColors.surface
+                            if (isAuto) radioColors.surfaceHighlight else radioColors.surface
                         )
                         .clickable {
-                            onModeSelected(LanguageSelectionMode.Auto)
+                            onModeSelected(org.sih.itantra.core.language.LanguageSelectionMode.Auto)
                             showSheet = false
                         }
                         .padding(horizontal = 12.dp, vertical = 10.dp),
@@ -160,20 +201,20 @@ fun LanguageSelectorPill(
 
                         Column {
                             Text(
-                                text = "AUTO (Language Identification)",
+                                text = "AUTO (Offline Language Identification)",
                                 color = radioColors.textPrimary,
                                 fontSize = 14.sp,
                                 fontWeight = FontWeight.SemiBold
                             )
                             Text(
-                                text = "Offline auto-detection (defaults to Hindi)",
+                                text = "Offline LID unavailable — manual selection required",
                                 color = radioColors.textTertiary,
                                 fontSize = 11.sp
                             )
                         }
                     }
 
-                    if (isAutoSelected) {
+                    if (isAuto) {
                         Icon(
                             imageVector = Icons.Default.Check,
                             contentDescription = "Selected",
@@ -194,7 +235,7 @@ fun LanguageSelectorPill(
                         .height(360.dp)
                 ) {
                     items(IndicLanguage.entries) { lang ->
-                        val isSelected = currentMode is LanguageSelectionMode.Manual && currentMode.language == lang
+                        val isSelected = currentState is org.sih.itantra.core.language.LanguageSelectionState.Manual && currentState.language == lang
 
                         Row(
                             modifier = Modifier
@@ -204,7 +245,7 @@ fun LanguageSelectorPill(
                                     if (isSelected) radioColors.surfaceHighlight else radioColors.surface
                                 )
                                 .clickable {
-                                    onModeSelected(LanguageSelectionMode.Manual(lang))
+                                    onModeSelected(org.sih.itantra.core.language.LanguageSelectionMode.Manual(lang))
                                     showSheet = false
                                 }
                                 .padding(horizontal = 12.dp, vertical = 10.dp),

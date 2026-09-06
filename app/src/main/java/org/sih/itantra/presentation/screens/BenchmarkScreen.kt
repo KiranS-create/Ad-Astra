@@ -1,5 +1,6 @@
-﻿package org.sih.itantra.presentation.screens
+package org.sih.itantra.presentation.screens
 
+import java.util.Locale
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -122,14 +123,25 @@ fun BenchmarkScreen(
                 fontWeight = FontWeight.Bold
             )
             Spacer(modifier = Modifier.height(4.dp))
+            val bw = diag.lastBandwidth
+            val lat = diag.lastLatency
+            val hasMeasured = bw.transmittedPacketBytes > 0L && lat.audioDurationMs > 0L
+            val durationSec = lat.audioDurationMs / 1000.0
+            val measuredBps = if (hasMeasured && durationSec > 0) (bw.transmittedPacketBytes * 8) / durationSec else 0.0
+            val barWidth = if (hasMeasured && measuredBps > 0) (measuredBps / 256000.0).toFloat().coerceIn(0.02f, 1f) else 0.02f
+
             Box(
                 modifier = Modifier
-                    .fillMaxWidth(0.02f) // Tiny sliver reflecting 0.2% bandwidth
+                    .fillMaxWidth(barWidth)
                     .height(18.dp)
                     .background(RadarGreen, RoundedCornerShape(4.dp))
             )
             Text(
-                text = "Rate: ~450 bps | 3s Utterance = ~170 Bytes (99.8% Reduction)",
+                text = if (hasMeasured) {
+                    String.format(Locale.US, "Rate: %.0f bps | Measured: %d B (%.1f%% Reduction)", measuredBps, bw.transmittedPacketBytes, bw.bandwidthReductionPercent)
+                } else {
+                    "Awaiting live transmission for measured rate"
+                },
                 color = RadarGreen,
                 fontSize = 10.sp,
                 fontFamily = FontFamily.Monospace,
