@@ -62,6 +62,7 @@ fun SettingsScreen(
     viewModel: TransceiverViewModel,
     onOpenModelAudit: () -> Unit,
     onOpenManetDemo: () -> Unit = {},
+    onOpenSihDemo: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val radioColors = LocalRadioColors.current
@@ -762,7 +763,105 @@ fun SettingsScreen(
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // 5. Compliance & Identity Credentials
+        // 7. DEMO & EVALUATION
+        SectionHeader(title = "DEMO & EVALUATION")
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(12.dp))
+                .background(radioColors.surface)
+                .border(
+                    1.dp,
+                    (if (radioColors.isDark) radioColors.sage else radioColors.forest).copy(alpha = 0.5f),
+                    RoundedCornerShape(12.dp)
+                )
+                .padding(14.dp)
+        ) {
+            Column(modifier = Modifier.fillMaxWidth()) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = "⚡ SIH TACTICAL DEMO",
+                            color = if (radioColors.isDark) radioColors.sage else radioColors.forest,
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Bold,
+                            fontFamily = FontFamily.Monospace,
+                            letterSpacing = 0.5.sp
+                        )
+                    }
+                    Box(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(4.dp))
+                            .background(radioColors.alert.copy(alpha = 0.15f))
+                            .border(1.dp, radioColors.alert.copy(alpha = 0.4f), RoundedCornerShape(4.dp))
+                            .padding(horizontal = 6.dp, vertical = 2.dp)
+                    ) {
+                        Text(
+                            text = "SIMULATION ONLY",
+                            color = radioColors.alert,
+                            fontSize = 9.sp,
+                            fontWeight = FontWeight.Bold,
+                            fontFamily = FontFamily.Monospace
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(6.dp))
+
+                Text(
+                    text = "Unified Mission Dashboard",
+                    color = radioColors.textPrimary,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.SemiBold
+                )
+                Text(
+                    text = "9-stage offline tactical pipeline demonstration for SIH evaluation.",
+                    color = radioColors.textSecondary,
+                    fontSize = 11.sp,
+                    lineHeight = 15.sp
+                )
+
+                Spacer(modifier = Modifier.height(10.dp))
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(if (radioColors.isDark) radioColors.surfaceHighlight else radioColors.capsule)
+                        .border(1.dp, (if (radioColors.isDark) radioColors.sage else radioColors.forest).copy(alpha = 0.6f), RoundedCornerShape(8.dp))
+                        .clickable { onOpenSihDemo() }
+                        .padding(vertical = 10.dp, horizontal = 12.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    Text(
+                        text = "OPEN SIH DEMO",
+                        color = if (radioColors.isDark) radioColors.sage else radioColors.forest,
+                        fontSize = 11.5.sp,
+                        fontWeight = FontWeight.Bold,
+                        fontFamily = FontFamily.Monospace,
+                        letterSpacing = 0.5.sp
+                    )
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(
+                        text = "➔",
+                        color = if (radioColors.isDark) radioColors.sage else radioColors.forest,
+                        fontSize = 11.5.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        // 8. Compliance & Identity Credentials
         Box(
             modifier = Modifier
                 .fillMaxWidth()

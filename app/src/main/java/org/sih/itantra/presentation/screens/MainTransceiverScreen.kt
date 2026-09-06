@@ -66,7 +66,6 @@ fun MainTransceiverScreen(
     viewModel: TransceiverViewModel,
     onNavigateToSettings: () -> Unit,
     onNavigateToModelAudit: () -> Unit = {},
-    onOpenSihDemo: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val radioColors = LocalRadioColors.current
@@ -126,46 +125,6 @@ fun MainTransceiverScreen(
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        // SIH Demo Mode Quick Entry Banner
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(8.dp))
-                .background((if (radioColors.isDark) radioColors.sage else radioColors.forest).copy(alpha = 0.15f))
-                .border(1.dp, (if (radioColors.isDark) radioColors.sage else radioColors.forest).copy(alpha = 0.6f), RoundedCornerShape(8.dp))
-                .clickable { onOpenSihDemo() }
-                .padding(horizontal = 10.dp, vertical = 6.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    text = "⚡ SIH DEMO MODE",
-                    color = if (radioColors.isDark) radioColors.sage else radioColors.forest,
-                    fontSize = 11.sp,
-                    fontWeight = FontWeight.Black,
-                    fontFamily = FontFamily.Monospace,
-                    letterSpacing = 0.5.sp
-                )
-                Spacer(modifier = Modifier.width(6.dp))
-                Text(
-                    text = "· 1-Flow Mission Dashboard",
-                    color = radioColors.textSecondary,
-                    fontSize = 10.sp,
-                    fontFamily = FontFamily.Monospace
-                )
-            }
-            Text(
-                text = "LAUNCH ➔",
-                color = if (radioColors.isDark) radioColors.sage else radioColors.forest,
-                fontSize = 10.sp,
-                fontWeight = FontWeight.Bold,
-                fontFamily = FontFamily.Monospace
-            )
-        }
-
-        Spacer(modifier = Modifier.height(8.dp))
-
         // 2. Language Selector Pill (Dropdown opening 10 Indic languages + AUTO)
         LanguageSelectorPill(
             currentState = languageState,
@@ -212,16 +171,65 @@ fun MainTransceiverScreen(
             Spacer(modifier = Modifier.height(6.dp))
         }
 
-        // 5. Radio Activity Log Preview (Compact feed showing last transmission)
-        Box(
+        // 5. Dedicated LIVE RADIO TRAFFIC Section
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .weight(1f)
+                .clip(RoundedCornerShape(10.dp))
+                .background(radioColors.surface.copy(alpha = 0.5f))
+                .border(1.dp, radioColors.border.copy(alpha = 0.35f), RoundedCornerShape(10.dp))
+                .padding(8.dp)
         ) {
+            // Live Radio Traffic Header
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 4.dp, vertical = 2.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = "LIVE RADIO TRAFFIC",
+                        color = if (radioColors.isDark) radioColors.sage else radioColors.forest,
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold,
+                        fontFamily = FontFamily.Monospace,
+                        letterSpacing = 0.8.sp
+                    )
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Box(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(3.dp))
+                            .background((if (radioColors.isDark) radioColors.sage else radioColors.forest).copy(alpha = 0.15f))
+                            .padding(horizontal = 4.dp, vertical = 1.dp)
+                    ) {
+                        Text(
+                            text = "REAL-TIME",
+                            color = if (radioColors.isDark) radioColors.sage else radioColors.forest,
+                            fontSize = 8.5.sp,
+                            fontWeight = FontWeight.Bold,
+                            fontFamily = FontFamily.Monospace
+                        )
+                    }
+                }
+                Text(
+                    text = if (history.isEmpty()) "CH-1 IDLE" else "${history.size} MSG${if (history.size > 1) "S" else ""}",
+                    color = radioColors.textTertiary,
+                    fontSize = 10.sp,
+                    fontFamily = FontFamily.Monospace
+                )
+            }
+
+            Spacer(modifier = Modifier.height(6.dp))
+
             if (history.isEmpty()) {
                 Box(
                     contentAlignment = Alignment.Center,
-                    modifier = Modifier.fillMaxSize()
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f)
                 ) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(
@@ -244,19 +252,20 @@ fun MainTransceiverScreen(
             } else {
                 LazyColumn(
                     verticalArrangement = Arrangement.spacedBy(6.dp),
-                    modifier = Modifier.fillMaxSize()
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f)
                 ) {
-                    // Show up to the 2 most recent messages in the home screen feed
-                    items(history.take(2)) { record ->
+                    items(history) { record ->
                         RadioTranscriptRow(record = record)
                     }
                 }
             }
         }
 
-        Spacer(modifier = Modifier.height(10.dp))
+        Spacer(modifier = Modifier.height(8.dp))
 
-        // 6. Central Large Circular PTT Control (Touch target covers 564, 2020)
+        // 6. Central Large Circular PTT Control
         RadioPttControl(
             pttState = pttState,
             isContinuousMode = isContinuous,
@@ -264,7 +273,7 @@ fun MainTransceiverScreen(
             onPressRelease = { viewModel.stopPtt() }
         )
 
-        Spacer(modifier = Modifier.height(10.dp))
+        Spacer(modifier = Modifier.height(8.dp))
 
         // Emergency Distress Status Ticker (if active)
         distressStatus?.let { status ->
@@ -301,38 +310,111 @@ fun MainTransceiverScreen(
             Spacer(modifier = Modifier.height(6.dp))
         }
 
-        // Emergency Distress Trigger Action
+        // 7. Tactical Controls Row: WALKIE PTT -> SEND DISTRESS -> TEST PACKET
         Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Center,
-            modifier = Modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(10.dp))
-                .background(radioColors.alert.copy(alpha = 0.15f))
-                .border(1.5.dp, radioColors.alert, RoundedCornerShape(10.dp))
-                .clickable { showDistressDialog = true }
-                .padding(horizontal = 12.dp, vertical = 8.dp)
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Icon(
-                imageVector = Icons.Default.Warning,
-                contentDescription = "Send Distress",
-                tint = radioColors.alert,
-                modifier = Modifier.size(16.dp)
-            )
-            Spacer(modifier = Modifier.width(8.dp))
-            Text(
-                text = "SEND DISTRESS (EMERGENCY)",
-                color = radioColors.alert,
-                fontSize = 11.sp,
-                fontWeight = FontWeight.Black,
-                fontFamily = FontFamily.Monospace,
-                letterSpacing = 1.sp
-            )
+            // Mode Toggle (PTT vs Continuous Phone Mode)
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center,
+                modifier = Modifier
+                    .weight(1f)
+                    .height(42.dp)
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(if (isContinuous) radioColors.surfaceHighlight else radioColors.surface)
+                    .border(
+                        1.dp,
+                        if (isContinuous) (if (radioColors.isDark) radioColors.sage else radioColors.forest) else radioColors.border.copy(alpha = 0.4f),
+                        RoundedCornerShape(8.dp)
+                    )
+                    .clickable { viewModel.toggleContinuousMode() }
+                    .padding(horizontal = 4.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Radio,
+                    contentDescription = "Radio Mode",
+                    tint = if (isContinuous) (if (radioColors.isDark) radioColors.sage else radioColors.forest) else radioColors.textSecondary,
+                    modifier = Modifier.size(15.dp)
+                )
+                Spacer(modifier = Modifier.width(4.dp))
+                Text(
+                    text = if (isContinuous) "CONTINUOUS" else "WALKIE PTT",
+                    color = radioColors.textPrimary,
+                    fontSize = 10.sp,
+                    fontWeight = FontWeight.Bold,
+                    fontFamily = FontFamily.Monospace,
+                    maxLines = 1
+                )
+            }
+
+            // Emergency Distress Trigger Action — Located Physically Between Walkie PTT & Test Packet
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center,
+                modifier = Modifier
+                    .weight(1.15f)
+                    .height(42.dp)
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(radioColors.alert.copy(alpha = 0.18f))
+                    .border(1.5.dp, radioColors.alert, RoundedCornerShape(8.dp))
+                    .clickable { showDistressDialog = true }
+                    .padding(horizontal = 4.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Warning,
+                    contentDescription = "Send Distress Emergency",
+                    tint = radioColors.alert,
+                    modifier = Modifier.size(15.dp)
+                )
+                Spacer(modifier = Modifier.width(4.dp))
+                Text(
+                    text = "SEND DISTRESS",
+                    color = radioColors.alert,
+                    fontSize = 10.sp,
+                    fontWeight = FontWeight.Black,
+                    fontFamily = FontFamily.Monospace,
+                    letterSpacing = 0.5.sp,
+                    maxLines = 1
+                )
+            }
+
+            // Quick Neural Loopback Test button
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center,
+                modifier = Modifier
+                    .weight(1f)
+                    .height(42.dp)
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(radioColors.surface)
+                    .border(1.dp, radioColors.border.copy(alpha = 0.4f), RoundedCornerShape(8.dp))
+                    .clickable { viewModel.testNeuralLoopback() }
+                    .padding(horizontal = 4.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.PlayArrow,
+                    contentDescription = "Test Packet",
+                    tint = if (radioColors.isDark) radioColors.sage else radioColors.forest,
+                    modifier = Modifier.size(15.dp)
+                )
+                Spacer(modifier = Modifier.width(4.dp))
+                Text(
+                    text = "TEST PACKET",
+                    color = radioColors.textPrimary,
+                    fontSize = 10.sp,
+                    fontWeight = FontWeight.Bold,
+                    fontFamily = FontFamily.Monospace,
+                    maxLines = 1
+                )
+            }
         }
 
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(6.dp))
 
-        // Voice Control Status Card (compact, always visible)
+        // 8. Voice Control Status Card (compact, always visible)
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -354,7 +436,7 @@ fun MainTransceiverScreen(
                     },
                     RoundedCornerShape(8.dp)
                 )
-                .padding(horizontal = 10.dp, vertical = 7.dp)
+                .padding(horizontal = 10.dp, vertical = 6.dp)
         ) {
             if (voiceCommandState == VoiceCommandState.AWAITING_CONFIRMATION) {
                 Column {
@@ -366,16 +448,16 @@ fun MainTransceiverScreen(
                         fontFamily = FontFamily.Monospace,
                         letterSpacing = 0.5.sp
                     )
-                    Spacer(modifier = Modifier.height(6.dp))
+                    Spacer(modifier = Modifier.height(4.dp))
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         Button(
                             onClick = { viewModel.confirmVoiceCommand() },
                             colors = ButtonDefaults.buttonColors(containerColor = radioColors.alert),
-                            modifier = Modifier.height(30.dp)
+                            modifier = Modifier.height(28.dp)
                         ) {
                             Text(
                                 text = "CONFIRM",
-                                fontSize = 10.sp,
+                                fontSize = 9.5.sp,
                                 fontWeight = FontWeight.Black,
                                 fontFamily = FontFamily.Monospace,
                                 color = Color.White
@@ -384,11 +466,11 @@ fun MainTransceiverScreen(
                         Button(
                             onClick = { viewModel.rejectVoiceCommand() },
                             colors = ButtonDefaults.buttonColors(containerColor = radioColors.surfaceHighlight),
-                            modifier = Modifier.height(30.dp)
+                            modifier = Modifier.height(28.dp)
                         ) {
                             Text(
                                 text = "REJECT",
-                                fontSize = 10.sp,
+                                fontSize = 9.5.sp,
                                 fontWeight = FontWeight.Black,
                                 fontFamily = FontFamily.Monospace,
                                 color = radioColors.textSecondary
@@ -409,82 +491,17 @@ fun MainTransceiverScreen(
                             VoiceCommandState.ERROR -> radioColors.alert
                             else -> radioColors.textSecondary
                         },
-                        fontSize = 11.sp,
+                        fontSize = 10.5.sp,
                         fontWeight = FontWeight.Bold,
                         fontFamily = FontFamily.Monospace
                     )
                     Text(
                         text = if (isContinuous) "HANDS-FREE" else "PTT MODE READY",
                         color = radioColors.textTertiary,
-                        fontSize = 10.sp,
+                        fontSize = 9.5.sp,
                         fontFamily = FontFamily.Monospace
                     )
                 }
-            }
-        }
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        // 7. Auxiliary Quick Controls: Mode Toggle & Neural Loopback
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            // Mode Toggle (PTT vs Continuous Phone Mode)
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier
-                    .clip(RoundedCornerShape(10.dp))
-                    .background(if (isContinuous) radioColors.surfaceHighlight else radioColors.surface)
-                    .border(
-                        1.dp,
-                        if (isContinuous) (if (radioColors.isDark) radioColors.sage else radioColors.forest) else radioColors.border.copy(alpha = 0.4f),
-                        RoundedCornerShape(10.dp)
-                    )
-                    .clickable { viewModel.toggleContinuousMode() }
-                    .padding(horizontal = 12.dp, vertical = 8.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Radio,
-                    contentDescription = null,
-                    tint = if (isContinuous) (if (radioColors.isDark) radioColors.sage else radioColors.forest) else radioColors.textSecondary,
-                    modifier = Modifier.size(16.dp)
-                )
-                Spacer(modifier = Modifier.width(6.dp))
-                Text(
-                    text = if (isContinuous) "CONTINUOUS" else "WALKIE PTT",
-                    color = radioColors.textPrimary,
-                    fontSize = 11.sp,
-                    fontWeight = FontWeight.Bold,
-                    fontFamily = FontFamily.Monospace
-                )
-            }
-
-            // Quick Neural Loopback Test button
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier
-                    .clip(RoundedCornerShape(10.dp))
-                    .background(radioColors.surface)
-                    .border(1.dp, radioColors.border.copy(alpha = 0.4f), RoundedCornerShape(10.dp))
-                    .clickable { viewModel.testNeuralLoopback() }
-                    .padding(horizontal = 12.dp, vertical = 8.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.PlayArrow,
-                    contentDescription = null,
-                    tint = if (radioColors.isDark) radioColors.sage else radioColors.forest,
-                    modifier = Modifier.size(16.dp)
-                )
-                Spacer(modifier = Modifier.width(4.dp))
-                Text(
-                    text = "TEST PACKET",
-                    color = radioColors.textPrimary,
-                    fontSize = 11.sp,
-                    fontWeight = FontWeight.Bold,
-                    fontFamily = FontFamily.Monospace
-                )
             }
         }
     }

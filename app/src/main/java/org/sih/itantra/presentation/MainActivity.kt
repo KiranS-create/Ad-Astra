@@ -112,8 +112,7 @@ class MainActivity : ComponentActivity() {
                                     RadioNavTab.RADIO -> MainTransceiverScreen(
                                         viewModel = viewModel,
                                         onNavigateToSettings = { currentTab = RadioNavTab.SETTINGS },
-                                        onNavigateToModelAudit = { showModelAudit = true },
-                                        onOpenSihDemo = { showSihDemo = true }
+                                        onNavigateToModelAudit = { showModelAudit = true }
                                     )
                                     RadioNavTab.TRANSCRIPT -> HistoryScreen(
                                         viewModel = viewModel
@@ -127,7 +126,8 @@ class MainActivity : ComponentActivity() {
                                     RadioNavTab.SETTINGS -> SettingsScreen(
                                         viewModel = viewModel,
                                         onOpenModelAudit = { showModelAudit = true },
-                                        onOpenManetDemo = { showManetDemo = true }
+                                        onOpenManetDemo = { showManetDemo = true },
+                                        onOpenSihDemo = { showSihDemo = true }
                                     )
                                 }
                             }
