@@ -44,6 +44,9 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import java.util.concurrent.atomic.AtomicLong
+import org.sih.itantra.core.demo.DemoScenario
+import org.sih.itantra.core.demo.SihDemoCoordinator
+import org.sih.itantra.core.demo.SihDemoState
 
 enum class VoiceEngineStatus(val label: String) {
     READY("READY"),
@@ -234,6 +237,16 @@ class TransceiverViewModel(application: Application) : AndroidViewModel(applicat
 
     val manetSimulator = org.sih.itantra.core.mesh.ManetSimulator()
     val topologyState = manetSimulator.topologyState
+
+    val sihDemoCoordinator = SihDemoCoordinator(manetSimulator, viewModelScope)
+    val sihDemoState: StateFlow<SihDemoState> = sihDemoCoordinator.state
+
+    fun selectDemoScenario(scenario: DemoScenario) = sihDemoCoordinator.selectScenario(scenario)
+    fun startDemo() = sihDemoCoordinator.startDemo()
+    fun nextDemoStep() = sihDemoCoordinator.nextStep()
+    fun runFullDemo() = sihDemoCoordinator.runFullDemo()
+    fun stopAutoRun() = sihDemoCoordinator.stopAutoRun()
+    fun resetDemo() = sihDemoCoordinator.resetDemo()
 
     private val _isSimulationMode = MutableStateFlow(false)
     val isSimulationMode: StateFlow<Boolean> = _isSimulationMode.asStateFlow()

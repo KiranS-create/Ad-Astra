@@ -66,6 +66,7 @@ fun MainTransceiverScreen(
     viewModel: TransceiverViewModel,
     onNavigateToSettings: () -> Unit,
     onNavigateToModelAudit: () -> Unit = {},
+    onOpenSihDemo: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val radioColors = LocalRadioColors.current
@@ -123,7 +124,47 @@ fun MainTransceiverScreen(
             }
         )
 
-        Spacer(modifier = Modifier.height(10.dp))
+        Spacer(modifier = Modifier.height(8.dp))
+
+        // SIH Demo Mode Quick Entry Banner
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(8.dp))
+                .background((if (radioColors.isDark) radioColors.sage else radioColors.forest).copy(alpha = 0.15f))
+                .border(1.dp, (if (radioColors.isDark) radioColors.sage else radioColors.forest).copy(alpha = 0.6f), RoundedCornerShape(8.dp))
+                .clickable { onOpenSihDemo() }
+                .padding(horizontal = 10.dp, vertical = 6.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = "⚡ SIH DEMO MODE",
+                    color = if (radioColors.isDark) radioColors.sage else radioColors.forest,
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Black,
+                    fontFamily = FontFamily.Monospace,
+                    letterSpacing = 0.5.sp
+                )
+                Spacer(modifier = Modifier.width(6.dp))
+                Text(
+                    text = "· 1-Flow Mission Dashboard",
+                    color = radioColors.textSecondary,
+                    fontSize = 10.sp,
+                    fontFamily = FontFamily.Monospace
+                )
+            }
+            Text(
+                text = "LAUNCH ➔",
+                color = if (radioColors.isDark) radioColors.sage else radioColors.forest,
+                fontSize = 10.sp,
+                fontWeight = FontWeight.Bold,
+                fontFamily = FontFamily.Monospace
+            )
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
 
         // 2. Language Selector Pill (Dropdown opening 10 Indic languages + AUTO)
         LanguageSelectorPill(

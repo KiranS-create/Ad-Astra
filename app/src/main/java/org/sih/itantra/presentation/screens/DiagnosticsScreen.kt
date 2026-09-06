@@ -41,6 +41,7 @@ fun DiagnosticsScreen(
     viewModel: TransceiverViewModel,
     onOpenModelAudit: () -> Unit = {},
     onOpenManetDemo: () -> Unit = {},
+    onOpenSihDemo: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val radioColors = LocalRadioColors.current
@@ -574,6 +575,45 @@ fun DiagnosticsScreen(
                 DiagnosticRow(label = "Rejections / Ambiguities", value = "${diag.voiceCommandsRejected}")
                 DiagnosticRow(label = "Last Detected Command", value = diag.lastVoiceCommand ?: "--")
                 DiagnosticRow(label = "Last Command Language", value = diag.lastVoiceCommandLanguage ?: "--")
+            }
+        }
+
+        Spacer(modifier = Modifier.height(10.dp))
+
+        // SIH Mission Demo Dashboard button
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(10.dp))
+                .background((if (radioColors.isDark) radioColors.sage else radioColors.forest).copy(alpha = 0.15f))
+                .border(1.dp, (if (radioColors.isDark) radioColors.sage else radioColors.forest).copy(alpha = 0.8f), RoundedCornerShape(10.dp))
+                .clickable { onOpenSihDemo() }
+                .padding(vertical = 12.dp, horizontal = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center
+        ) {
+            Text(
+                text = "⚡ OPEN SIH MISSION DEMO DASHBOARD",
+                color = if (radioColors.isDark) radioColors.sage else radioColors.forest,
+                fontSize = 11.5.sp,
+                fontWeight = FontWeight.Bold,
+                fontFamily = FontFamily.Monospace
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Box(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(4.dp))
+                    .background(radioColors.alert.copy(alpha = 0.2f))
+                    .border(1.dp, radioColors.alert.copy(alpha = 0.5f), RoundedCornerShape(4.dp))
+                    .padding(horizontal = 5.dp, vertical = 1.dp)
+            ) {
+                Text(
+                    text = "JUDGE DEMO",
+                    color = radioColors.alert,
+                    fontSize = 9.sp,
+                    fontWeight = FontWeight.Bold,
+                    fontFamily = FontFamily.Monospace
+                )
             }
         }
 

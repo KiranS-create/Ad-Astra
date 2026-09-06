@@ -67,8 +67,22 @@ class MainActivity : ComponentActivity() {
                     var currentTab by remember { mutableStateOf(RadioNavTab.RADIO) }
                     var showModelAudit by remember { mutableStateOf(false) }
                     var showManetDemo by remember { mutableStateOf(false) }
+                    var showSihDemo by remember { mutableStateOf(false) }
 
-                    if (showModelAudit) {
+                    if (showSihDemo) {
+                        org.sih.itantra.presentation.screens.SihDemoScreen(
+                            viewModel = viewModel,
+                            onBack = { showSihDemo = false },
+                            onOpenDiagnostics = {
+                                showSihDemo = false
+                                currentTab = RadioNavTab.DIAGNOSTICS
+                            },
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .statusBarsPadding()
+                                .navigationBarsPadding()
+                        )
+                    } else if (showModelAudit) {
                         ModelStatusScreen(
                             onBack = { showModelAudit = false },
                             modifier = Modifier
@@ -98,7 +112,8 @@ class MainActivity : ComponentActivity() {
                                     RadioNavTab.RADIO -> MainTransceiverScreen(
                                         viewModel = viewModel,
                                         onNavigateToSettings = { currentTab = RadioNavTab.SETTINGS },
-                                        onNavigateToModelAudit = { showModelAudit = true }
+                                        onNavigateToModelAudit = { showModelAudit = true },
+                                        onOpenSihDemo = { showSihDemo = true }
                                     )
                                     RadioNavTab.TRANSCRIPT -> HistoryScreen(
                                         viewModel = viewModel
@@ -106,7 +121,8 @@ class MainActivity : ComponentActivity() {
                                     RadioNavTab.DIAGNOSTICS -> DiagnosticsScreen(
                                         viewModel = viewModel,
                                         onOpenModelAudit = { showModelAudit = true },
-                                        onOpenManetDemo = { showManetDemo = true }
+                                        onOpenManetDemo = { showManetDemo = true },
+                                        onOpenSihDemo = { showSihDemo = true }
                                     )
                                     RadioNavTab.SETTINGS -> SettingsScreen(
                                         viewModel = viewModel,
