@@ -35,6 +35,11 @@ import org.sih.itantra.core.mesh.MeshTopologyProvider
 import org.sih.itantra.core.mesh.MeshTopologySnapshot
 import org.sih.itantra.core.mesh.TopologyPacketActivity
 import org.sih.itantra.core.mesh.TopologyNodeRole
+import org.sih.itantra.core.protocol.VoiceCommand
+import org.sih.itantra.core.protocol.VoiceCommandEngine
+import org.sih.itantra.core.protocol.VoiceCommandResult
+import org.sih.itantra.core.protocol.VoiceCommandState
+import org.sih.itantra.core.protocol.VoiceCommandStateMachine
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -359,6 +364,188 @@ class TransceiverViewModel(application: Application) : AndroidViewModel(applicat
     }
 
     // -------------------------------------------------------------------------
+    // Voice Command Control Layer
+    // -------------------------------------------------------------------------
+
+    val voiceCommandStateMachine = VoiceCommandStateMachine()
+
+    private val _voiceCommandState = MutableStateFlow(VoiceCommandState.IDLE)
+    val voiceCommandState: StateFlow<VoiceCommandState> = _voiceCommandState.asStateFlow()
+
+    private val _voiceCommandStatusLabel = MutableStateFlow("VOICE CONTROL READY")
+    val voiceCommandStatusLabel: StateFlow<String> = _voiceCommandStatusLabel.asStateFlow()
+
+    private val _lastVoiceCommandLabel = MutableStateFlow<String?>(null)
+    val lastVoiceCommandLabel: StateFlow<String?> = _lastVoiceCommandLabel.asStateFlow()
+
+    /** Command staged for safety confirmation (DISTRESS, ALERT, STOP, CANCEL). */
+    private var _pendingVoiceCommand: VoiceCommandResult? = null
+
+    /** Callbacks wired by the UI to navigate to other screens. */
+    var onVoiceCommandNavigateTopology: (() -> Unit)? = null
+    var onVoiceCommandNavigateDiagnostics: (() -> Unit)? = null
+
+    /** Registers execution metrics timing for the last executed voice command. */
+    private val _lastVoiceCommandExecLatencyMs = MutableStateFlow(0L)
+    val lastVoiceCommandExecLatencyMs: StateFlow<Long> = _lastVoiceCommandExecLatencyMs.asStateFlow()
+
+    private val _lastVoiceCommandDecisionLatencyMs = MutableStateFlow(0L)
+    val lastVoiceCommandDecisionLatencyMs: StateFlow<Long> = _lastVoiceCommandDecisionLatencyMs.asStateFlow()
+
+    /**
+     * Handle a detected voice command result from VoiceCommandEngine.
+     * Called on the coordinator's dispatcher — dispatches to viewModelScope for UI work.
+     * Returns true = command consumed (suppress normal message TX), false = pass through.
+     */
+    private fun handleVoiceCommandResult(result: VoiceCommandResult): Boolean {
+        _lastVoiceCommandDecisionLatencyMs.value = result.decisionLatencyMs
+        _lastVoiceCommandLabel.value = result.command?.name
+
+        if (result.requiresConfirmation) {
+            _pendingVoiceCommand = result
+            val cmdName = result.command?.name ?: "?"
+            _voiceCommandState.value = VoiceCommandState.AWAITING_CONFIRMATION
+            _voiceCommandStatusLabel.value = "CONFIRM $cmdName?"
+            android.util.Log.i("TransceiverViewModel", "Voice command awaiting confirmation: $cmdName")
+            return true  // consumed; don't transmit as message
+        }
+
+        // Execute immediately
+        viewModelScope.launch {
+            val execStart = System.currentTimeMillis()
+            dispatchVoiceCommand(result.command!!, result.language)
+            _lastVoiceCommandExecLatencyMs.value = System.currentTimeMillis() - execStart
+            DiagnosticsRepository.recordVoiceCommandExecuted(result.command, result.language)
+            _voiceCommandState.value = VoiceCommandState.IDLE
+            _voiceCommandStatusLabel.value = "VOICE CONTROL READY"
+        }
+        return true
+    }
+
+    /**
+     * Confirms a staged voice command (DISTRESS, ALERT, STOP, CANCEL).
+     * Call from UI confirm button.
+     */
+    fun confirmVoiceCommand() {
+        val pending = _pendingVoiceCommand ?: return
+        _pendingVoiceCommand = null
+        _voiceCommandState.value = VoiceCommandState.EXECUTING
+        _voiceCommandStatusLabel.value = "EXECUTING ${pending.command?.name}"
+        viewModelScope.launch {
+            val execStart = System.currentTimeMillis()
+            dispatchVoiceCommand(pending.command!!, pending.language)
+            _lastVoiceCommandExecLatencyMs.value = System.currentTimeMillis() - execStart
+            DiagnosticsRepository.recordVoiceCommandExecuted(pending.command, pending.language)
+            _voiceCommandState.value = VoiceCommandState.IDLE
+            _voiceCommandStatusLabel.value = "VOICE CONTROL READY"
+        }
+    }
+
+    /**
+     * Rejects a staged voice command.
+     * Call from UI reject/dismiss button.
+     */
+    fun rejectVoiceCommand() {
+        _pendingVoiceCommand = null
+        _voiceCommandState.value = VoiceCommandState.IDLE
+        _voiceCommandStatusLabel.value = "COMMAND REJECTED"
+        viewModelScope.launch {
+            kotlinx.coroutines.delay(2000)
+            if (_voiceCommandStatusLabel.value == "COMMAND REJECTED") {
+                _voiceCommandStatusLabel.value = "VOICE CONTROL READY"
+            }
+        }
+    }
+
+    /**
+     * Dispatches an already-confirmed voice command to the existing action layer.
+     * Reuses all existing pipelines — no duplicate logic.
+     */
+    private suspend fun dispatchVoiceCommand(command: VoiceCommand, language: org.sih.itantra.core.common.IndicLanguage) {
+        android.util.Log.i("TransceiverViewModel", "Executing voice command: $command (lang=${language.displayName})")
+        _voiceCommandStatusLabel.value = "EXECUTING: ${command.name}"
+        when (command) {
+            VoiceCommand.SEND -> {
+                // Normal PTT send — transcript already processed; nothing to re-send
+            }
+            VoiceCommand.CANCEL -> {
+                coordinator.stopPtt()
+            }
+            VoiceCommand.DISTRESS -> {
+                sendDistress()
+            }
+            VoiceCommand.ALERT -> {
+                val alertText = when (language) {
+                    org.sih.itantra.core.common.IndicLanguage.HINDI    -> "⚠️ सतर्क रहें! तत्काल सहायता की आवश्यकता है।"
+                    org.sih.itantra.core.common.IndicLanguage.TAMIL     -> "⚠️ கவனி! உடனடி கவனிப்பு தேவை."
+                    org.sih.itantra.core.common.IndicLanguage.TELUGU    -> "⚠️ జాగ్రత్త! తక్షణ శ్రద్ధ అవసరం."
+                    org.sih.itantra.core.common.IndicLanguage.KANNADA   -> "⚠️ ಎಚ್ಚರ! ತಕ್ಷಣದ ಗಮನ ಅಗತ್ಯ."
+                    org.sih.itantra.core.common.IndicLanguage.MALAYALAM -> "⚠️ ശ്രദ്ധ! ഉടൻ ശ്രദ്ധ ആവശ്യം."
+                    org.sih.itantra.core.common.IndicLanguage.BENGALI   -> "⚠️ সতর্ক! তাৎক্ষণিক মনোযোগ প্রয়োজন।"
+                    org.sih.itantra.core.common.IndicLanguage.MARATHI   -> "⚠️ सावधान! त्वरित लक्ष आवश्यक आहे."
+                    org.sih.itantra.core.common.IndicLanguage.GUJARATI  -> "⚠️ સાવધાન! તાત્કાલિક ધ્યાન જરૂરી."
+                    org.sih.itantra.core.common.IndicLanguage.ODIA      -> "⚠️ ସାବଧାନ! ତୁରନ୍ତ ଧ୍ୟାନ ଆବଶ୍ୟକ।"
+                    else -> "⚠️ ALERT: Immediate attention required from Node #${coordinator.relayRouter.localDeviceId}"
+                }
+                coordinator.sendAlert(alertText, isDistress = false)
+            }
+            VoiceCommand.STATUS -> {
+                val snap = coordinator.manetRouter.let { router ->
+                    org.sih.itantra.core.mesh.MeshTopologyProvider.buildLiveSnapshot(
+                        localNodeId = router.localNodeId,
+                        neighborTable = router.neighborTable,
+                        routeTable = router.routeTable,
+                        transportManager = coordinator.transportManager,
+                        qosScheduler = coordinator.qosScheduler,
+                        dtnPendingCount = router.dtnStore.size()
+                    )
+                }
+                val statusText = "Status: ${snap.nodes.size} nodes, ${snap.routes.size} routes, " +
+                    "transport ${snap.activeTransport}, DTN ${coordinator.manetRouter.dtnStore.size()} queued"
+                android.util.Log.i("TransceiverViewModel", "Voice STATUS: $statusText")
+                coordinator.testSynthesizeAndPlay(statusText, language)
+            }
+            VoiceCommand.PTT_MODE -> {
+                if (coordinator.isContinuousMode.value) coordinator.setContinuousMode(false)
+            }
+            VoiceCommand.CONTINUOUS_MODE -> {
+                if (!coordinator.isContinuousMode.value) coordinator.setContinuousMode(true)
+            }
+            VoiceCommand.STOP -> {
+                coordinator.setContinuousMode(false)
+                coordinator.stopPtt()
+            }
+            VoiceCommand.SWITCH_LANGUAGE -> {
+                // Cycle to next language in supported set
+                val langs = org.sih.itantra.core.common.IndicLanguage.entries
+                val current = coordinator.activeLanguage.value
+                val next = langs[(langs.indexOf(current) + 1) % langs.size]
+                setLanguage(next)
+                android.util.Log.i("TransceiverViewModel", "Voice SWITCH_LANGUAGE -> ${next.displayName}")
+            }
+            VoiceCommand.REPEAT -> {
+                val lastRx = coordinator.lastReceivedText.value
+                if (lastRx.isNotBlank()) {
+                    coordinator.testSynthesizeAndPlay(lastRx, language)
+                }
+            }
+            VoiceCommand.MUTE -> {
+                // No hardware mute in current stack; log only
+                android.util.Log.i("TransceiverViewModel", "Voice MUTE requested (no-op in current stack)")
+            }
+            VoiceCommand.UNMUTE -> {
+                android.util.Log.i("TransceiverViewModel", "Voice UNMUTE requested (no-op in current stack)")
+            }
+            VoiceCommand.TOPOLOGY -> {
+                onVoiceCommandNavigateTopology?.invoke()
+            }
+            VoiceCommand.DIAGNOSTICS -> {
+                onVoiceCommandNavigateDiagnostics?.invoke()
+            }
+        }
+    }
+
+    // -------------------------------------------------------------------------
     // Init
     // -------------------------------------------------------------------------
 
@@ -375,6 +562,10 @@ class TransceiverViewModel(application: Application) : AndroidViewModel(applicat
         }
         coordinator.onPacketActivity = { type, desc, src, dest, prio, raw ->
             logPacketActivity(type, desc, src, dest, prio, raw)
+        }
+        // Register voice command interceptor in coordinator
+        coordinator.onVoiceCommandResult = { result ->
+            handleVoiceCommandResult(result)
         }
         viewModelScope.launch {
             while (isActive) {

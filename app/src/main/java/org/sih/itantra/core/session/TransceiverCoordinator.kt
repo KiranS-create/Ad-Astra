@@ -62,6 +62,8 @@ import org.sih.itantra.core.qos.TacticalPacketScheduler
 import org.sih.itantra.core.qos.CongestionState
 import java.util.UUID
 import java.util.concurrent.atomic.AtomicInteger
+import org.sih.itantra.core.protocol.VoiceCommandEngine
+import org.sih.itantra.core.protocol.VoiceCommandResult
 
 /**
  * The Master Transceiver Coordinator for iTantra.
@@ -140,6 +142,11 @@ class TransceiverCoordinator(
     val isModelReady: StateFlow<Boolean> = _isModelReady.asStateFlow()
 
     var onPacketActivity: ((type: String, description: String, sourceId: Int?, destId: Int?, priority: String?, rawPacket: Packet?) -> Unit)? = null
+
+    /** Callback fired when a deterministic voice command is detected in an STT transcript.
+     *  The ViewModel registers here to execute the command and update UI state.
+     *  Returns true if the command was handled (suppress normal TX), false to transmit normally. */
+    var onVoiceCommandResult: ((result: VoiceCommandResult) -> Boolean)? = null
 
     private var activePrepJob: Job? = null
     private val prepLock = Any()
@@ -321,6 +328,26 @@ class TransceiverCoordinator(
         if (finalText.isBlank()) {
             stateMachine.reset()
             return
+        }
+
+        // Voice command interception: check if the transcript is a deterministic radio command
+        // before normal message encoding/transmission. Never interferes with semantic emergency path.
+        val commandHandler = onVoiceCommandResult
+        if (commandHandler != null) {
+            val cmdResult = VoiceCommandEngine.processTranscript(finalText, lang)
+            if (cmdResult != null) {
+                val handled = commandHandler.invoke(cmdResult)
+                if (handled) {
+                    // Command consumed — skip normal transmission and return to idle/continuous
+                    Log.i(tag, "Voice command '${cmdResult.command}' handled; skipping TX for: '$finalText'")
+                    if (_isContinuousMode.value) {
+                        stateMachine.transitionTo(PttState.RECORDING)
+                    } else {
+                        stateMachine.reset()
+                    }
+                    return
+                }
+            }
         }
 
         stateMachine.transitionTo(PttState.MESSAGE_ENCODED)

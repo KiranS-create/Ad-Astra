@@ -3,6 +3,8 @@ package org.sih.itantra.core.diagnostics
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import org.sih.itantra.core.common.IndicLanguage
+import org.sih.itantra.core.protocol.VoiceCommand
 
 data class DiagnosticsState(
     val packetsSent: Long = 0L,
@@ -98,10 +100,17 @@ data class DiagnosticsState(
     val activeRoutes: Int = 0,
     val reachableDestinations: Int = 0,
     val currentTransport: String = "BT",
-    val topologyLastUpdated: Long = 0L
+    val topologyLastUpdated: Long = 0L,
+    // Voice Command metrics
+    val voiceCommandsDetected: Long = 0L,
+    val voiceCommandsExecuted: Long = 0L,
+    val voiceCommandsRejected: Long = 0L,
+    val lastVoiceCommand: String? = null,
+    val lastVoiceCommandLanguage: String? = null
 )
 
 object DiagnosticsRepository {
+
     private val _state = MutableStateFlow(DiagnosticsState())
     val state: StateFlow<DiagnosticsState> = _state.asStateFlow()
 
@@ -404,6 +413,44 @@ object DiagnosticsRepository {
             reachableDestinations = reachableDestinations,
             currentTransport = currentTransport,
             topologyLastUpdated = timestamp
+        )
+    }
+
+    // -------------------------------------------------------------------------
+    // Voice Command Metrics
+    // -------------------------------------------------------------------------
+
+    fun recordVoiceCommandDetected(command: VoiceCommand, language: IndicLanguage) {
+        val current = _state.value
+        _state.value = current.copy(
+            voiceCommandsDetected = current.voiceCommandsDetected + 1,
+            lastVoiceCommand = command.name,
+            lastVoiceCommandLanguage = language.displayName
+        )
+    }
+
+    fun recordVoiceCommandExecuted(command: VoiceCommand, language: IndicLanguage) {
+        val current = _state.value
+        _state.value = current.copy(
+            voiceCommandsExecuted = current.voiceCommandsExecuted + 1
+        )
+    }
+
+    fun recordVoiceCommandRejected() {
+        val current = _state.value
+        _state.value = current.copy(
+            voiceCommandsRejected = current.voiceCommandsRejected + 1
+        )
+    }
+
+    fun resetVoiceCommandMetrics() {
+        val current = _state.value
+        _state.value = current.copy(
+            voiceCommandsDetected = 0L,
+            voiceCommandsExecuted = 0L,
+            voiceCommandsRejected = 0L,
+            lastVoiceCommand = null,
+            lastVoiceCommandLanguage = null
         )
     }
 }

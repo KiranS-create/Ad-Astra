@@ -51,6 +51,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import org.sih.itantra.core.transport.TransportState
 import org.sih.itantra.core.transport.TransportType
+import org.sih.itantra.core.protocol.VoiceCommandState
 import org.sih.itantra.presentation.components.LanguageSelectorPill
 import org.sih.itantra.presentation.components.RadioPttControl
 import org.sih.itantra.presentation.components.RadioTranscriptRow
@@ -79,6 +80,8 @@ fun MainTransceiverScreen(
     val history by viewModel.messageHistory.collectAsState()
     val lastTranscribed by viewModel.lastTranscribedText.collectAsState()
     val isRelayEnabled by viewModel.isRelayEnabled.collectAsState()
+    val voiceCommandState by viewModel.voiceCommandState.collectAsState()
+    val voiceCommandStatusLabel by viewModel.voiceCommandStatusLabel.collectAsState()
 
     var showBtSheet by remember { mutableStateOf(false) }
     val btSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
@@ -284,6 +287,99 @@ fun MainTransceiverScreen(
                 fontFamily = FontFamily.Monospace,
                 letterSpacing = 1.sp
             )
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        // Voice Control Status Card (compact, always visible)
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(8.dp))
+                .background(
+                    when (voiceCommandState) {
+                        VoiceCommandState.AWAITING_CONFIRMATION -> radioColors.alert.copy(alpha = 0.15f)
+                        VoiceCommandState.EXECUTING -> radioColors.surfaceHighlight
+                        VoiceCommandState.ERROR -> radioColors.alert.copy(alpha = 0.10f)
+                        else -> radioColors.surface
+                    }
+                )
+                .border(
+                    1.dp,
+                    when (voiceCommandState) {
+                        VoiceCommandState.AWAITING_CONFIRMATION -> radioColors.alert
+                        VoiceCommandState.EXECUTING -> if (radioColors.isDark) radioColors.sage else radioColors.forest
+                        else -> radioColors.border.copy(alpha = 0.4f)
+                    },
+                    RoundedCornerShape(8.dp)
+                )
+                .padding(horizontal = 10.dp, vertical = 7.dp)
+        ) {
+            if (voiceCommandState == VoiceCommandState.AWAITING_CONFIRMATION) {
+                Column {
+                    Text(
+                        text = "🎙 $voiceCommandStatusLabel",
+                        color = radioColors.alert,
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Black,
+                        fontFamily = FontFamily.Monospace,
+                        letterSpacing = 0.5.sp
+                    )
+                    Spacer(modifier = Modifier.height(6.dp))
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Button(
+                            onClick = { viewModel.confirmVoiceCommand() },
+                            colors = ButtonDefaults.buttonColors(containerColor = radioColors.alert),
+                            modifier = Modifier.height(30.dp)
+                        ) {
+                            Text(
+                                text = "CONFIRM",
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.Black,
+                                fontFamily = FontFamily.Monospace,
+                                color = Color.White
+                            )
+                        }
+                        Button(
+                            onClick = { viewModel.rejectVoiceCommand() },
+                            colors = ButtonDefaults.buttonColors(containerColor = radioColors.surfaceHighlight),
+                            modifier = Modifier.height(30.dp)
+                        ) {
+                            Text(
+                                text = "REJECT",
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.Black,
+                                fontFamily = FontFamily.Monospace,
+                                color = radioColors.textSecondary
+                            )
+                        }
+                    }
+                }
+            } else {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "🎙 $voiceCommandStatusLabel",
+                        color = when (voiceCommandState) {
+                            VoiceCommandState.EXECUTING -> if (radioColors.isDark) radioColors.sage else radioColors.forest
+                            VoiceCommandState.ERROR -> radioColors.alert
+                            else -> radioColors.textSecondary
+                        },
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold,
+                        fontFamily = FontFamily.Monospace
+                    )
+                    Text(
+                        text = if (isContinuous) "HANDS-FREE" else "PTT MODE READY",
+                        color = radioColors.textTertiary,
+                        fontSize = 10.sp,
+                        fontFamily = FontFamily.Monospace
+                    )
+                }
+            }
         }
 
         Spacer(modifier = Modifier.height(8.dp))

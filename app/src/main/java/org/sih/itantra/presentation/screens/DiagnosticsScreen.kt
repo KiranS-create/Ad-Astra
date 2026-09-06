@@ -525,6 +525,60 @@ fun DiagnosticsScreen(
 
         Spacer(modifier = Modifier.height(10.dp))
 
+        // 8. Tactical Voice Control Card
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(14.dp))
+                .background(radioColors.surface)
+                .border(
+                    1.dp,
+                    (if (radioColors.isDark) radioColors.sage else radioColors.forest).copy(alpha = 0.5f),
+                    RoundedCornerShape(14.dp)
+                )
+                .padding(14.dp)
+        ) {
+            Column {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "TACTICAL VOICE CONTROL",
+                        color = radioColors.textPrimary,
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Bold,
+                        fontFamily = FontFamily.Monospace
+                    )
+                    Box(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(4.dp))
+                            .background(radioColors.success.copy(alpha = 0.15f))
+                            .border(1.dp, radioColors.success.copy(alpha = 0.5f), RoundedCornerShape(4.dp))
+                            .padding(horizontal = 6.dp, vertical = 2.dp)
+                    ) {
+                        Text(
+                            text = "OFFLINE DETERMINISTIC",
+                            color = radioColors.success,
+                            fontSize = 9.sp,
+                            fontWeight = FontWeight.Bold,
+                            fontFamily = FontFamily.Monospace
+                        )
+                    }
+                }
+                Spacer(modifier = Modifier.height(10.dp))
+                DiagnosticRow(label = "Supported Languages", value = "10 Indic Languages")
+                DiagnosticRow(label = "Commands Detected", value = "${diag.voiceCommandsDetected}")
+                DiagnosticRow(label = "Commands Executed", value = "${diag.voiceCommandsExecuted}")
+                DiagnosticRow(label = "Rejections / Ambiguities", value = "${diag.voiceCommandsRejected}")
+                DiagnosticRow(label = "Last Detected Command", value = diag.lastVoiceCommand ?: "--")
+                DiagnosticRow(label = "Last Command Language", value = diag.lastVoiceCommandLanguage ?: "--")
+            }
+        }
+
+        Spacer(modifier = Modifier.height(10.dp))
+
         // MANET Topology & Simulation Demo button
         Row(
             modifier = Modifier
