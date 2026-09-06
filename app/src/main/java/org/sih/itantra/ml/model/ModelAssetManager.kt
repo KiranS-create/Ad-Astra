@@ -210,13 +210,20 @@ class ModelAssetManager(private val context: Context) {
                 Log.d(tag, "IndicConformer assets check: ${e.message}")
             }
 
-            // Extract Dolphin STT if not ready
-            if (!isDolphinSttReady()) {
-                Log.i(tag, "Extracting Dolphin Small Multi-Lang STT model assets to ${dolphinDir.absolutePath}...")
-                copyAssetFolder(context.assets, "models/stt/dolphin", dolphinDir)
-                Log.i(tag, "Dolphin STT extraction complete. Ready: ${isDolphinSttReady()}")
-            } else {
-                Log.i(tag, "Dolphin STT models already ready at ${dolphinDir.absolutePath}")
+            // Extract Dolphin STT if present in assets and not ready
+            try {
+                val dolphinAssets = context.assets.list("models/stt/dolphin")
+                if (dolphinAssets != null && dolphinAssets.isNotEmpty()) {
+                    if (!isDolphinSttReady()) {
+                        Log.i(tag, "Extracting Dolphin Small Multi-Lang STT model assets to ${dolphinDir.absolutePath}...")
+                        copyAssetFolder(context.assets, "models/stt/dolphin", dolphinDir)
+                        Log.i(tag, "Dolphin STT extraction complete. Ready: ${isDolphinSttReady()}")
+                    } else {
+                        Log.i(tag, "Dolphin STT models already ready at ${dolphinDir.absolutePath}")
+                    }
+                }
+            } catch (e: Exception) {
+                Log.d(tag, "Dolphin assets check: ${e.message}")
             }
 
             // Extract Whisper STT if not ready
