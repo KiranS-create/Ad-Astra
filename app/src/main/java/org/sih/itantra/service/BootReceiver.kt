@@ -16,7 +16,7 @@ import org.sih.itantra.presentation.MainActivity
  * ## Android 12+ Foreground Service Start Restriction
  *
  * Android 12+ (API 31+) prohibits starting a foreground service from a
- * BroadcastReceiver in most cases. The `dataSync` foreground service type
+ * BroadcastReceiver in most cases. The `connectedDevice` foreground service type
  * does NOT grant the BOOT_COMPLETED exemption.
  *
  * Correct policy:

@@ -25,16 +25,21 @@
     <!--
         Foreground Service — MANET Node Mode
         FOREGROUND_SERVICE: required to call startForeground() on any API level.
-        FOREGROUND_SERVICE_DATA_SYNC: required on API 34+ (Android 14+) for the
-          dataSync foreground service type. Declared here so the manifest targets
-          API 35 correctly without triggering ForegroundServiceStartNotAllowedException.
+        FOREGROUND_SERVICE_CONNECTED_DEVICE: required on API 34+ (Android 14+) for
+          the connectedDevice foreground service type. Selected over dataSync because:
+          1) Android 15 (targetSdk 35) imposes a strict 6-hour cumulative execution
+             timeout on dataSync services, which would terminate an ad-hoc relay node.
+          2) iTantra maintains persistent Bluetooth RFCOMM sockets (BluetoothSocket/
+             BluetoothServerSocket) and Wi-Fi Multicast sockets connecting external
+             peer hardware devices, fitting the connectedDevice specification.
+          3) connectedDevice is not subject to the 6-hour timeout in Android 15.
         POST_NOTIFICATIONS: required on API 33+ (Android 13+) to show the
           persistent MANET node notification. Requested at runtime in MainActivity.
         RECEIVE_BOOT_COMPLETED: allows BootReceiver to detect reboot and post
           a nudge notification (does NOT start foreground service from receiver).
     -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CONNECTED_DEVICE" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 
@@ -61,12 +66,12 @@
         <!--
             ManetNodeService — persistent MANET relay node.
 
-            foregroundServiceType="dataSync":
-              Selected because this service transfers data between peer devices
-              over Bluetooth RFCOMM and Wi-Fi UDP. Matches Android's documented
-              dataSync use-case: "data syncing, file transfers, or any network
-              communication to or from a remote server or peer device."
-              Required to be declared on API 34+ (targetSdk=35).
+            foregroundServiceType="connectedDevice":
+              Selected because this service connects to and maintains communication
+              with external peer hardware devices over Bluetooth RFCOMM (BluetoothSocket)
+              and local Wi-Fi UDP sockets. Unlike dataSync (which is subject to a 6-hour
+              cumulative timeout in Android 15), connectedDevice does not have a 6-hour
+              runtime cap and accurately describes the persistent physical device link.
 
             stopWithTask="false":
               Service continues when MainActivity is destroyed (back-stack cleared).
@@ -78,7 +83,7 @@
         <service
             android:name=".service.ManetNodeService"
             android:exported="false"
-            android:foregroundServiceType="dataSync"
+            android:foregroundServiceType="connectedDevice"
             android:stopWithTask="false" />
 
         <!--

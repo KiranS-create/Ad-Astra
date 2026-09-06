@@ -12,6 +12,8 @@ import androidx.lifecycle.LifecycleService
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
+import android.content.pm.ServiceInfo
+import androidx.core.app.ServiceCompat
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
@@ -27,12 +29,21 @@ import org.sih.itantra.presentation.MainActivity
 /**
  * Persistent MANET node foreground service.
  *
- * Foreground service type: `dataSync`
- * — Selected because this service relays compact binary packets between
- *   peer devices over Bluetooth RFCOMM and Wi-Fi UDP sockets.
- *   This matches Android's documented dataSync use-case:
- *   "data syncing, file transfers, or any network communication to or from
- *   a remote server or peer device."
+ * Foreground service type: `connectedDevice`
+ * — Selected because this service maintains persistent communication links with
+ *   external peer hardware devices over Bluetooth RFCOMM (BluetoothSocket client
+ *   and server) and local Wi-Fi UDP sockets (MulticastSocket).
+ *
+ * Compatibility & Runtime Limits:
+ * - `dataSync` is NOT used: Android 15 (targetSdk 35) imposes a strict 6-hour
+ *   cumulative runtime limit in a 24-hour period on dataSync services, which
+ *   would abruptly terminate an ad-hoc relay node.
+ * - `connectedDevice` has NO 6-hour runtime timeout on Android 15+.
+ * - `remoteMessaging` was evaluated but deferred: its platform intent is SMS/MMS
+ *   continuity across a user's personal devices, whereas iTantra's requirement
+ *   is low-level Bluetooth/Wi-Fi socket ownership with external peer hardware.
+ * - Required Manifest Permission: FOREGROUND_SERVICE_CONNECTED_DEVICE.
+ * - Runtime Prerequisites: Granted BLUETOOTH_CONNECT + CHANGE_WIFI_MULTICAST_STATE.
  *
  * Lifecycle:
  * - Started by user action (explicit startForegroundService call from MainActivity).
@@ -195,8 +206,13 @@ class ManetNodeService : LifecycleService() {
         // Persist node mode enabled
         ManetNodePreference.setNodeModeEnabled(this, true)
 
-        // Publish initial notification (before any async work — required by Android)
-        startForeground(NOTIFICATION_ID, buildNotification(0, 0, 0L))
+        // Publish initial notification with explicit connectedDevice foregroundServiceType
+        ServiceCompat.startForeground(
+            this,
+            NOTIFICATION_ID,
+            buildNotification(0, 0, 0L),
+            ServiceInfo.FOREGROUND_SERVICE_TYPE_CONNECTED_DEVICE
+        )
 
         // Start live state updates for notification and binder observers
         observeAndPublishState()
