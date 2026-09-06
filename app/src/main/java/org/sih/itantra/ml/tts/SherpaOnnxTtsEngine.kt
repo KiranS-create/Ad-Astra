@@ -8,11 +8,13 @@ import com.k2fsa.sherpa.onnx.OfflineTtsConfig
 import com.k2fsa.sherpa.onnx.OfflineTtsModelConfig
 import com.k2fsa.sherpa.onnx.OfflineTtsVitsModelConfig
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.sih.itantra.core.audio.AndroidAudioPlayer
 import org.sih.itantra.core.audio.AudioPlayer
@@ -21,12 +23,32 @@ import org.sih.itantra.core.tts.AlertToneGenerator
 import org.sih.itantra.core.tts.TextSynthesizer
 import org.sih.itantra.core.tts.TtsState
 import org.sih.itantra.ml.model.ModelAssetManager
-import java.nio.ByteBuffer
-import java.nio.ByteOrder
+import java.util.Locale
+
+data class TtsPerfMetrics(
+    val language: IndicLanguage,
+    val text: String,
+    val tTtsReqNanos: Long,
+    val tModelLookupNanos: Long,
+    val tModelLoadStartNanos: Long,
+    val tModelLoadEndNanos: Long,
+    val tSynthStartNanos: Long,
+    val tSynthEndNanos: Long,
+    val tTrackPrepStartNanos: Long,
+    val tTrackPrepEndNanos: Long,
+    val tFirstFrameWrittenNanos: Long,
+    val tPlaybackCompleteNanos: Long,
+    val modelLoadMs: Double,
+    val synthMs: Double,
+    val trackPrepMs: Double,
+    val timeToFirstAudioMs: Double,
+    val playbackDurationMs: Double,
+    val totalTtsStageMs: Double
+)
 
 /**
- * Real On-Device Neural Text-to-Speech engine powered by Sherpa-ONNX VITS Piper Rohan (Hindi).
- * Generates natural 22.05 kHz voice audio completely offline.
+ * Real On-Device Neural Text-to-Speech engine powered by Sherpa-ONNX VITS.
+ * Generates natural voice audio completely offline with single-active-model residence.
  */
 class SherpaOnnxTtsEngine(
     private val context: Context,
@@ -42,6 +64,10 @@ class SherpaOnnxTtsEngine(
 
     private val _ttsState = MutableStateFlow(TtsState.IDLE)
     override val ttsState: StateFlow<TtsState> = _ttsState.asStateFlow()
+
+    private val _lastPerfMetrics = MutableStateFlow<TtsPerfMetrics?>(null)
+    val lastPerfMetrics: StateFlow<TtsPerfMetrics?> = _lastPerfMetrics.asStateFlow()
+
     private val alertToneGenerator = AlertToneGenerator()
     private var isInitialized = false
 
@@ -75,7 +101,10 @@ class SherpaOnnxTtsEngine(
                 activeTts = null
                 activeLanguage = null
             }
-            System.gc()
+            // Trigger GC asynchronously so critical path is not stalled
+            CoroutineScope(Dispatchers.IO).launch {
+                System.gc()
+            }
         }
 
         val spec = when (language) {
@@ -247,6 +276,8 @@ class SherpaOnnxTtsEngine(
         withContext(dispatcher) {
             if (text.isBlank()) return@withContext false
 
+            val tTtsReq = System.nanoTime()
+
             try {
                 if (isUrgent) {
                     alertToneGenerator.playAlertTone()
@@ -255,13 +286,31 @@ class SherpaOnnxTtsEngine(
                 _ttsState.value = TtsState.SYNTHESIZING
                 Log.i(tag, "Synthesizing ${language.displayName} text: '$text'")
 
+                val tModelLookup = System.nanoTime()
+                var tModelLoadStart = tModelLookup
+                var tModelLoadEnd = tModelLookup
+                var wasLoaded = false
+                var synthStartRecorded = 0L
+                var synthEndRecorded = 0L
+
                 val audio: GeneratedAudio? = synchronized(modelLock) {
-                    val currentTts = getOrInitTtsLocked(language) ?: getOrInitTtsLocked(IndicLanguage.HINDI)
+                    wasLoaded = (activeLanguage == language && activeTts != null)
+                    if (!wasLoaded) {
+                        tModelLoadStart = System.nanoTime()
+                    }
+                    // Exact model lookup without silent fallback to Hindi
+                    val currentTts = getOrInitTtsLocked(language)
+                    if (!wasLoaded) {
+                        tModelLoadEnd = System.nanoTime()
+                    }
                     if (currentTts == null) {
-                        Log.w(tag, "TTS engine not ready for ${language.displayName}")
+                        Log.w(tag, "TTS engine not ready for ${language.displayName} (no silent fallback)")
                         null
                     } else {
-                        currentTts.generate(text = text, sid = 0, speed = 1.0f)
+                        synthStartRecorded = System.nanoTime()
+                        val genAudio = currentTts.generate(text = text, sid = 0, speed = 1.0f)
+                        synthEndRecorded = System.nanoTime()
+                        genAudio
                     }
                 }
 
@@ -280,22 +329,86 @@ class SherpaOnnxTtsEngine(
                 val sampleRate = audio.sampleRate
                 Log.i(tag, "Generated ${samples.size} samples at ${sampleRate}Hz")
 
-                // Convert FloatArray [-1.0, 1.0] to 16-bit PCM ByteArray
+                // Fast primitive bit-shift conversion from FloatArray [-1.0, 1.0] to 16-bit PCM ByteArray
                 val pcmBytes = ByteArray(samples.size * 2)
-                val buffer = ByteBuffer.wrap(pcmBytes).order(ByteOrder.LITTLE_ENDIAN)
-                for (s in samples) {
-                    val clamped = s.coerceIn(-1.0f, 1.0f)
-                    val shortVal = (clamped * 32767.0f).toInt().toShort()
-                    buffer.putShort(shortVal)
+                var byteIdx = 0
+                for (i in samples.indices) {
+                    val s = samples[i]
+                    val clamped = if (s > 1.0f) 1.0f else if (s < -1.0f) -1.0f else s
+                    val shortVal = (clamped * 32767.0f).toInt()
+                    pcmBytes[byteIdx++] = (shortVal and 0xFF).toByte()
+                    pcmBytes[byteIdx++] = ((shortVal shr 8) and 0xFF).toByte()
                 }
 
                 _ttsState.value = TtsState.PLAYING
-                player.playPcm(pcmBytes, sampleRate = sampleRate, isUrgent = isUrgent)
+                var tTrackPrepStart = 0L
+                var tTrackPrepEnd = 0L
+                var tFirstFrameWritten = 0L
+                var tPlaybackComplete = 0L
 
-                // Wait for playback to finish
-                while (player.isPlaying) {
-                    delay(50)
+                val played = player.playPcmAwait(pcmBytes, sampleRate = sampleRate, isUrgent = isUrgent) { timing ->
+                    tTrackPrepStart = timing.trackPrepStartNanos
+                    tTrackPrepEnd = timing.trackPrepEndNanos
+                    tFirstFrameWritten = timing.firstFrameWrittenNanos
+                    tPlaybackComplete = timing.playbackCompleteNanos
                 }
+
+                if (!played) {
+                    _ttsState.value = TtsState.ERROR
+                    return@withContext false
+                }
+
+                val modelLoadMs = if (wasLoaded) 0.0 else (tModelLoadEnd - tModelLoadStart) / 1_000_000.0
+                val synthMs = (synthEndRecorded - synthStartRecorded) / 1_000_000.0
+                val trackPrepMs = (tTrackPrepEnd - tTrackPrepStart) / 1_000_000.0
+                val timeToFirstAudioMs = (tFirstFrameWritten - tTtsReq) / 1_000_000.0
+                val playbackDurationMs = (tPlaybackComplete - tFirstFrameWritten) / 1_000_000.0
+                val totalTtsStageMs = (tPlaybackComplete - tTtsReq) / 1_000_000.0
+
+                val metrics = TtsPerfMetrics(
+                    language = language,
+                    text = text,
+                    tTtsReqNanos = tTtsReq,
+                    tModelLookupNanos = tModelLookup,
+                    tModelLoadStartNanos = tModelLoadStart,
+                    tModelLoadEndNanos = tModelLoadEnd,
+                    tSynthStartNanos = synthStartRecorded,
+                    tSynthEndNanos = synthEndRecorded,
+                    tTrackPrepStartNanos = tTrackPrepStart,
+                    tTrackPrepEndNanos = tTrackPrepEnd,
+                    tFirstFrameWrittenNanos = tFirstFrameWritten,
+                    tPlaybackCompleteNanos = tPlaybackComplete,
+                    modelLoadMs = modelLoadMs,
+                    synthMs = synthMs,
+                    trackPrepMs = trackPrepMs,
+                    timeToFirstAudioMs = timeToFirstAudioMs,
+                    playbackDurationMs = playbackDurationMs,
+                    totalTtsStageMs = totalTtsStageMs
+                )
+                _lastPerfMetrics.value = metrics
+
+                val logMsg = String.format(
+                    Locale.US,
+                    "[TTS-PERF] lang=%s req=%d lookup=%d load_start=%d load_end=%d synth_start=%d synth_end=%d track_start=%d track_end=%d first_frame=%d playback_complete=%d | load_ms=%.2f synth_ms=%.2f track_prep_ms=%.2f time_to_first_audio_ms=%.2f playback_duration_ms=%.2f total_tts_stage_ms=%.2f",
+                    language.name,
+                    tTtsReq,
+                    tModelLookup,
+                    tModelLoadStart,
+                    tModelLoadEnd,
+                    synthStartRecorded,
+                    synthEndRecorded,
+                    tTrackPrepStart,
+                    tTrackPrepEnd,
+                    tFirstFrameWritten,
+                    tPlaybackComplete,
+                    modelLoadMs,
+                    synthMs,
+                    trackPrepMs,
+                    timeToFirstAudioMs,
+                    playbackDurationMs,
+                    totalTtsStageMs
+                )
+                Log.i(tag, logMsg)
 
                 _ttsState.value = TtsState.COMPLETED
                 _ttsState.value = TtsState.IDLE
@@ -324,7 +437,9 @@ class SherpaOnnxTtsEngine(
                 activeLanguage = null
                 isInitialized = false
             }
-            System.gc()
+            CoroutineScope(Dispatchers.IO).launch {
+                System.gc()
+            }
         }
     }
 }

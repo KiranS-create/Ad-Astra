@@ -123,37 +123,25 @@ class SherpaOnnxTtsInstrumentedTest {
     private fun doTestTts(language: IndicLanguage, text: String, modelName: String) {
         runBlocking {
             Log.i(tag, "--- Testing ${language.displayName} TTS ($modelName) ---")
-            val offlineTts = ttsEngine.getOrInitTts(language)
-            assertNotNull("TTS engine for ${language.displayName} must initialize", offlineTts)
+            val ok = ttsEngine.synthesize(text, language, isUrgent = false)
+            assertTrue("${language.displayName} TTS synthesize must succeed", ok)
 
-            val sampleRate = offlineTts!!.sampleRate()
-            val numSpeakers = offlineTts.numSpeakers()
-            Log.i(tag, "${language.displayName} TTS initialized. SampleRate: ${sampleRate}Hz, Speakers: $numSpeakers")
-
-            val startTime = System.currentTimeMillis()
-            val audio = offlineTts.generate(text = text, sid = 0, speed = 1.0f)
-            val elapsedMs = System.currentTimeMillis() - startTime
-
-            val samples = audio.samples
-            val audioDurationSec = samples.size.toDouble() / sampleRate
-            val rtf = if (audioDurationSec > 0) elapsedMs / 1000.0 / audioDurationSec else 0.0
-
+            val metrics = ttsEngine.lastPerfMetrics.value
+            assertNotNull("Perf metrics for ${language.displayName} must be captured", metrics)
             Log.i(tag, "========================================")
-            Log.i(tag, "${language.displayName} TTS RESULT:")
+            Log.i(tag, "${language.displayName} TTS FULL PIPELINE RESULT:")
             Log.i(tag, "  Model: $modelName")
             Log.i(tag, "  Text: '$text'")
-            Log.i(tag, "  Text length: ${text.length} chars")
-            Log.i(tag, "  Generated samples: ${samples.size}")
-            Log.i(tag, "  Sample rate: ${sampleRate}Hz")
-            Log.i(tag, "  Audio duration: ${String.format("%.2f", audioDurationSec)}s")
-            Log.i(tag, "  Synthesis latency: ${elapsedMs}ms")
-            Log.i(tag, "  RTF: ${String.format("%.3f", rtf)}x")
+            Log.i(tag, "  Model Load: ${metrics!!.modelLoadMs} ms")
+            Log.i(tag, "  Synthesis: ${metrics.synthMs} ms")
+            Log.i(tag, "  Track Prep: ${metrics.trackPrepMs} ms")
+            Log.i(tag, "  Time to First Audio: ${metrics.timeToFirstAudioMs} ms")
+            Log.i(tag, "  Playback Duration: ${metrics.playbackDurationMs} ms")
+            Log.i(tag, "  Total TTS Stage: ${metrics.totalTtsStageMs} ms")
             Log.i(tag, "========================================")
 
-            assertTrue(
-                "${language.displayName} TTS must produce non-zero audio samples. Got ${samples.size}",
-                samples.isNotEmpty()
-            )
+            assertTrue("Synthesis time must be positive", metrics.synthMs > 0)
+            assertTrue("Total TTS stage time must be positive", metrics.totalTtsStageMs > 0)
         }
     }
 }
