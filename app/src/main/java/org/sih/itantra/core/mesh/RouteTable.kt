@@ -20,6 +20,8 @@ enum class RouteState {
  * @param routeSeqNum        Sequence number of the route (from destination's RREP). Higher = fresher.
  * @param expiryMs           Wall-clock time (ms) after which this entry is considered EXPIRED.
  * @param state              VALID | EXPIRED | INVALID.
+ * @param linkQuality        Channel quality score (0.0 to 1.0; 1.0 = best).
+ * @param batteryPct         Battery percentage of next hop / path (0 to 100).
  */
 data class RouteEntry(
     val destinationNodeId: Int,
@@ -27,7 +29,9 @@ data class RouteEntry(
     val hopCount: Int,
     val routeSeqNum: Int,
     val expiryMs: Long,
-    val state: RouteState = RouteState.VALID
+    val state: RouteState = RouteState.VALID,
+    val linkQuality: Float = 1.0f,
+    val batteryPct: Int = 100
 )
 
 /**
@@ -55,21 +59,16 @@ class RouteTable(
     )
 
     /**
-     * Add or update a route. Accepts the route only if:
-     * - No existing route for this destination, OR
-     * - New routeSeqNum > existing, OR
-     * - Same routeSeqNum AND fewer hops.
+     * Add or update a route using [AdaptiveRouteSelector]. Accepts the route only if:
+     * - No existing route, OR
+     * - Fresher sequence number, OR
+     * - Fewer hops (strictly prioritized), OR
+     * - Same hops with superior link quality (> 0.15 diff) or battery health tie-breaker.
      */
     fun addOrUpdate(entry: RouteEntry) {
         synchronized(table) {
             val existing = table[entry.destinationNodeId]
-            val shouldUpdate = when {
-                existing == null -> true
-                entry.routeSeqNum > existing.routeSeqNum -> true
-                entry.routeSeqNum == existing.routeSeqNum && entry.hopCount < existing.hopCount -> true
-                else -> false
-            }
-            if (shouldUpdate) {
+            if (AdaptiveRouteSelector.shouldReplace(existing, entry)) {
                 table[entry.destinationNodeId] = entry.copy(
                     expiryMs = System.currentTimeMillis() + routeLifetimeMs,
                     state = RouteState.VALID

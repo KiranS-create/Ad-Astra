@@ -27,28 +27,50 @@ class TransportManager(
     private val _activeTransport = MutableStateFlow<Transport>(wifiTransport)
     val activeTransport: StateFlow<Transport> = _activeTransport.asStateFlow()
 
+    private val _isAutoFailoverEnabled = MutableStateFlow(true)
+    val isAutoFailoverEnabled: StateFlow<Boolean> = _isAutoFailoverEnabled.asStateFlow()
+
+    var preferredTransportType: TransportType = TransportType.BLUETOOTH
+
     private val _receivedPackets = MutableSharedFlow<Packet>(replay = 0, extraBufferCapacity = 64)
     val receivedPackets: SharedFlow<Packet> = _receivedPackets.asSharedFlow()
 
     init {
-        // Forward packets from whichever transport is active
+        // In auto failover mode, listen to both Wi-Fi and Bluetooth so no incoming packets are missed
         scope.launch {
-            wifiTransport.receivedPackets.collect { if (_activeTransport.value == wifiTransport) _receivedPackets.emit(it) }
+            wifiTransport.receivedPackets.collect { packet ->
+                if (_isAutoFailoverEnabled.value || _activeTransport.value == wifiTransport) {
+                    _receivedPackets.emit(packet)
+                }
+            }
         }
         scope.launch {
-            bluetoothTransport.receivedPackets.collect { if (_activeTransport.value == bluetoothTransport) _receivedPackets.emit(it) }
+            bluetoothTransport.receivedPackets.collect { packet ->
+                if (_isAutoFailoverEnabled.value || _activeTransport.value == bluetoothTransport) {
+                    _receivedPackets.emit(packet)
+                }
+            }
         }
         scope.launch {
-            loopbackTransport.receivedPackets.collect { if (_activeTransport.value == loopbackTransport) _receivedPackets.emit(it) }
+            loopbackTransport.receivedPackets.collect { packet ->
+                if (_activeTransport.value == loopbackTransport) _receivedPackets.emit(packet)
+            }
         }
         scope.launch {
-            embeddedRadioTransport.receivedPackets.collect { if (_activeTransport.value == embeddedRadioTransport) _receivedPackets.emit(it) }
+            embeddedRadioTransport.receivedPackets.collect { packet ->
+                if (_activeTransport.value == embeddedRadioTransport) _receivedPackets.emit(packet)
+            }
         }
+    }
+
+    fun setAutoFailoverEnabled(enabled: Boolean) {
+        _isAutoFailoverEnabled.value = enabled
     }
 
     suspend fun switchTransport(type: TransportType) {
         _activeTransport.value.stop()
 
+        preferredTransportType = type
         val next = when (type) {
             TransportType.WIFI -> wifiTransport
             TransportType.BLUETOOTH -> bluetoothTransport
@@ -61,7 +83,54 @@ class TransportManager(
     }
 
     suspend fun send(packet: Packet): Boolean {
-        return _activeTransport.value.send(packet)
+        if (!_isAutoFailoverEnabled.value) {
+            val success = _activeTransport.value.send(packet)
+            if (success) {
+                val tName = if (_activeTransport.value == bluetoothTransport) "BT" else "WIFI"
+                org.sih.itantra.core.diagnostics.DiagnosticsRepository.recordTransportSent(tName)
+            }
+            return success
+        }
+
+        // Automatic Bluetooth <-> Wi-Fi failover
+        val (primary, secondary, pName, sName) = if (preferredTransportType == TransportType.BLUETOOTH) {
+            listOf(bluetoothTransport, wifiTransport, "BT", "WIFI")
+        } else {
+            listOf(wifiTransport, bluetoothTransport, "WIFI", "BT")
+        }
+
+        val primaryTransport = primary as Transport
+        val secondaryTransport = secondary as Transport
+        val primaryLabel = pName as String
+        val secondaryLabel = sName as String
+
+        var primarySent = false
+        try {
+            primarySent = primaryTransport.send(packet)
+        } catch (_: Exception) {
+            primarySent = false
+        }
+
+        if (primarySent) {
+            org.sih.itantra.core.diagnostics.DiagnosticsRepository.recordTransportSent(primaryLabel)
+            return true
+        }
+
+        // Primary transport failed or unavailable: Attempt fallback transport
+        var secondarySent = false
+        try {
+            secondarySent = secondaryTransport.send(packet)
+        } catch (_: Exception) {
+            secondarySent = false
+        }
+
+        if (secondarySent) {
+            org.sih.itantra.core.diagnostics.DiagnosticsRepository.recordTransportFailover(from = primaryLabel, to = secondaryLabel)
+            org.sih.itantra.core.diagnostics.DiagnosticsRepository.recordTransportSent(secondaryLabel)
+            return true
+        }
+
+        return false
     }
 
     suspend fun start() {

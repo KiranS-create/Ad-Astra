@@ -276,6 +276,30 @@ fun DiagnosticsScreen(
             DiagnosticRow(label = "Last Distress Hops", value = "$it")
         }
 
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Network Resilience & DTN Telemetry
+        Text(
+            text = "NETWORK RESILIENCE & DTN TELEMETRY",
+            color = if (radioColors.isDark) radioColors.sage else radioColors.forest,
+            fontSize = 11.sp,
+            fontFamily = FontFamily.Monospace,
+            fontWeight = FontWeight.Bold,
+            letterSpacing = 1.sp
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        DiagnosticRow(label = "Active Transport", value = diag.activeTransportName)
+        DiagnosticRow(label = "Failover (BT -> Wi-Fi)", value = "${diag.failoverBtToWifi}")
+        DiagnosticRow(label = "Failover (Wi-Fi -> BT)", value = "${diag.failoverWifiToBt}")
+        DiagnosticRow(label = "DTN Queue Size", value = "${diag.dtnQueueSize} / 50 packets")
+        DiagnosticRow(label = "DTN Packets Stored", value = "${diag.dtnStored}")
+        DiagnosticRow(label = "DTN Packets Forwarded", value = "${diag.dtnForwarded}")
+        DiagnosticRow(label = "DTN Packets Expired", value = "${diag.dtnExpired}")
+        DiagnosticRow(label = "DTN Evicted / Dropped", value = "${diag.dtnDropped}")
+        DiagnosticRow(label = "Active Route Selection", value = diag.lastRouteQualityLabel)
+
         Spacer(modifier = Modifier.height(18.dp))
 
         // 6. Diagnostics Action Controls

@@ -39,7 +39,21 @@ data class DiagnosticsState(
     val lastDistressSource: Int? = null,
     val lastDistressSeq: Short? = null,
     val lastDistressHops: Int? = null,
-    val lastDistressStatus: String? = null
+    val lastDistressStatus: String? = null,
+    // DTN Store-and-Forward counters
+    val dtnStored: Long = 0L,
+    val dtnForwarded: Long = 0L,
+    val dtnExpired: Long = 0L,
+    val dtnDropped: Long = 0L,
+    val dtnQueueSize: Int = 0,
+    // Transport Failover counters
+    val transportBtSent: Long = 0L,
+    val transportWifiSent: Long = 0L,
+    val failoverBtToWifi: Long = 0L,
+    val failoverWifiToBt: Long = 0L,
+    val activeTransportName: String = "BT / WIFI (AUTO)",
+    // Adaptive Routing metrics
+    val lastRouteQualityLabel: String = "GOOD"
 )
 
 object DiagnosticsRepository {
@@ -139,4 +153,60 @@ object DiagnosticsRepository {
             lastDistressStatus = if (hasLocation) "RECEIVED · LOCATION ATTACHED" else "RECEIVED · NO LOCATION"
         )
     }
+
+    fun recordDtnStored(queueSize: Int) {
+        val current = _state.value
+        _state.value = current.copy(
+            dtnStored = current.dtnStored + 1,
+            dtnQueueSize = queueSize
+        )
+    }
+
+    fun recordDtnForwarded(queueSize: Int) {
+        val current = _state.value
+        _state.value = current.copy(
+            dtnForwarded = current.dtnForwarded + 1,
+            dtnQueueSize = queueSize
+        )
+    }
+
+    fun recordDtnExpired(queueSize: Int) {
+        val current = _state.value
+        _state.value = current.copy(
+            dtnExpired = current.dtnExpired + 1,
+            dtnQueueSize = queueSize
+        )
+    }
+
+    fun recordDtnDropped() {
+        val current = _state.value
+        _state.value = current.copy(
+            dtnDropped = current.dtnDropped + 1
+        )
+    }
+
+    fun recordTransportSent(type: String) {
+        val current = _state.value
+        _state.value = if (type.contains("BT", ignoreCase = true)) {
+            current.copy(transportBtSent = current.transportBtSent + 1)
+        } else {
+            current.copy(transportWifiSent = current.transportWifiSent + 1)
+        }
+    }
+
+    fun recordTransportFailover(from: String, to: String) {
+        val current = _state.value
+        _state.value = if (from.contains("BT", ignoreCase = true) && to.contains("WIFI", ignoreCase = true)) {
+            current.copy(failoverBtToWifi = current.failoverBtToWifi + 1)
+        } else {
+            current.copy(failoverWifiToBt = current.failoverWifiToBt + 1)
+        }
+    }
+
+    fun recordRouteSelection(quality: String) {
+        val current = _state.value
+        _state.value = current.copy(lastRouteQualityLabel = quality)
+    }
+
+    fun setLastRouteQuality(quality: String) = recordRouteSelection(quality)
 }

@@ -61,6 +61,11 @@ class TransceiverViewModel(application: Application) : AndroidViewModel(applicat
     val bondedBluetoothDevices: StateFlow<List<PeerDevice>> = _bondedBluetoothDevices.asStateFlow()
 
     val bluetoothTransportState: StateFlow<TransportState> = coordinator.transportManager.bluetoothTransport.state
+    val isAutoFailoverEnabled: StateFlow<Boolean> = coordinator.transportManager.isAutoFailoverEnabled
+
+    fun setAutoFailoverEnabled(enabled: Boolean) {
+        coordinator.transportManager.setAutoFailoverEnabled(enabled)
+    }
 
     val messageHistory: StateFlow<List<MessageRecord>> = MessageHistoryStore.historyFlow
     val diagnosticsState: StateFlow<DiagnosticsState> = DiagnosticsRepository.state

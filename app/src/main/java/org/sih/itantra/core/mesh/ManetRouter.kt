@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import org.sih.itantra.core.common.IndicLanguage
 import org.sih.itantra.core.common.MessagePriority
+import org.sih.itantra.core.diagnostics.DiagnosticsRepository
 import org.sih.itantra.core.protocol.Packet
 import org.sih.itantra.core.transport.TransportManager
 import java.util.concurrent.ConcurrentHashMap
@@ -86,6 +87,7 @@ class ManetRouter(
     val neighborTable = NeighborTable()
     val routeTable    = RouteTable()
     val dupCache      = RreqDupCache()
+    val dtnStore      = DtnStore(storageDir = context.cacheDir?.let { java.io.File(it, "dtn_store") })
 
     val neighborDiscovery = NeighborDiscovery(
         context           = context,
@@ -177,9 +179,12 @@ class ManetRouter(
 
         val route = routeTable.lookup(destId)
         return if (route != null) {
+            val explanation = AdaptiveRouteSelector.formatRouteExplanation(route)
+            DiagnosticsRepository.setLastRouteQuality(explanation)
             sendViaNextHop(packet, route.nextHopNodeId)
         } else {
-            Log.i(TAG, "No route to $destId — queueing packet and triggering RREQ")
+            Log.i(TAG, "No route to $destId — storing in DTN and triggering RREQ")
+            dtnStore.store(packet)
             enqueuePacket(destId, packet)
             triggerRreq(destId)
             true // packet accepted into queue; delivery asynchronous
@@ -245,12 +250,22 @@ class ManetRouter(
         Log.i(TAG, "RREQ RX origin=${rreq.originNodeId} dest=${rreq.destNodeId} hops=${rreq.hopCount}")
 
         // Create reverse route toward origin (via the node that sent us this RREQ)
+        val neighbor = neighborTable.lookup(packet.sourceDeviceId)
+        val linkQuality = if (neighbor != null) {
+            ((NeighborTable.NEIGHBOR_EXPIRY_MS - (System.currentTimeMillis() - neighbor.lastSeenMs))
+                .coerceIn(0L, NeighborTable.NEIGHBOR_EXPIRY_MS).toFloat() / NeighborTable.NEIGHBOR_EXPIRY_MS)
+                .coerceIn(0.2f, 1.0f)
+        } else 1.0f
+        val battery = neighbor?.batteryPct ?: 100
+
         routeTable.addOrUpdate(RouteEntry(
             destinationNodeId = rreq.originNodeId,
             nextHopNodeId     = packet.sourceDeviceId,
             hopCount          = rreq.hopCount + 1,
             routeSeqNum       = rreq.originSeqNum.toInt(),
-            expiryMs          = System.currentTimeMillis() + RouteTable.ROUTE_LIFETIME_MS
+            expiryMs          = System.currentTimeMillis() + RouteTable.ROUTE_LIFETIME_MS,
+            linkQuality       = linkQuality,
+            batteryPct        = battery
         ))
         updateRouteCount()
 
@@ -334,17 +349,30 @@ class ManetRouter(
         Log.i(TAG, "RREP RX dest=${rrep.destNodeId} origin=${rrep.originNodeId} hops=${rrep.hopCount}")
 
         // Install forward route to destination
-        routeTable.addOrUpdate(RouteEntry(
+        val neighbor = neighborTable.lookup(packet.sourceDeviceId)
+        val linkQuality = if (neighbor != null) {
+            ((NeighborTable.NEIGHBOR_EXPIRY_MS - (System.currentTimeMillis() - neighbor.lastSeenMs))
+                .coerceIn(0L, NeighborTable.NEIGHBOR_EXPIRY_MS).toFloat() / NeighborTable.NEIGHBOR_EXPIRY_MS)
+                .coerceIn(0.2f, 1.0f)
+        } else 1.0f
+        val battery = neighbor?.batteryPct ?: 100
+
+        val newRoute = RouteEntry(
             destinationNodeId = rrep.destNodeId,
             nextHopNodeId     = packet.sourceDeviceId,
             hopCount          = rrep.hopCount + 1,
             routeSeqNum       = rrep.destSeqNum.toInt(),
-            expiryMs          = System.currentTimeMillis() + RouteTable.ROUTE_LIFETIME_MS
-        ))
+            expiryMs          = System.currentTimeMillis() + RouteTable.ROUTE_LIFETIME_MS,
+            linkQuality       = linkQuality,
+            batteryPct        = battery
+        )
+        routeTable.addOrUpdate(newRoute)
         cRoutesEstablished.incrementAndGet()
         updateRouteCount()
 
-        Log.i(TAG, "ROUTE ESTABLISHED dest=${rrep.destNodeId} nextHop=${packet.sourceDeviceId} hops=${rrep.hopCount + 1}")
+        val explanation = AdaptiveRouteSelector.formatRouteExplanation(newRoute)
+        Log.i(TAG, "ROUTE ESTABLISHED: $explanation")
+        DiagnosticsRepository.setLastRouteQuality(explanation)
 
         if (rrep.originNodeId == localNodeId) {
             // We are the origin — flush queued packets to this destination
@@ -424,17 +452,28 @@ class ManetRouter(
     }
 
     private fun flushPendingQueue(destId: Int, nextHopId: Int) {
-        val queue = pendingQueues.remove(destId) ?: return
-        val now = System.currentTimeMillis()
         scope.launch {
-            while (true) {
-                val pending = queue.pollFirst() ?: break
-                if (now - pending.enqueuedMs > PENDING_TTL_MS) {
-                    Log.w(TAG, "Pending packet for dest=$destId expired in queue — dropped")
-                    continue
-                }
-                sendViaNextHop(pending.packet, nextHopId)
+            // 1. Drain and forward DTN stored packets first (prioritized: DISTRESS > ALERT > IMPORTANT > NORMAL)
+            val dtnPackets = dtnStore.drainForDestination(destId)
+            for (pkt in dtnPackets) {
+                sendViaNextHop(pkt, nextHopId)
                 cPacketsRouted.incrementAndGet()
+                Log.i(TAG, "DTN PACKET FORWARDED: dest=$destId priority=${pkt.priority}")
+            }
+
+            // 2. Drain transient in-memory queue
+            val queue = pendingQueues.remove(destId)
+            if (queue != null) {
+                val now = System.currentTimeMillis()
+                while (true) {
+                    val pending = queue.pollFirst() ?: break
+                    if (now - pending.enqueuedMs > PENDING_TTL_MS) {
+                        Log.w(TAG, "Pending packet for dest=$destId expired in queue — dropped")
+                        continue
+                    }
+                    sendViaNextHop(pending.packet, nextHopId)
+                    cPacketsRouted.incrementAndGet()
+                }
             }
         }
     }
@@ -486,6 +525,7 @@ class ManetRouter(
                 delay(PRUNE_INTERVAL_MS)
                 routeTable.pruneExpired()
                 updateRouteCount()
+                dtnStore.drainExpired()
                 // Expire stale pending queues
                 val now = System.currentTimeMillis()
                 pendingQueues.entries.removeIf { (destId, queue) ->

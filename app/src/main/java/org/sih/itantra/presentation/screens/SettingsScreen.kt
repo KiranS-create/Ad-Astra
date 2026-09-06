@@ -69,6 +69,7 @@ fun SettingsScreen(
     val activeTransport by viewModel.activeTransportType.collectAsState()
     val btState by viewModel.bluetoothTransportState.collectAsState()
     val bondedPeers by viewModel.bondedBluetoothDevices.collectAsState()
+    val isAutoFailover by viewModel.isAutoFailoverEnabled.collectAsState()
 
     var distressHolding by remember { mutableStateOf(false) }
 
@@ -280,6 +281,92 @@ fun SettingsScreen(
                             Spacer(modifier = Modifier.height(4.dp))
                         }
                     }
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(14.dp))
+
+        // Transport Failover & Resilience
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(12.dp))
+                .background(radioColors.surface)
+                .border(1.dp, radioColors.border.copy(alpha = 0.5f), RoundedCornerShape(12.dp))
+                .padding(14.dp)
+        ) {
+            Column(modifier = Modifier.fillMaxWidth()) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = "Auto Transport Failover",
+                            color = radioColors.textPrimary,
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                        Text(
+                            text = "Fallback to secondary transport on send failure",
+                            color = radioColors.textSecondary,
+                            fontSize = 11.sp
+                        )
+                    }
+                    Switch(
+                        checked = isAutoFailover,
+                        onCheckedChange = { viewModel.setAutoFailoverEnabled(it) },
+                        colors = SwitchDefaults.colors(
+                            checkedThumbColor = if (radioColors.isDark) radioColors.sage else radioColors.forest,
+                            checkedTrackColor = (if (radioColors.isDark) radioColors.sage else radioColors.forest).copy(alpha = 0.5f)
+                        )
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+                HorizontalDivider(color = radioColors.border.copy(alpha = 0.3f), thickness = 0.5.dp)
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        text = "DTN Store-and-Forward",
+                        color = radioColors.textSecondary,
+                        fontSize = 11.sp,
+                        fontFamily = FontFamily.Monospace
+                    )
+                    Text(
+                        text = "ACTIVE (50 pkts / 512 KB)",
+                        color = radioColors.success,
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold,
+                        fontFamily = FontFamily.Monospace
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(4.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        text = "Adaptive Route Metric",
+                        color = radioColors.textSecondary,
+                        fontSize = 11.sp,
+                        fontFamily = FontFamily.Monospace
+                    )
+                    Text(
+                        text = "HOP > LINK > BATTERY",
+                        color = if (radioColors.isDark) radioColors.sage else radioColors.forest,
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold,
+                        fontFamily = FontFamily.Monospace
+                    )
                 }
             }
         }
