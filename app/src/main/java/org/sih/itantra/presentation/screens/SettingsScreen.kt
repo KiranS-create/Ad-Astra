@@ -657,7 +657,7 @@ fun SettingsScreen(
                     horizontalArrangement = Arrangement.Center
                 ) {
                     Text(
-                        text = "OPEN TOPOLOGY DEMO & SIMULATOR",
+                        text = "OPEN TACTICAL MESH MAP & SIMULATOR",
                         color = if (radioColors.isDark) radioColors.sage else radioColors.forest,
                         fontSize = 11.sp,
                         fontWeight = FontWeight.Bold,
@@ -667,12 +667,12 @@ fun SettingsScreen(
                     Box(
                         modifier = Modifier
                             .clip(RoundedCornerShape(3.dp))
-                            .background(radioColors.warning.copy(alpha = 0.2f))
+                            .background(radioColors.success.copy(alpha = 0.2f))
                             .padding(horizontal = 4.dp, vertical = 1.dp)
                     ) {
                         Text(
-                            text = "SIM",
-                            color = radioColors.warning,
+                            text = "LIVE + SIM",
+                            color = radioColors.success,
                             fontSize = 8.sp,
                             fontWeight = FontWeight.Bold,
                             fontFamily = FontFamily.Monospace

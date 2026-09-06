@@ -71,6 +71,11 @@ class TacticalPacketScheduler(
     val totalQueuedPackets: Int
         get() = synchronized(lock) { totalSizeInternal() }
 
+    val totalQueued: Int
+        get() = totalQueuedPackets
+
+    fun totalQueued(): Int = totalQueuedPackets
+
     val queuedDistress: Int
         get() = synchronized(lock) { distressQueue.size }
 

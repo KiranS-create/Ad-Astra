@@ -29,6 +29,16 @@ import org.sih.itantra.core.transport.TransportState
 import org.sih.itantra.core.transport.TransportType
 import org.sih.itantra.service.ManetNodePreference
 import org.sih.itantra.service.ManetNodeService
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
+import org.sih.itantra.core.mesh.MeshTopologyProvider
+import org.sih.itantra.core.mesh.MeshTopologySnapshot
+import org.sih.itantra.core.mesh.TopologyPacketActivity
+import org.sih.itantra.core.mesh.TopologyNodeRole
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+import java.util.concurrent.atomic.AtomicLong
 
 enum class VoiceEngineStatus(val label: String) {
     READY("READY"),
@@ -214,19 +224,139 @@ class TransceiverViewModel(application: Application) : AndroidViewModel(applicat
     }
 
     // -------------------------------------------------------------------------
-    // MANET Simulation / Demo Engine
+    // Tactical Mesh Topology & Simulation Engine
     // -------------------------------------------------------------------------
 
     val manetSimulator = org.sih.itantra.core.mesh.ManetSimulator()
     val topologyState = manetSimulator.topologyState
 
-    fun simStartDiscovery() = manetSimulator.startDiscovery()
-    fun simSendPacketAtoC(msg: String = "iTantra Voice Packet (Compressed INT8)") = manetSimulator.sendPacketAtoC(msg)
-    fun simFailNodeB() = manetSimulator.failNodeB()
-    fun simTriggerFailureAndRediscovery() = manetSimulator.triggerFailureAndRediscovery()
-    fun simRepairNodeB() = manetSimulator.repairNodeB()
-    fun simResetTopology() = manetSimulator.resetTopology()
-    fun simSelectPacket(packet: org.sih.itantra.core.protocol.Packet?) = manetSimulator.selectPacket(packet)
+    private val _isSimulationMode = MutableStateFlow(false)
+    val isSimulationMode: StateFlow<Boolean> = _isSimulationMode.asStateFlow()
+
+    private val _selectedNodeId = MutableStateFlow<Int?>(null)
+    val selectedNodeId: StateFlow<Int?> = _selectedNodeId.asStateFlow()
+
+    private val activityIdCounter = AtomicLong(1L)
+    private val liveActivityList = java.util.ArrayDeque<TopologyPacketActivity>()
+    private val timeFormat = SimpleDateFormat("HH:mm:ss", Locale.getDefault())
+
+    private val _meshTopologySnapshot = MutableStateFlow(
+        MeshTopologyProvider.buildLiveSnapshot(
+            localNodeId = coordinator.manetRouter.localNodeId,
+            neighborTable = coordinator.manetRouter.neighborTable,
+            routeTable = coordinator.manetRouter.routeTable,
+            transportManager = coordinator.transportManager,
+            qosScheduler = coordinator.qosScheduler
+        )
+    )
+    val meshTopologySnapshot: StateFlow<MeshTopologySnapshot> = _meshTopologySnapshot.asStateFlow()
+
+    fun setSimulationMode(enabled: Boolean) {
+        _isSimulationMode.value = enabled
+        _selectedNodeId.value = null
+        refreshTopologySnapshot()
+    }
+
+    fun selectNode(nodeId: Int?) {
+        _selectedNodeId.value = nodeId
+        refreshTopologySnapshot()
+    }
+
+    fun logPacketActivity(
+        type: String,
+        description: String,
+        sourceId: Int? = null,
+        destId: Int? = null,
+        priority: String? = null,
+        rawPacket: org.sih.itantra.core.protocol.Packet? = null
+    ) {
+        val now = System.currentTimeMillis()
+        val activity = TopologyPacketActivity(
+            id = activityIdCounter.getAndIncrement(),
+            timestampMs = now,
+            timeFormatted = timeFormat.format(Date(now)),
+            type = type,
+            description = description,
+            sourceId = sourceId,
+            destId = destId,
+            priorityLabel = priority,
+            rawPacket = rawPacket
+        )
+        synchronized(liveActivityList) {
+            liveActivityList.addFirst(activity)
+            while (liveActivityList.size > 50) {
+                liveActivityList.removeLast()
+            }
+        }
+        refreshTopologySnapshot()
+    }
+
+    fun refreshTopologySnapshot() {
+        val snapshot = if (_isSimulationMode.value) {
+            MeshTopologyProvider.buildSimulationSnapshot(
+                simState = manetSimulator.topologyState.value,
+                selectedNodeId = _selectedNodeId.value
+            )
+        } else {
+            val events = synchronized(liveActivityList) { liveActivityList.toList() }
+            val snap = MeshTopologyProvider.buildLiveSnapshot(
+                localNodeId = coordinator.manetRouter.localNodeId,
+                neighborTable = coordinator.manetRouter.neighborTable,
+                routeTable = coordinator.manetRouter.routeTable,
+                transportManager = coordinator.transportManager,
+                qosScheduler = coordinator.qosScheduler,
+                dtnPendingCount = coordinator.manetRouter.dtnStore.size(),
+                activeDistressDestinationId = null,
+                selectedNodeId = _selectedNodeId.value,
+                activityEvents = events,
+                batteryPct = null
+            )
+            DiagnosticsRepository.updateTopologyMetrics(
+                knownNodes = snap.nodes.size,
+                activeNeighbors = snap.nodes.count { it.role == TopologyNodeRole.NEIGHBOR },
+                activeRoutes = snap.routes.size,
+                reachableDestinations = snap.nodes.count { it.role == TopologyNodeRole.DESTINATION && it.isReachable },
+                currentTransport = snap.activeTransport
+            )
+            snap
+        }
+        _meshTopologySnapshot.value = snapshot
+    }
+
+    fun simStartDiscovery() {
+        manetSimulator.startDiscovery()
+        if (_isSimulationMode.value) refreshTopologySnapshot()
+    }
+
+    fun simSendPacketAtoC(msg: String = "iTantra Voice Packet (Compressed INT8)") {
+        manetSimulator.sendPacketAtoC(msg)
+        if (_isSimulationMode.value) refreshTopologySnapshot()
+    }
+
+    fun simFailNodeB() {
+        manetSimulator.failNodeB()
+        if (_isSimulationMode.value) refreshTopologySnapshot()
+    }
+
+    fun simTriggerFailureAndRediscovery() {
+        manetSimulator.triggerFailureAndRediscovery()
+        if (_isSimulationMode.value) refreshTopologySnapshot()
+    }
+
+    fun simRepairNodeB() {
+        manetSimulator.repairNodeB()
+        if (_isSimulationMode.value) refreshTopologySnapshot()
+    }
+
+    fun simResetTopology() {
+        manetSimulator.resetTopology()
+        if (_isSimulationMode.value) refreshTopologySnapshot()
+    }
+
+    fun simSelectPacket(packet: org.sih.itantra.core.protocol.Packet?) {
+        manetSimulator.selectPacket(packet)
+        if (_isSimulationMode.value) refreshTopologySnapshot()
+    }
 
     // -------------------------------------------------------------------------
     // Init
@@ -240,6 +370,22 @@ class TransceiverViewModel(application: Application) : AndroidViewModel(applicat
             coordinator.activeLanguage.collect { lang ->
                 if (_languageState.value is org.sih.itantra.core.language.LanguageSelectionState.Manual) {
                     _languageState.value = org.sih.itantra.core.language.LanguageSelectionState.Manual(lang)
+                }
+            }
+        }
+        coordinator.onPacketActivity = { type, desc, src, dest, prio, raw ->
+            logPacketActivity(type, desc, src, dest, prio, raw)
+        }
+        viewModelScope.launch {
+            while (isActive) {
+                delay(1000L)
+                refreshTopologySnapshot()
+            }
+        }
+        viewModelScope.launch {
+            manetSimulator.topologyState.collect {
+                if (_isSimulationMode.value) {
+                    refreshTopologySnapshot()
                 }
             }
         }

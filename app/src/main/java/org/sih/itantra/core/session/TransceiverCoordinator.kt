@@ -139,6 +139,8 @@ class TransceiverCoordinator(
     private val _isModelReady = MutableStateFlow(false)
     val isModelReady: StateFlow<Boolean> = _isModelReady.asStateFlow()
 
+    var onPacketActivity: ((type: String, description: String, sourceId: Int?, destId: Int?, priority: String?, rawPacket: Packet?) -> Unit)? = null
+
     private var activePrepJob: Job? = null
     private val prepLock = Any()
 
@@ -407,6 +409,7 @@ class TransceiverCoordinator(
                 wireBytes = totalWireBytes,
                 transferId = transferId
             )
+            onPacketActivity?.invoke("FRAG", "FRAG ${fragments.size} pkts (0x${Integer.toHexString(transferId.toInt() and 0xFFFF)})", localDeviceId, Packet.BROADCAST_ID, effectivePriority.name, signedPackets.firstOrNull())
             qosScheduler.sendBatch(signedPackets)
         } else {
             val key = NetworkKeyManager.getKey()
@@ -429,6 +432,7 @@ class TransceiverCoordinator(
                 signed
             } else rawPacket
             totalWireBytes = PacketSerializer.serialize(signedPacket).size
+            onPacketActivity?.invoke("TX", "TX: ${finalText.take(20)} (0x${Integer.toHexString(transferId.toInt() and 0xFFFF)})", localDeviceId, Packet.BROADCAST_ID, effectivePriority.name, signedPacket)
             qosScheduler.send(signedPacket)
         }
 
@@ -601,6 +605,7 @@ class TransceiverCoordinator(
             } else rawPacket
             val serializedBytes = PacketSerializer.serialize(signedPacket)
             totalWireBytes = serializedBytes.size
+            onPacketActivity?.invoke("DISTRESS", "DISTRESS SENT (P3, loc=$hasLoc)", localDeviceId, Packet.BROADCAST_ID, MessagePriority.DISTRESS.name, signedPacket)
             qosScheduler.send(signedPacket)
         }
 
@@ -725,6 +730,7 @@ class TransceiverCoordinator(
                 if (tracked != null) {
                     MessageHistoryStore.updateRecordDelivery(receipt.transferId, DeliveryStatus.DELIVERED, tracked.deliveryRttMs)
                     DiagnosticsRepository.recordDeliveryAckReceived(receipt.transferId, tracked.deliveryRttMs ?: 0L)
+                    onPacketActivity?.invoke("ACK", "ACK <- Node ${packet.sourceDeviceId} (0x${Integer.toHexString(receipt.transferId.toInt() and 0xFFFF)})", packet.sourceDeviceId, localDeviceId, null, packet)
                     Log.i(tag, "Delivery ACK confirmed for transfer 0x${Integer.toHexString(receipt.transferId.toInt() and 0xFFFF)} in ${tracked.deliveryRttMs}ms")
                 }
             }
@@ -747,6 +753,7 @@ class TransceiverCoordinator(
             }
             is RelayAction.ForwardAndDeliver -> {
                 DiagnosticsRepository.recordRelayForward()
+                onPacketActivity?.invoke("RELAY", "RELAY Node ${packet.sourceDeviceId} -> ${packet.destinationDeviceId} (ttl=${decision.forwardedPacket.ttl})", packet.sourceDeviceId, packet.destinationDeviceId, packet.priority.name, decision.forwardedPacket)
                 // Asynchronously forward the packet to the next hop over active transport
                 scope.launch {
                     try {
@@ -909,6 +916,7 @@ class TransceiverCoordinator(
 
         val ttsLatencyMs = BenchmarkClock.elapsedMs(tTtsStart, tTtsEnd)
         DiagnosticsRepository.recordReception(effectivePayload.size + Packet.HEADER_SIZE_BYTES + Packet.CRC_SIZE_BYTES + (if (packet.isAuthenticated) Packet.AUTH_TAG_SIZE_BYTES else 0))
+        onPacketActivity?.invoke("RX", "RX <- Node ${packet.sourceDeviceId} (${packet.priority.name})", packet.sourceDeviceId, localDeviceId, packet.priority.name, packet)
 
         val hopCount = (Packet.DEFAULT_TTL - packet.ttl).coerceAtLeast(0)
         val peerLabel = if (packet.isForwarded || hopCount > 0) {
@@ -989,6 +997,7 @@ class TransceiverCoordinator(
                 signed
             } else rawPacket
 
+            onPacketActivity?.invoke("DISTRESS", "EMERGENCY ALERT: ${cleanText.take(20)}", localDeviceId, Packet.BROADCAST_ID, priority.name, signedPacket)
             transportManager.send(signedPacket)
             MessageHistoryStore.addRecord(
                 MessageRecord(

@@ -299,6 +299,10 @@ fun DiagnosticsScreen(
         DiagnosticRow(label = "DTN Packets Expired", value = "${diag.dtnExpired}")
         DiagnosticRow(label = "DTN Evicted / Dropped", value = "${diag.dtnDropped}")
         DiagnosticRow(label = "Active Route Selection", value = diag.lastRouteQualityLabel)
+        DiagnosticRow(label = "Known Mesh Nodes", value = "${diag.knownNodes}")
+        DiagnosticRow(label = "Active 1-Hop Neighbors", value = "${diag.activeNeighbors}")
+        DiagnosticRow(label = "Active Routes", value = "${diag.activeRoutes}")
+        DiagnosticRow(label = "Reachable Destinations", value = "${diag.reachableDestinations}")
 
         Spacer(modifier = Modifier.height(16.dp))
 
@@ -534,9 +538,9 @@ fun DiagnosticsScreen(
             horizontalArrangement = Arrangement.Center
         ) {
             Text(
-                text = "MANET TOPOLOGY & ROUTING DEMO",
+                text = "OPEN TACTICAL MESH MAP & SIMULATOR",
                 color = if (radioColors.isDark) radioColors.sage else radioColors.forest,
-                fontSize = 12.sp,
+                fontSize = 11.5.sp,
                 fontWeight = FontWeight.Bold,
                 fontFamily = FontFamily.Monospace
             )
@@ -544,12 +548,12 @@ fun DiagnosticsScreen(
             Box(
                 modifier = Modifier
                     .clip(RoundedCornerShape(4.dp))
-                    .background(radioColors.warning.copy(alpha = 0.2f))
+                    .background(radioColors.success.copy(alpha = 0.2f))
                     .padding(horizontal = 5.dp, vertical = 1.dp)
             ) {
                 Text(
-                    text = "SIMULATION",
-                    color = radioColors.warning,
+                    text = "LIVE + SIM",
+                    color = radioColors.success,
                     fontSize = 9.sp,
                     fontWeight = FontWeight.Bold,
                     fontFamily = FontFamily.Monospace

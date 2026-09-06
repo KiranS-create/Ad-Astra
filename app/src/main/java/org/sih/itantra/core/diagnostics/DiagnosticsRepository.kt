@@ -91,7 +91,14 @@ data class DiagnosticsState(
     val oldestQueuedPacketAgeMs: Long = 0L,
     val maxQueueCapacity: Int = 100,
     val lastEvictedPriority: String? = null,
-    val lastOverflowReason: String? = null
+    val lastOverflowReason: String? = null,
+    // Tactical Topology telemetry
+    val knownNodes: Int = 0,
+    val activeNeighbors: Int = 0,
+    val activeRoutes: Int = 0,
+    val reachableDestinations: Int = 0,
+    val currentTransport: String = "BT",
+    val topologyLastUpdated: Long = 0L
 )
 
 object DiagnosticsRepository {
@@ -378,6 +385,25 @@ object DiagnosticsRepository {
         val current = _state.value
         _state.value = current.copy(
             normalStarvationAvoidance = current.normalStarvationAvoidance + 1
+        )
+    }
+
+    fun updateTopologyMetrics(
+        knownNodes: Int,
+        activeNeighbors: Int,
+        activeRoutes: Int,
+        reachableDestinations: Int,
+        currentTransport: String,
+        timestamp: Long = System.currentTimeMillis()
+    ) {
+        val current = _state.value
+        _state.value = current.copy(
+            knownNodes = knownNodes,
+            activeNeighbors = activeNeighbors,
+            activeRoutes = activeRoutes,
+            reachableDestinations = reachableDestinations,
+            currentTransport = currentTransport,
+            topologyLastUpdated = timestamp
         )
     }
 }
