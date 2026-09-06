@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.sih.itantra.core.audio.AndroidAudioPlayer
 import org.sih.itantra.core.audio.AndroidAudioRecorder
 import org.sih.itantra.core.audio.AudioPlayer
@@ -75,6 +76,12 @@ class TransceiverCoordinator(
     private val _lastReceivedText = MutableStateFlow("")
     val lastReceivedText: StateFlow<String> = _lastReceivedText.asStateFlow()
 
+    private val _isModelReady = MutableStateFlow(false)
+    val isModelReady: StateFlow<Boolean> = _isModelReady.asStateFlow()
+
+    private var activePrepJob: Job? = null
+    private val prepLock = Any()
+
     private var audioCollectJob: Job? = null
     private var rxCollectJob: Job? = null
     private var tAudioCaptureStart: Long = 0L
@@ -109,6 +116,7 @@ class TransceiverCoordinator(
     suspend fun start() {
         scope.launch {
             modelAssetManager.ensureModelsReady()
+            prepareLanguageInternal(_activeLanguage.value)
         }
         transportManager.start()
     }
@@ -126,11 +134,32 @@ class TransceiverCoordinator(
         tts.release()
     }
 
+    private suspend fun prepareLanguageInternal(language: IndicLanguage) = withContext(dispatcher) {
+        val job: Job
+        synchronized(prepLock) {
+            activePrepJob?.cancel()
+            job = scope.launch {
+                _isModelReady.value = false
+                stt.prepareLanguage(language)
+                tts.prepareLanguage(language)
+                val sttOk = stt.awaitReady(language, 15000L)
+                val ttsOk = tts.awaitReady(language, 15000L)
+                if (sttOk && ttsOk) {
+                    _isModelReady.value = true
+                    Log.i(tag, "full application ready: ${language.displayName}")
+                } else {
+                    Log.w(tag, "Model preparation incomplete for ${language.displayName}: sttOk=$sttOk, ttsOk=$ttsOk")
+                }
+            }
+            activePrepJob = job
+        }
+        job.join()
+    }
+
     fun setLanguage(language: IndicLanguage) {
         _activeLanguage.value = language
         scope.launch {
-            stt.prepareLanguage(language)
-            tts.prepareLanguage(language)
+            prepareLanguageInternal(language)
         }
     }
 
@@ -210,6 +239,16 @@ class TransceiverCoordinator(
         val tSttStart = BenchmarkClock.nowNanos()
 
         val lang = _activeLanguage.value
+        if (!stt.isReadyForLanguage(lang)) {
+            Log.i(tag, "PTT input received while STT model for ${lang.displayName} is initializing. Awaiting readiness...")
+            val ready = stt.awaitReady(lang, 15000L)
+            if (!ready) {
+                Log.w(tag, "STT model not ready within timeout for ${lang.displayName}. Discarding segment safely without crash.")
+                stateMachine.reset()
+                return
+            }
+        }
+
         val sttResult = stt.processAudioSegment(pcmBytes, lang)
         val tSttEnd = BenchmarkClock.nowNanos()
         val sttLatencyMs = BenchmarkClock.elapsedMs(tSttStart, tSttEnd)
@@ -320,6 +359,11 @@ class TransceiverCoordinator(
 
         val isUrgent = packet.priority.isEmergency
         stateMachine.transitionTo(PttState.TTS_PROCESSING)
+
+        if (!tts.isReadyForLanguage(packet.language)) {
+            Log.i(tag, "Incoming packet for ${packet.language.displayName} received while TTS is initializing. Awaiting readiness...")
+            tts.awaitReady(packet.language, 15000L)
+        }
 
         val tTtsStart = BenchmarkClock.nowNanos()
         stateMachine.transitionTo(PttState.PLAYING)

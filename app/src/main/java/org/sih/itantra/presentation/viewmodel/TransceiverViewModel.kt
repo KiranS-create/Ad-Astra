@@ -29,6 +29,7 @@ class TransceiverViewModel(application: Application) : AndroidViewModel(applicat
     val isContinuousMode: StateFlow<Boolean> = coordinator.isContinuousMode
     val lastTranscribedText: StateFlow<String> = coordinator.lastTranscribedText
     val lastReceivedText: StateFlow<String> = coordinator.lastReceivedText
+    val isModelReady: StateFlow<Boolean> = coordinator.isModelReady
 
     private val _activeTransportType = MutableStateFlow(TransportType.WIFI)
     val activeTransportType: StateFlow<TransportType> = _activeTransportType.asStateFlow()

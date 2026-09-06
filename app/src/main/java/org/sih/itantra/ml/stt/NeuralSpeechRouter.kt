@@ -77,6 +77,22 @@ class NeuralSpeechRouter(
         }
     }
 
+    override fun isReadyForLanguage(language: IndicLanguage): Boolean {
+        return if (isNeuralSttSupported(language)) {
+            sherpaStt.isReadyForLanguage(language)
+        } else {
+            true
+        }
+    }
+
+    override suspend fun awaitReady(language: IndicLanguage, timeoutMs: Long): Boolean {
+        return if (isNeuralSttSupported(language)) {
+            sherpaStt.awaitReady(language, timeoutMs)
+        } else {
+            true
+        }
+    }
+
     override fun release() {
         sherpaStt.release()
         platformStt.release()

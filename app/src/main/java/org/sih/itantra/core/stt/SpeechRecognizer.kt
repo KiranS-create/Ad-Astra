@@ -9,5 +9,7 @@ interface SpeechRecognizer {
     fun startListening(language: IndicLanguage)
     fun stopListening()
     fun prepareLanguage(language: IndicLanguage) {}
+    fun isReadyForLanguage(language: IndicLanguage): Boolean = true
+    suspend fun awaitReady(language: IndicLanguage, timeoutMs: Long = 15000L): Boolean = true
     fun release()
 }

@@ -8,5 +8,7 @@ interface TextSynthesizer {
     suspend fun synthesize(text: String, language: IndicLanguage, isUrgent: Boolean = false): Boolean
     fun stop()
     fun prepareLanguage(language: IndicLanguage) {}
+    fun isReadyForLanguage(language: IndicLanguage): Boolean = true
+    suspend fun awaitReady(language: IndicLanguage, timeoutMs: Long = 15000L): Boolean = true
     fun release()
 }

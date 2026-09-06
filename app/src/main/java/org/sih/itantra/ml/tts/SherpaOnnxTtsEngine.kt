@@ -53,10 +53,6 @@ class SherpaOnnxTtsEngine(
         val lengthScale: Float = 1.0f
     )
 
-    init {
-        initEngine(IndicLanguage.HINDI)
-    }
-
     fun getActiveLanguage(): IndicLanguage? = synchronized(modelLock) { activeLanguage }
 
     fun getOrInitTts(language: IndicLanguage): OfflineTts? = synchronized(modelLock) {
@@ -222,11 +218,29 @@ class SherpaOnnxTtsEngine(
     }
 
     fun initEngine(language: IndicLanguage = IndicLanguage.HINDI): Boolean = synchronized(modelLock) {
-        getOrInitTtsLocked(language) != null
+        val tts = getOrInitTtsLocked(language)
+        if (tts != null) {
+            Log.i(tag, "${language.displayName} TTS ready")
+        }
+        tts != null
     }
 
     override fun prepareLanguage(language: IndicLanguage) {
         initEngine(language)
+    }
+
+    override fun isReadyForLanguage(language: IndicLanguage): Boolean = synchronized(modelLock) {
+        activeLanguage == language && activeTts != null
+    }
+
+    override suspend fun awaitReady(language: IndicLanguage, timeoutMs: Long): Boolean {
+        if (isReadyForLanguage(language)) return true
+        val startTime = System.currentTimeMillis()
+        while (System.currentTimeMillis() - startTime < timeoutMs) {
+            if (isReadyForLanguage(language)) return true
+            delay(50)
+        }
+        return isReadyForLanguage(language)
     }
 
     override suspend fun synthesize(text: String, language: IndicLanguage, isUrgent: Boolean): Boolean =

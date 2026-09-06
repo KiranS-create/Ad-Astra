@@ -69,6 +69,22 @@ class NeuralTtsRouter(
         }
     }
 
+    override fun isReadyForLanguage(language: IndicLanguage): Boolean {
+        return if (isNeuralTtsSupported(language)) {
+            sherpaTts.isReadyForLanguage(language)
+        } else {
+            true
+        }
+    }
+
+    override suspend fun awaitReady(language: IndicLanguage, timeoutMs: Long): Boolean {
+        return if (isNeuralTtsSupported(language)) {
+            sherpaTts.awaitReady(language, timeoutMs)
+        } else {
+            true
+        }
+    }
+
     override fun release() {
         sherpaTts.release()
         platformTts.release()

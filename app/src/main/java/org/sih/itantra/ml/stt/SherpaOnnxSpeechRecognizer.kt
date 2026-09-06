@@ -11,6 +11,7 @@ import com.k2fsa.sherpa.onnx.OfflineRecognizerConfig
 import com.k2fsa.sherpa.onnx.OfflineWhisperModelConfig
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -46,10 +47,6 @@ class SherpaOnnxSpeechRecognizer(
     override val results: SharedFlow<SpeechResult> = _results.asSharedFlow()
     private val isListening = AtomicBoolean(false)
     private var isInitialized = false
-
-    init {
-        initEngine(IndicLanguage.HINDI)
-    }
 
     fun getActiveLanguage(): IndicLanguage? = synchronized(modelLock) { activeLanguage }
 
@@ -189,11 +186,29 @@ class SherpaOnnxSpeechRecognizer(
     }
 
     fun initEngine(language: IndicLanguage = IndicLanguage.HINDI): Boolean = synchronized(modelLock) {
-        getOrInitRecognizerLocked(language) != null
+        val rec = getOrInitRecognizerLocked(language)
+        if (rec != null) {
+            Log.i(tag, "${language.displayName} STT ready")
+        }
+        rec != null
     }
 
     override fun prepareLanguage(language: IndicLanguage) {
         initEngine(language)
+    }
+
+    override fun isReadyForLanguage(language: IndicLanguage): Boolean = synchronized(modelLock) {
+        activeLanguage == language && activeRecognizer != null
+    }
+
+    override suspend fun awaitReady(language: IndicLanguage, timeoutMs: Long): Boolean {
+        if (isReadyForLanguage(language)) return true
+        val startTime = System.currentTimeMillis()
+        while (System.currentTimeMillis() - startTime < timeoutMs) {
+            if (isReadyForLanguage(language)) return true
+            delay(50)
+        }
+        return isReadyForLanguage(language)
     }
 
     override suspend fun processAudioSegment(pcmBytes: ByteArray, language: IndicLanguage): SpeechResult =
