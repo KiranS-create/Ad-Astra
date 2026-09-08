@@ -1,4 +1,4 @@
-﻿package org.sih.itantra.presentation.theme
+package org.sih.itantra.presentation.theme
 
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
@@ -117,3 +117,15 @@ fun ITantraTheme(
         )
     }
 }
+
+val RadioColors.card: Color get() = surface
+val RadioColors.danger: Color get() = alert
+
+@Composable
+fun ITantraTheme(
+    darkTheme: Boolean,
+    content: @Composable () -> Unit
+) = ITantraTheme(
+    themeMode = if (darkTheme) AppThemeMode.DARK else AppThemeMode.LIGHT,
+    content = content
+)
