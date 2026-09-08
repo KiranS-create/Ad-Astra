@@ -24,14 +24,21 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.core.content.ContextCompat
+import androidx.activity.compose.BackHandler
 import org.sih.itantra.core.common.IndicLanguage
 import org.sih.itantra.core.transport.TransportType
+import org.sih.itantra.core.persistence.MessageHistoryStore
 import org.sih.itantra.presentation.components.BottomNavBar
 import org.sih.itantra.presentation.components.RadioNavTab
+import org.sih.itantra.presentation.screens.ChatsHomeScreen
+import org.sih.itantra.presentation.screens.ContactsScreen
 import org.sih.itantra.presentation.screens.DiagnosticsScreen
+import org.sih.itantra.presentation.screens.GlobalSearchScreen
 import org.sih.itantra.presentation.screens.HistoryScreen
+import org.sih.itantra.presentation.screens.IndividualChatScreen
 import org.sih.itantra.presentation.screens.MainTransceiverScreen
 import org.sih.itantra.presentation.screens.ModelStatusScreen
+import org.sih.itantra.presentation.screens.NearbyDevicesScreen
 import org.sih.itantra.presentation.screens.SettingsScreen
 import org.sih.itantra.presentation.theme.ITantraTheme
 import org.sih.itantra.presentation.theme.LocalRadioColors
@@ -65,11 +72,96 @@ class MainActivity : ComponentActivity() {
                     color = radioColors.background
                 ) {
                     var currentTab by remember { mutableStateOf(RadioNavTab.RADIO) }
+                    var activeChatPeerId by remember { mutableStateOf<String?>(null) }
+                    var showContacts by remember { mutableStateOf(false) }
+                    var showNearbyDevices by remember { mutableStateOf(false) }
+                    var showGlobalSearch by remember { mutableStateOf(false) }
                     var showModelAudit by remember { mutableStateOf(false) }
                     var showManetDemo by remember { mutableStateOf(false) }
                     var showSihDemo by remember { mutableStateOf(false) }
 
-                    if (showSihDemo) {
+                    BackHandler(
+                        enabled = activeChatPeerId != null || showNearbyDevices || showContacts || showGlobalSearch || showSihDemo || showModelAudit || showManetDemo
+                    ) {
+                        when {
+                            activeChatPeerId != null -> activeChatPeerId = null
+                            showNearbyDevices -> showNearbyDevices = false
+                            showContacts -> showContacts = false
+                            showGlobalSearch -> showGlobalSearch = false
+                            showSihDemo -> showSihDemo = false
+                            showModelAudit -> showModelAudit = false
+                            showManetDemo -> showManetDemo = false
+                        }
+                    }
+
+                    if (activeChatPeerId != null) {
+                        IndividualChatScreen(
+                            peerId = activeChatPeerId!!,
+                            viewModel = viewModel,
+                            onBack = { activeChatPeerId = null },
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .statusBarsPadding()
+                                .navigationBarsPadding()
+                        )
+                    } else if (showGlobalSearch) {
+                        GlobalSearchScreen(
+                            searchRepository = viewModel.searchRepository,
+                            onBack = { showGlobalSearch = false },
+                            onOpenChat = { peerId ->
+                                showGlobalSearch = false
+                                activeChatPeerId = peerId
+                            },
+                            onOpenContact = { nodeId ->
+                                showGlobalSearch = false
+                                showContacts = true
+                            },
+                            onInspectMessage = { messageId ->
+                                showGlobalSearch = false
+                                val record = MessageHistoryStore.getRecords().firstOrNull { it.id == messageId }
+                                if (record != null) {
+                                    activeChatPeerId = record.peer
+                                }
+                            },
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .statusBarsPadding()
+                                .navigationBarsPadding()
+                        )
+                    } else if (showNearbyDevices) {
+                        NearbyDevicesScreen(
+                            repository = viewModel.nearbyDeviceRepository,
+                            onBack = { showNearbyDevices = false },
+                            onAddContact = { device ->
+                                viewModel.addContactFromNearby(device)
+                            },
+                            onOpenChat = { nodeId ->
+                                showNearbyDevices = false
+                                activeChatPeerId = "Node #$nodeId"
+                            },
+                            onTestConnection = { nodeId ->
+                                viewModel.sendTestPacketTo(nodeId)
+                            },
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .statusBarsPadding()
+                                .navigationBarsPadding()
+                        )
+                    } else if (showContacts) {
+                        ContactsScreen(
+                            contactRepository = viewModel.contactRepository,
+                            onOpenChat = { nodeId ->
+                                showContacts = false
+                                activeChatPeerId = "Node #$nodeId"
+                            },
+                            onBack = { showContacts = false },
+                            onOpenNearby = { showNearbyDevices = true },
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .statusBarsPadding()
+                                .navigationBarsPadding()
+                        )
+                    } else if (showSihDemo) {
                         org.sih.itantra.presentation.screens.SihDemoScreen(
                             viewModel = viewModel,
                             onBack = { showSihDemo = false },
@@ -114,6 +206,14 @@ class MainActivity : ComponentActivity() {
                                         onNavigateToSettings = { currentTab = RadioNavTab.SETTINGS },
                                         onNavigateToModelAudit = { showModelAudit = true }
                                     )
+                                    RadioNavTab.CHATS -> ChatsHomeScreen(
+                                        viewModel = viewModel,
+                                        onOpenRadio = { currentTab = RadioNavTab.RADIO },
+                                        onOpenChat = { peerId -> activeChatPeerId = peerId },
+                                        onOpenContacts = { showContacts = true },
+                                        onOpenGlobalSearch = { showGlobalSearch = true },
+                                        onOpenNearby = { showNearbyDevices = true }
+                                    )
                                     RadioNavTab.TRANSCRIPT -> HistoryScreen(
                                         viewModel = viewModel
                                     )
@@ -127,15 +227,24 @@ class MainActivity : ComponentActivity() {
                                         viewModel = viewModel,
                                         onOpenModelAudit = { showModelAudit = true },
                                         onOpenManetDemo = { showManetDemo = true },
-                                        onOpenSihDemo = { showSihDemo = true }
+                                        onOpenSihDemo = { showSihDemo = true },
+                                        onOpenContacts = { showContacts = true },
+                                        onOpenNearby = { showNearbyDevices = true },
+                                        onOpenGlobalSearch = { showGlobalSearch = true }
                                     )
                                 }
                             }
 
-                            // 4-Tab Bottom Navigation Bar
+                            // 4-Tab Bottom Navigation Bar (Radio leftmost, Chats second)
                             BottomNavBar(
                                 currentTab = currentTab,
-                                onTabSelected = { currentTab = it }
+                                onTabSelected = {
+                                    currentTab = it
+                                    activeChatPeerId = null
+                                    showContacts = false
+                                    showNearbyDevices = false
+                                    showGlobalSearch = false
+                                }
                             )
                         }
                     }

@@ -12,7 +12,10 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicLong
 
 data class PlaybackTiming(
     val trackPrepStartNanos: Long,
@@ -41,6 +44,8 @@ class AndroidAudioPlayer(
 
     private val tag = "AndroidAudioPlayer"
     private val trackLock = Any()
+    private val playbackMutex = Mutex()
+    private val currentPlaybackId = AtomicLong(0)
     private var audioTrack: AudioTrack? = null
     private var currentSampleRate: Int = 0
     private var currentIsUrgent: Boolean = false
@@ -56,7 +61,11 @@ class AndroidAudioPlayer(
     }
 
     override fun playPcm(pcmBytes: ByteArray, sampleRate: Int, isUrgent: Boolean) {
-        CoroutineScope(dispatcher).launch {
+        if (isUrgent) {
+            playJob?.cancel()
+            stopPlayback()
+        }
+        playJob = CoroutineScope(dispatcher).launch {
             playPcmAwait(pcmBytes, sampleRate, isUrgent)
         }
     }
@@ -71,89 +80,99 @@ class AndroidAudioPlayer(
 
         val tTrackPrepStart = System.nanoTime()
 
-        if (isUrgent && _isPlaying.get()) {
+        if (isUrgent) {
             stopPlayback()
         }
 
-        _isPlaying.set(true)
-        var tFirstFrameWritten = 0L
-        var tTrackPrepEnd = 0L
+        val myPlaybackId = currentPlaybackId.incrementAndGet()
 
-        try {
-            val track = synchronized(trackLock) {
-                getOrCreateAudioTrackLocked(sampleRate, isUrgent)
-            }
-            tTrackPrepEnd = System.nanoTime()
-
-            if (track.playState != AudioTrack.PLAYSTATE_PLAYING) {
-                track.play()
+        playbackMutex.withLock {
+            if (myPlaybackId != currentPlaybackId.get() && isUrgent) {
+                return@withLock false
             }
 
-            val totalBytes = pcmBytes.size
-            var offset = 0
-            val chunkSize = 8192 // 8KB chunks for efficient JNI streaming
+            _isPlaying.set(true)
+            var tFirstFrameWritten = 0L
+            var tTrackPrepEnd = 0L
 
-            while (offset < totalBytes && _isPlaying.get()) {
-                val bytesToWrite = minOf(chunkSize, totalBytes - offset)
-                val written = track.write(pcmBytes, offset, bytesToWrite, AudioTrack.WRITE_BLOCKING)
-                if (written < 0) {
-                    Log.w(tag, "AudioTrack.write error code: $written")
-                    break
-                }
-                if (tFirstFrameWritten == 0L && written > 0) {
-                    tFirstFrameWritten = System.nanoTime()
-                }
-                offset += written
-            }
-
-            if (tFirstFrameWritten == 0L) {
-                tFirstFrameWritten = System.nanoTime()
-            }
-
-            // In streaming mode, stop() transitions track to draining mode
-            // Playing continues until internal buffer empties
             try {
-                track.stop()
-            } catch (e: Exception) {
-                Log.w(tag, "Error calling stop() on AudioTrack", e)
-            }
+                val track = synchronized(trackLock) {
+                    getOrCreateAudioTrackLocked(sampleRate, isUrgent)
+                }
+                tTrackPrepEnd = System.nanoTime()
 
-            // Estimate acoustic drain time based on remaining samples in buffer:
-            // totalFrames = totalBytes / 2 (16-bit mono)
-            val totalFrames = totalBytes / 2
-            val totalDurationMs = (totalFrames * 1000L) / sampleRate
+                if (track.playState != AudioTrack.PLAYSTATE_PLAYING) {
+                    track.play()
+                }
 
-            // Wait for head position or duration with tight 10ms polling to eliminate completion jitter
-            val playStartTime = System.currentTimeMillis()
-            while (_isPlaying.get() && (System.currentTimeMillis() - playStartTime) < (totalDurationMs + 100L)) {
-                try {
-                    if (track.playState == AudioTrack.PLAYSTATE_STOPPED) {
+                val totalBytes = pcmBytes.size
+                var offset = 0
+                val chunkSize = 8192 // 8KB chunks for efficient JNI streaming
+
+                while (offset < totalBytes && _isPlaying.get() && myPlaybackId == currentPlaybackId.get()) {
+                    val bytesToWrite = minOf(chunkSize, totalBytes - offset)
+                    val written = track.write(pcmBytes, offset, bytesToWrite, AudioTrack.WRITE_BLOCKING)
+                    if (written < 0) {
+                        Log.w(tag, "AudioTrack.write error code: $written")
                         break
                     }
-                } catch (_: Exception) {
-                    break
+                    if (tFirstFrameWritten == 0L && written > 0) {
+                        tFirstFrameWritten = System.nanoTime()
+                    }
+                    offset += written
                 }
-                delay(10)
-            }
 
-            val tPlaybackComplete = System.nanoTime()
+                if (tFirstFrameWritten == 0L) {
+                    tFirstFrameWritten = System.nanoTime()
+                }
 
-            val timing = PlaybackTiming(
-                trackPrepStartNanos = tTrackPrepStart,
-                trackPrepEndNanos = tTrackPrepEnd,
-                firstFrameWrittenNanos = tFirstFrameWritten,
-                playbackCompleteNanos = tPlaybackComplete
-            )
-            onTiming?.invoke(timing)
-            true
-        } catch (e: Exception) {
-            Log.e(tag, "PCM playback error", e)
-            synchronized(trackLock) {
-                releaseAudioTrackLocked()
+                // In streaming mode, stop() transitions track to draining mode
+                // Playing continues until internal buffer empties
+                try {
+                    track.stop()
+                } catch (e: Exception) {
+                    Log.w(tag, "Error calling stop() on AudioTrack", e)
+                }
+
+                // Estimate acoustic drain time based on remaining samples in buffer:
+                // totalFrames = totalBytes / 2 (16-bit mono)
+                val totalFrames = totalBytes / 2
+                val totalDurationMs = (totalFrames * 1000L) / sampleRate
+
+                // Wait for head position or duration with tight 10ms polling to eliminate completion jitter
+                val playStartTime = System.currentTimeMillis()
+                while (_isPlaying.get() && myPlaybackId == currentPlaybackId.get() && (System.currentTimeMillis() - playStartTime) < (totalDurationMs + 100L)) {
+                    try {
+                        if (track.playState == AudioTrack.PLAYSTATE_STOPPED) {
+                            break
+                        }
+                    } catch (_: Exception) {
+                        break
+                    }
+                    delay(10)
+                }
+
+                val tPlaybackComplete = System.nanoTime()
+
+                val timing = PlaybackTiming(
+                    trackPrepStartNanos = tTrackPrepStart,
+                    trackPrepEndNanos = tTrackPrepEnd,
+                    firstFrameWrittenNanos = tFirstFrameWritten,
+                    playbackCompleteNanos = tPlaybackComplete
+                )
+                onTiming?.invoke(timing)
+                true
+            } catch (e: Exception) {
+                Log.e(tag, "PCM playback error", e)
+                synchronized(trackLock) {
+                    releaseAudioTrackLocked()
+                }
+                false
+            } finally {
+                if (myPlaybackId == currentPlaybackId.get()) {
+                    _isPlaying.set(false)
+                }
             }
-            false
-        } finally {
-            _isPlaying.set(false)
         }
     }
 
@@ -218,6 +237,7 @@ class AndroidAudioPlayer(
     }
 
     override fun stopPlayback() {
+        currentPlaybackId.incrementAndGet()
         _isPlaying.set(false)
         synchronized(trackLock) {
             try {

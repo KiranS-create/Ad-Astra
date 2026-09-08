@@ -120,7 +120,6 @@ class WifiTransport(
     private fun getBroadcastAddresses(): List<InetAddress> {
         val broadcastList = mutableListOf<InetAddress>()
         try {
-            broadcastList.add(InetAddress.getByName("255.255.255.255"))
             val interfaces = java.net.NetworkInterface.getNetworkInterfaces()
             while (interfaces != null && interfaces.hasMoreElements()) {
                 val networkInterface = interfaces.nextElement()
@@ -132,8 +131,16 @@ class WifiTransport(
                     }
                 }
             }
+            if (broadcastList.isEmpty()) {
+                broadcastList.add(InetAddress.getByName("255.255.255.255"))
+            }
         } catch (e: Exception) {
             Log.e(tag, "Error determining broadcast addresses", e)
+            if (broadcastList.isEmpty()) {
+                try {
+                    broadcastList.add(InetAddress.getByName("255.255.255.255"))
+                } catch (_: Exception) {}
+            }
         }
         return broadcastList.distinct()
     }

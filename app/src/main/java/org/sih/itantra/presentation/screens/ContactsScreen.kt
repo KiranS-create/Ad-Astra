@@ -32,6 +32,7 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Sensors
 import androidx.compose.material3.BasicAlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -76,6 +77,7 @@ fun ContactsScreen(
     contactRepository: ContactRepository,
     onOpenChat: (nodeId: Int) -> Unit = {},
     onBack: () -> Unit = {},
+    onOpenNearby: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val radioColors = LocalRadioColors.current
@@ -164,21 +166,52 @@ fun ContactsScreen(
                     }
                 }
 
-                // Node Count Capsule
-                Box(
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(6.dp))
-                        .background(radioColors.capsule)
-                        .border(1.dp, radioColors.border, RoundedCornerShape(6.dp))
-                        .padding(horizontal = 8.dp, vertical = 4.dp)
-                ) {
-                    Text(
-                        text = "${filteredContacts.size} NODES",
-                        color = radioColors.sage,
-                        fontSize = 10.sp,
-                        fontWeight = FontWeight.Bold,
-                        fontFamily = FontFamily.Monospace
-                    )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    // Nearby Discovery Button
+                    Box(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(6.dp))
+                            .background(radioColors.capsule)
+                            .border(1.dp, radioColors.border, RoundedCornerShape(6.dp))
+                            .clickable { onOpenNearby() }
+                            .padding(horizontal = 8.dp, vertical = 4.dp)
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                imageVector = Icons.Default.Sensors,
+                                contentDescription = "Discover Nearby",
+                                tint = if (radioColors.isDark) radioColors.sage else radioColors.forest,
+                                modifier = Modifier.size(14.dp)
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(
+                                text = "NEARBY",
+                                color = if (radioColors.isDark) radioColors.sage else radioColors.forest,
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.Bold,
+                                fontFamily = FontFamily.Monospace
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.width(8.dp))
+
+                    // Node Count Capsule
+                    Box(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(6.dp))
+                            .background(radioColors.capsule)
+                            .border(1.dp, radioColors.border, RoundedCornerShape(6.dp))
+                            .padding(horizontal = 8.dp, vertical = 4.dp)
+                    ) {
+                        Text(
+                            text = "${filteredContacts.size} NODES",
+                            color = radioColors.sage,
+                            fontSize = 10.sp,
+                            fontWeight = FontWeight.Bold,
+                            fontFamily = FontFamily.Monospace
+                        )
+                    }
                 }
             }
 
@@ -267,7 +300,8 @@ fun ContactsScreen(
                     onClearFilters = {
                         searchQuery = ""
                         selectedLanguageFilter = null
-                    }
+                    },
+                    onOpenNearby = onOpenNearby
                 )
             } else {
                 val listState = rememberLazyListState()
@@ -342,7 +376,8 @@ private fun LanguageFilterChip(
 private fun EmptyContactsView(
     isSearchActive: Boolean,
     onAddContact: () -> Unit,
-    onClearFilters: () -> Unit
+    onClearFilters: () -> Unit,
+    onOpenNearby: () -> Unit = {}
 ) {
     val radioColors = LocalRadioColors.current
     Column(
@@ -396,22 +431,48 @@ private fun EmptyContactsView(
 
         Spacer(modifier = Modifier.height(20.dp))
 
-        Box(
-            modifier = Modifier
-                .clip(RoundedCornerShape(8.dp))
-                .background(if (radioColors.isDark) radioColors.sage else radioColors.forest)
-                .clickable { if (isSearchActive) onClearFilters() else onAddContact() }
-                .padding(horizontal = 16.dp, vertical = 10.dp),
-            contentAlignment = Alignment.Center
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(
-                text = if (isSearchActive) "CLEAR FILTERS" else "ADD CONTACT",
-                color = Color.White,
-                fontSize = 11.sp,
-                fontWeight = FontWeight.Bold,
-                fontFamily = FontFamily.Monospace,
-                letterSpacing = 0.5.sp
-            )
+            Box(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(if (radioColors.isDark) radioColors.sage else radioColors.forest)
+                    .clickable { if (isSearchActive) onClearFilters() else onAddContact() }
+                    .padding(horizontal = 16.dp, vertical = 10.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = if (isSearchActive) "CLEAR FILTERS" else "ADD CONTACT",
+                    color = Color.White,
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Bold,
+                    fontFamily = FontFamily.Monospace,
+                    letterSpacing = 0.5.sp
+                )
+            }
+
+            if (!isSearchActive) {
+                Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(radioColors.capsule)
+                        .border(1.dp, radioColors.border, RoundedCornerShape(8.dp))
+                        .clickable { onOpenNearby() }
+                        .padding(horizontal = 16.dp, vertical = 10.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "DISCOVER NEARBY",
+                        color = radioColors.textPrimary,
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold,
+                        fontFamily = FontFamily.Monospace,
+                        letterSpacing = 0.5.sp
+                    )
+                }
+            }
         }
     }
 }

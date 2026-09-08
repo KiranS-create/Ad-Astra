@@ -33,10 +33,11 @@ import androidx.compose.ui.unit.sp
 import org.sih.itantra.presentation.theme.LocalRadioColors
 
 enum class RadioNavTab(val label: String, val icon: ImageVector) {
+    CHATS("Chats", Icons.Default.ChatBubbleOutline),
     RADIO("Radio", Icons.Default.Radio),
-    TRANSCRIPT("Transcript", Icons.Default.ChatBubbleOutline),
     DIAGNOSTICS("Diagnostics", Icons.Default.Analytics),
-    SETTINGS("Settings", Icons.Default.Settings)
+    SETTINGS("Settings", Icons.Default.Settings),
+    TRANSCRIPT("Transcript", Icons.Default.ChatBubbleOutline)
 }
 
 /**
@@ -50,6 +51,12 @@ fun BottomNavBar(
     modifier: Modifier = Modifier
 ) {
     val radioColors = LocalRadioColors.current
+    val visibleTabs = listOf(
+        RadioNavTab.RADIO,
+        RadioNavTab.CHATS,
+        RadioNavTab.DIAGNOSTICS,
+        RadioNavTab.SETTINGS
+    )
 
     Box(
         modifier = modifier
@@ -67,7 +74,7 @@ fun BottomNavBar(
             horizontalArrangement = Arrangement.SpaceAround,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            RadioNavTab.entries.forEach { tab ->
+            visibleTabs.forEach { tab ->
                 val isSelected = currentTab == tab
                 val itemColor = if (isSelected) {
                     if (radioColors.isDark) radioColors.sage else radioColors.forest

@@ -1,4 +1,4 @@
-﻿package org.sih.itantra.core.tts
+package org.sih.itantra.core.tts
 
 import android.content.Context
 import android.media.AudioAttributes
@@ -36,6 +36,7 @@ class OfflineTtsEngine(
     override val ttsState: StateFlow<TtsState> = _ttsState.asStateFlow()
 
     private val alertToneGenerator = AlertToneGenerator()
+    private val pendingUtterances = java.util.concurrent.ConcurrentHashMap<String, kotlinx.coroutines.CancellableContinuation<Boolean>>()
 
     init {
         tts = TextToSpeech(context, this)
@@ -44,11 +45,44 @@ class OfflineTtsEngine(
     override fun onInit(status: Int) {
         if (status == TextToSpeech.SUCCESS) {
             isInitialized = true
+            setupUtteranceListener()
             Log.i(tag, "Offline TTS Engine initialized successfully")
         } else {
             Log.e(tag, "Offline TTS Engine initialization failed with status $status")
             _ttsState.value = TtsState.ERROR
         }
+    }
+
+    private fun setupUtteranceListener() {
+        tts?.setOnUtteranceProgressListener(object : UtteranceProgressListener() {
+            override fun onStart(id: String?) {
+                _ttsState.value = TtsState.PLAYING
+            }
+
+            override fun onDone(id: String?) {
+                val cont = id?.let { pendingUtterances.remove(it) }
+                if (cont != null && cont.isActive) cont.resume(true)
+                if (pendingUtterances.isEmpty()) {
+                    _ttsState.value = TtsState.IDLE
+                }
+            }
+
+            override fun onError(id: String?) {
+                val cont = id?.let { pendingUtterances.remove(it) }
+                if (cont != null && cont.isActive) cont.resume(false)
+                if (pendingUtterances.isEmpty()) {
+                    _ttsState.value = TtsState.IDLE
+                }
+            }
+
+            override fun onStop(id: String?, interrupted: Boolean) {
+                val cont = id?.let { pendingUtterances.remove(it) }
+                if (cont != null && cont.isActive) cont.resume(false)
+                if (pendingUtterances.isEmpty()) {
+                    _ttsState.value = TtsState.IDLE
+                }
+            }
+        })
     }
 
     override suspend fun synthesize(text: String, language: IndicLanguage, isUrgent: Boolean): Boolean =
@@ -63,7 +97,7 @@ class OfflineTtsEngine(
                 alertToneGenerator.playAlertTone()
             }
 
-            return@withContext suspendCancellableCoroutine { continuation ->
+            suspendCancellableCoroutine { continuation ->
                 val locale = when (language) {
                     IndicLanguage.HINDI -> Locale("hi", "IN")
                     IndicLanguage.GUJARATI -> Locale("gu", "IN")
@@ -80,6 +114,11 @@ class OfflineTtsEngine(
                 tts?.language = locale
 
                 val utteranceId = UUID.randomUUID().toString()
+                pendingUtterances[utteranceId] = continuation
+                continuation.invokeOnCancellation {
+                    pendingUtterances.remove(utteranceId)
+                }
+
                 val params = Bundle().apply {
                     if (isUrgent) {
                         putInt(TextToSpeech.Engine.KEY_PARAM_STREAM, AudioManager.STREAM_ALARM)
@@ -89,29 +128,20 @@ class OfflineTtsEngine(
                     }
                 }
 
-                tts?.setOnUtteranceProgressListener(object : UtteranceProgressListener() {
-                    override fun onStart(id: String?) {
-                        _ttsState.value = TtsState.PLAYING
-                    }
-
-                    override fun onDone(id: String?) {
-                        _ttsState.value = TtsState.COMPLETED
-                        if (continuation.isActive) continuation.resume(true)
-                        _ttsState.value = TtsState.IDLE
-                    }
-
-                    override fun onError(id: String?) {
-                        _ttsState.value = TtsState.ERROR
-                        if (continuation.isActive) continuation.resume(false)
-                        _ttsState.value = TtsState.IDLE
-                    }
-                })
-
                 _ttsState.value = TtsState.SYNTHESIZING
+                if (isUrgent) {
+                    // Preempt any queued non-urgent utterances
+                    for ((id, cont) in pendingUtterances) {
+                        if (id != utteranceId && cont.isActive) cont.resume(false)
+                    }
+                    pendingUtterances.keys.retainAll { it == utteranceId }
+                }
+
                 val queueMode = if (isUrgent) TextToSpeech.QUEUE_FLUSH else TextToSpeech.QUEUE_ADD
                 val result = tts?.speak(text, queueMode, params, utteranceId)
 
                 if (result != TextToSpeech.SUCCESS) {
+                    pendingUtterances.remove(utteranceId)
                     _ttsState.value = TtsState.ERROR
                     if (continuation.isActive) continuation.resume(false)
                     _ttsState.value = TtsState.IDLE
@@ -120,6 +150,10 @@ class OfflineTtsEngine(
         }
 
     override fun stop() {
+        for ((_, cont) in pendingUtterances) {
+            if (cont.isActive) cont.resume(false)
+        }
+        pendingUtterances.clear()
         tts?.stop()
         _ttsState.value = TtsState.IDLE
     }

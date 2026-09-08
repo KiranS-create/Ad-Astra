@@ -184,8 +184,10 @@ class ManetRouter(
             sendViaNextHop(packet, route.nextHopNodeId)
         } else {
             Log.i(TAG, "No route to $destId — storing in DTN and triggering RREQ")
-            dtnStore.store(packet)
-            enqueuePacket(destId, packet)
+            val stored = dtnStore.store(packet)
+            if (!stored) {
+                enqueuePacket(destId, packet)
+            }
             triggerRreq(destId)
             true // packet accepted into queue; delivery asynchronous
         }
@@ -454,8 +456,10 @@ class ManetRouter(
     private fun flushPendingQueue(destId: Int, nextHopId: Int) {
         scope.launch {
             // 1. Drain and forward DTN stored packets first (prioritized: DISTRESS > ALERT > IMPORTANT > NORMAL)
+            val sentKeys = mutableSetOf<String>()
             val dtnPackets = dtnStore.drainForDestination(destId)
             for (pkt in dtnPackets) {
+                sentKeys.add("${pkt.sourceDeviceId}_${pkt.sequenceNumber}")
                 sendViaNextHop(pkt, nextHopId)
                 cPacketsRouted.incrementAndGet()
                 Log.i(TAG, "DTN PACKET FORWARDED: dest=$destId priority=${pkt.priority}")
@@ -467,6 +471,10 @@ class ManetRouter(
                 val now = System.currentTimeMillis()
                 while (true) {
                     val pending = queue.pollFirst() ?: break
+                    val key = "${pending.packet.sourceDeviceId}_${pending.packet.sequenceNumber}"
+                    if (sentKeys.contains(key)) {
+                        continue
+                    }
                     if (now - pending.enqueuedMs > PENDING_TTL_MS) {
                         Log.w(TAG, "Pending packet for dest=$destId expired in queue — dropped")
                         continue

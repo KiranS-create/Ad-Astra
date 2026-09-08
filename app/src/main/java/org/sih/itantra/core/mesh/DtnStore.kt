@@ -197,6 +197,36 @@ class DtnStore(
         return expiredPackets
     }
 
+    fun remove(transferOrSeqId: Short): Boolean = synchronized(lock) {
+        val toRemove = entries.filter { entry ->
+            if (entry.key.endsWith("_$transferOrSeqId")) {
+                true
+            } else {
+                try {
+                    val packet = PacketSerializer.deserialize(entry.packetBytes)
+                    if (packet.sequenceNumber == transferOrSeqId) {
+                        true
+                    } else if (packet.isFragmented) {
+                        org.sih.itantra.core.protocol.FragmentMetadata.deserialize(packet.payload)?.transferId == transferOrSeqId
+                    } else {
+                        false
+                    }
+                } catch (_: Exception) {
+                    false
+                }
+            }
+        }
+        if (toRemove.isNotEmpty()) {
+            for (e in toRemove) {
+                entries.remove(e)
+                deleteFromDisk(e.key)
+            }
+            Log.i(TAG, "DTN REMOVED ACKED: id=$transferOrSeqId count=${toRemove.size}")
+            return true
+        }
+        return false
+    }
+
     fun size(): Int = synchronized(lock) { entries.size }
 
     fun totalByteCount(): Int = synchronized(lock) { entries.sumOf { it.packetBytes.size } }

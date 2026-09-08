@@ -47,6 +47,19 @@ import java.util.concurrent.atomic.AtomicLong
 import org.sih.itantra.core.demo.DemoScenario
 import org.sih.itantra.core.demo.SihDemoCoordinator
 import org.sih.itantra.core.demo.SihDemoState
+import org.sih.itantra.core.contact.ContactAuthStatus
+import org.sih.itantra.core.contact.ContactIdentity
+import org.sih.itantra.core.contact.ContactRepository
+import org.sih.itantra.core.contact.TacticalContact
+import org.sih.itantra.core.discovery.BleDiscoverySource
+import org.sih.itantra.core.discovery.DeviceTrustState
+import org.sih.itantra.core.discovery.MeshTopologyDiscoverySource
+import org.sih.itantra.core.discovery.NearbyDevice
+import org.sih.itantra.core.discovery.NearbyDeviceRepository
+import org.sih.itantra.core.discovery.UwbDiscoverySource
+import org.sih.itantra.core.search.LocalSearchRepository
+import org.sih.itantra.core.search.SearchContactItem
+import org.sih.itantra.core.search.SearchIndex
 
 enum class VoiceEngineStatus(val label: String) {
     READY("READY"),
@@ -118,6 +131,58 @@ class TransceiverViewModel(application: Application) : AndroidViewModel(applicat
             else -> VoiceEngineStatus.OFFLINE
         }
     }.stateIn(viewModelScope, SharingStarted.Eagerly, VoiceEngineStatus.LOADING)
+
+    // -------------------------------------------------------------------------
+    // Tactical Chats & Conversation Layer
+    // -------------------------------------------------------------------------
+
+    val chatRepository = org.sih.itantra.core.chat.ChatRepository(
+        context = application.applicationContext,
+        scope = viewModelScope
+    )
+
+    // -------------------------------------------------------------------------
+    // Tactical Contacts Layer (Feature 3)
+    // -------------------------------------------------------------------------
+
+    val contactRepository = ContactRepository(
+        context = application.applicationContext,
+        scope = viewModelScope
+    )
+
+    val conversationSummaries: StateFlow<List<org.sih.itantra.core.chat.ConversationSummary>> =
+        chatRepository.filteredConversations
+
+    val chatSearchQuery: StateFlow<String> = chatRepository.searchQuery
+
+    fun setChatSearchQuery(query: String) {
+        chatRepository.setSearchQuery(query)
+    }
+
+    fun markConversationAsRead(peerId: String) {
+        chatRepository.markConversationAsRead(peerId)
+    }
+
+    fun getThreadMessages(peerId: String): List<MessageRecord> {
+        return chatRepository.getThreadMessages(peerId)
+    }
+
+    fun getChatHeaderState(peerId: String): org.sih.itantra.core.chat.IndividualChatHeaderState {
+        return chatRepository.getHeaderState(peerId)
+    }
+
+    fun playVoiceMessage(text: String, language: IndicLanguage = activeLanguage.value) {
+        viewModelScope.launch {
+            coordinator.testSynthesizeAndPlay(text, language)
+        }
+    }
+
+    fun sendChatMessage(peerId: String, text: String) {
+        if (text.isBlank()) return
+        viewModelScope.launch {
+            coordinator.sendAlert(text, isDistress = false)
+        }
+    }
 
     // -------------------------------------------------------------------------
     // MANET Node Mode — ServiceConnection to ManetNodeService
@@ -292,6 +357,74 @@ class TransceiverViewModel(application: Application) : AndroidViewModel(applicat
     )
     val meshTopologySnapshot: StateFlow<MeshTopologySnapshot> = _meshTopologySnapshot.asStateFlow()
 
+    // -------------------------------------------------------------------------
+    // Nearby Device Discovery Layer (Feature 4)
+    // -------------------------------------------------------------------------
+
+    val nearbyDeviceRepository = NearbyDeviceRepository(
+        localNodeId = coordinator.manetRouter.localNodeId,
+        bleSource = BleDiscoverySource(application.applicationContext),
+        uwbSource = UwbDiscoverySource(application.applicationContext),
+        meshSource = MeshTopologyDiscoverySource(
+            localNodeId = coordinator.manetRouter.localNodeId,
+            neighborTableProvider = { coordinator.manetRouter.neighborTable.liveNeighbors() },
+            routeTableProvider = { _meshTopologySnapshot.value.routes }
+        )
+    )
+
+    fun addContactFromNearby(device: NearbyDevice): Boolean {
+        val identity = ContactIdentity(
+            nodeId = device.nodeId,
+            callsign = device.callsign,
+            displayName = if (device.callsign.startsWith("NODE #", ignoreCase = true)) null else device.callsign,
+            supportedLanguages = device.supportedLanguages,
+            authStatus = when (device.trustState) {
+                DeviceTrustState.AUTHENTICATED_HMAC -> ContactAuthStatus.AUTHENTICATED
+                DeviceTrustState.KNOWN_CONTACT -> ContactAuthStatus.TRUSTED
+                else -> ContactAuthStatus.UNVERIFIED
+            }
+        )
+        return contactRepository.addContact(identity)
+    }
+
+    fun sendTestPacketTo(nodeId: Int) {
+        viewModelScope.launch {
+            val text = "Radio connection ping to Node #$nodeId"
+            coordinator.sendAlert(text, isDistress = false)
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // Offline Global Search Layer (Feature 5)
+    // -------------------------------------------------------------------------
+
+    val searchRepository = LocalSearchRepository(
+        context = application.applicationContext,
+        scope = viewModelScope
+    ).apply {
+        setContactProvider {
+            contactRepository.contacts.value.map { contact ->
+                SearchContactItem(
+                    nodeId = contact.nodeId,
+                    callsign = contact.callsign,
+                    displayName = contact.displayName,
+                    supportedLanguages = contact.supportedLanguages,
+                    authStatus = contact.authStatus.name,
+                    notes = contact.identity.notes,
+                    isOffline = contact.isOffline
+                )
+            }
+        }
+    }
+
+    init {
+        viewModelScope.launch {
+            contactRepository.contacts.collect {
+                searchRepository.searchIndex.refreshContacts()
+            }
+        }
+    }
+
     fun setSimulationMode(enabled: Boolean) {
         _isSimulationMode.value = enabled
         _selectedNodeId.value = null
@@ -362,6 +495,10 @@ class TransceiverViewModel(application: Application) : AndroidViewModel(applicat
             snap
         }
         _meshTopologySnapshot.value = snapshot
+        chatRepository.updateTopology(snapshot)
+        contactRepository.updateTopology(snapshot)
+        searchRepository.updateTopology(snapshot)
+        nearbyDeviceRepository.localNodeId = coordinator.manetRouter.localNodeId
     }
 
     fun simStartDiscovery() {

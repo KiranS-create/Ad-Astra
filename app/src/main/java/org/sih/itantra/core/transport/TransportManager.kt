@@ -35,30 +35,54 @@ class TransportManager(
     private val _receivedPackets = MutableSharedFlow<Packet>(replay = 0, extraBufferCapacity = 64)
     val receivedPackets: SharedFlow<Packet> = _receivedPackets.asSharedFlow()
 
+    private val seenPacketsLock = Any()
+    private val seenPackets = object : java.util.LinkedHashMap<String, Long>(300, 0.75f, true) {
+        override fun removeEldestEntry(eldest: MutableMap.MutableEntry<String, Long>?): Boolean {
+            return size > 300
+        }
+    }
+
+    private fun isDuplicateTransportPacket(packet: Packet): Boolean {
+        val now = System.currentTimeMillis()
+        val key = "${packet.sourceDeviceId}_${packet.sequenceNumber}_${packet.msgType}_${packet.payload.size}_${packet.crc32}"
+        synchronized(seenPacketsLock) {
+            val lastSeen = seenPackets[key]
+            if (lastSeen != null && (now - lastSeen) < 15_000L) {
+                return true
+            }
+            seenPackets[key] = now
+            return false
+        }
+    }
+
     init {
         // In auto failover mode, listen to both Wi-Fi and Bluetooth so no incoming packets are missed
         scope.launch {
             wifiTransport.receivedPackets.collect { packet ->
-                if (_isAutoFailoverEnabled.value || _activeTransport.value == wifiTransport) {
+                if ((_isAutoFailoverEnabled.value || _activeTransport.value == wifiTransport) && !isDuplicateTransportPacket(packet)) {
                     _receivedPackets.emit(packet)
                 }
             }
         }
         scope.launch {
             bluetoothTransport.receivedPackets.collect { packet ->
-                if (_isAutoFailoverEnabled.value || _activeTransport.value == bluetoothTransport) {
+                if ((_isAutoFailoverEnabled.value || _activeTransport.value == bluetoothTransport) && !isDuplicateTransportPacket(packet)) {
                     _receivedPackets.emit(packet)
                 }
             }
         }
         scope.launch {
             loopbackTransport.receivedPackets.collect { packet ->
-                if (_activeTransport.value == loopbackTransport) _receivedPackets.emit(packet)
+                if (_activeTransport.value == loopbackTransport && !isDuplicateTransportPacket(packet)) {
+                    _receivedPackets.emit(packet)
+                }
             }
         }
         scope.launch {
             embeddedRadioTransport.receivedPackets.collect { packet ->
-                if (_activeTransport.value == embeddedRadioTransport) _receivedPackets.emit(packet)
+                if (_activeTransport.value == embeddedRadioTransport && !isDuplicateTransportPacket(packet)) {
+                    _receivedPackets.emit(packet)
+                }
             }
         }
     }

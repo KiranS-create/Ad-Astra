@@ -79,6 +79,21 @@ class ReassemblyBuffer(
     )
 
     private val entries = HashMap<TransferKey, TransferEntry>()
+    // Bounded LRU cache of completed transfers to prevent duplicate reassembly
+    private val completedTransfers = java.util.Collections.synchronizedSet(
+        object : java.util.LinkedHashSet<TransferKey>(100) {
+            override fun add(element: TransferKey): Boolean {
+                if (size >= 100) {
+                    val it = iterator()
+                    if (it.hasNext()) {
+                        it.next()
+                        it.remove()
+                    }
+                }
+                return super.add(element)
+            }
+        }
+    )
     private val lock = Any()
 
     /**
@@ -107,6 +122,11 @@ class ReassemblyBuffer(
         }
 
         val key = TransferKey(sourceDeviceId, meta.transferId)
+        if (completedTransfers.contains(key)) {
+            Log.d(TAG, "Duplicate fragment for already completed transfer 0x${Integer.toHexString(meta.transferId.toInt() and 0xFFFF)} dropped")
+            return null
+        }
+
         var entry = entries[key]
 
         if (entry == null) {
@@ -172,6 +192,7 @@ class ReassemblyBuffer(
 
             val reassemblyLatencyMs = (nowMs - entry.firstReceivedMs).coerceAtLeast(0L)
             entries.remove(key)
+            completedTransfers.add(key)
 
             Log.i(TAG, "Reassembly complete for transfer 0x${Integer.toHexString(meta.transferId.toInt() and 0xFFFF)} " +
                     "from node $sourceDeviceId: ${assembled.size}B across ${entry.fragmentCount} fragments in ${reassemblyLatencyMs}ms")
@@ -218,5 +239,6 @@ class ReassemblyBuffer(
      */
     fun clear(): Unit = synchronized(lock) {
         entries.clear()
+        completedTransfers.clear()
     }
 }

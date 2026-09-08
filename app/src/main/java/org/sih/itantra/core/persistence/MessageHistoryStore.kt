@@ -16,9 +16,24 @@ object MessageHistoryStore {
     private val _historyFlow = MutableStateFlow<List<MessageRecord>>(emptyList())
     val historyFlow: StateFlow<List<MessageRecord>> = _historyFlow.asStateFlow()
 
+    private val listeners = CopyOnWriteArrayList<() -> Unit>()
+
+    fun addListener(listener: () -> Unit) {
+        listeners.add(listener)
+    }
+
+    fun removeListener(listener: () -> Unit) {
+        listeners.remove(listener)
+    }
+
+    private fun notifyListeners() {
+        listeners.forEach { it.invoke() }
+    }
+
     fun addRecord(record: MessageRecord) {
         records.add(0, record) // Most recent first
         _historyFlow.value = records.toList()
+        notifyListeners()
     }
 
     /**
@@ -39,6 +54,7 @@ object MessageHistoryStore {
         }
         if (updated) {
             _historyFlow.value = records.toList()
+            notifyListeners()
         }
     }
 
@@ -47,5 +63,6 @@ object MessageHistoryStore {
     fun clear() {
         records.clear()
         _historyFlow.value = emptyList()
+        notifyListeners()
     }
 }

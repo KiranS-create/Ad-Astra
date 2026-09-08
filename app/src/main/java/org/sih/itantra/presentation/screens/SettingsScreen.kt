@@ -25,8 +25,11 @@ import androidx.compose.material.icons.filled.Brightness4
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.LightMode
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Security
+import androidx.compose.material.icons.filled.Sensors
 import androidx.compose.material.icons.filled.WarningAmber
 import androidx.compose.material.icons.filled.Wifi
 import androidx.compose.material3.Button
@@ -63,6 +66,9 @@ fun SettingsScreen(
     onOpenModelAudit: () -> Unit,
     onOpenManetDemo: () -> Unit = {},
     onOpenSihDemo: () -> Unit = {},
+    onOpenContacts: () -> Unit = {},
+    onOpenNearby: () -> Unit = {},
+    onOpenGlobalSearch: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val radioColors = LocalRadioColors.current
@@ -763,7 +769,179 @@ fun SettingsScreen(
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // 7. DEMO & EVALUATION
+        // 7. TACTICAL DIRECTORY & DISCOVERY
+        SectionHeader(title = "TACTICAL DIRECTORY & DISCOVERY")
+        Spacer(modifier = Modifier.height(8.dp))
+
+        // Contacts Card
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(12.dp))
+                .background(radioColors.surface)
+                .border(1.dp, radioColors.border.copy(alpha = 0.5f), RoundedCornerShape(12.dp))
+                .clickable { onOpenContacts() }
+                .padding(14.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f)) {
+                    Box(
+                        modifier = Modifier
+                            .size(36.dp)
+                            .background(radioColors.capsule, CircleShape),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Person,
+                            contentDescription = "Contacts",
+                            tint = if (radioColors.isDark) radioColors.sage else radioColors.forest,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Column {
+                        Text(
+                            text = "Tactical Contacts Roster",
+                            color = radioColors.textPrimary,
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                        Text(
+                            text = "Callsigns, node IDs, public keys & roles",
+                            color = radioColors.textSecondary,
+                            fontSize = 11.sp
+                        )
+                    }
+                }
+                Text(
+                    text = "OPEN →",
+                    color = if (radioColors.isDark) radioColors.sage else radioColors.forest,
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Bold,
+                    fontFamily = FontFamily.Monospace
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        // Nearby Devices Card
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(12.dp))
+                .background(radioColors.surface)
+                .border(1.dp, radioColors.border.copy(alpha = 0.5f), RoundedCornerShape(12.dp))
+                .clickable { onOpenNearby() }
+                .padding(14.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f)) {
+                    Box(
+                        modifier = Modifier
+                            .size(36.dp)
+                            .background(radioColors.capsule, CircleShape),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Sensors,
+                            contentDescription = "Nearby Devices",
+                            tint = if (radioColors.isDark) radioColors.sage else radioColors.forest,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Column {
+                        Text(
+                            text = "Nearby iTantra Nodes",
+                            color = radioColors.textPrimary,
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                        Text(
+                            text = "BLE, UWB & Mesh topology live discovery",
+                            color = radioColors.textSecondary,
+                            fontSize = 11.sp
+                        )
+                    }
+                }
+                Text(
+                    text = "DISCOVER →",
+                    color = if (radioColors.isDark) radioColors.sage else radioColors.forest,
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Bold,
+                    fontFamily = FontFamily.Monospace
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        // Global Search Card
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(12.dp))
+                .background(radioColors.surface)
+                .border(1.dp, radioColors.border.copy(alpha = 0.5f), RoundedCornerShape(12.dp))
+                .clickable { onOpenGlobalSearch() }
+                .padding(14.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f)) {
+                    Box(
+                        modifier = Modifier
+                            .size(36.dp)
+                            .background(radioColors.capsule, CircleShape),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Search,
+                            contentDescription = "Global Search",
+                            tint = if (radioColors.isDark) radioColors.sage else radioColors.forest,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Column {
+                        Text(
+                            text = "Offline Global Search",
+                            color = radioColors.textPrimary,
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                        Text(
+                            text = "Search across messages, contacts & topology",
+                            color = radioColors.textSecondary,
+                            fontSize = 11.sp
+                        )
+                    }
+                }
+                Text(
+                    text = "SEARCH →",
+                    color = if (radioColors.isDark) radioColors.sage else radioColors.forest,
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Bold,
+                    fontFamily = FontFamily.Monospace
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        // 8. DEMO & EVALUATION
         SectionHeader(title = "DEMO & EVALUATION")
         Spacer(modifier = Modifier.height(8.dp))
 

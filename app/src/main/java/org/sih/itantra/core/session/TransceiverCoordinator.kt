@@ -99,7 +99,34 @@ class TransceiverCoordinator(
     val stateMachine = PttStateMachine()
     private val sequenceCounter = AtomicInteger(1)
     private val transferSequence = AtomicInteger(1)
-    private val localDeviceId: Int = (Math.random() * 900000 + 100000).toInt()
+    private val localDeviceId: Int = org.sih.itantra.service.ManetNodePreference.lastNodeId(context).let { stored ->
+        if (stored != 0) stored
+        else {
+            val generated = (Math.random() * 900_000 + 100_000).toInt()
+            org.sih.itantra.service.ManetNodePreference.setLastNodeId(context, generated)
+            generated
+        }
+    }
+
+    private val deliveredMessagesLock = Any()
+    private val deliveredMessages = object : java.util.LinkedHashMap<String, Long>(500, 0.75f, true) {
+        override fun removeEldestEntry(eldest: MutableMap.MutableEntry<String, Long>?): Boolean {
+            return size > 500
+        }
+    }
+
+    private fun isAlreadyDelivered(key: String): Boolean {
+        val now = System.currentTimeMillis()
+        synchronized(deliveredMessagesLock) {
+            val prev = deliveredMessages[key]
+            if (prev != null && (now - prev) < 60_000L) {
+                return true
+            }
+            deliveredMessages[key] = now
+            return false
+        }
+    }
+
     val relayRouter = PacketRelayRouter(localDeviceId)
     val manetRouter = ManetRouter(
         context          = context,
@@ -685,6 +712,11 @@ class TransceiverCoordinator(
      * Incoming Pipeline: Transport -> Mesh Relay / Protocol Decode -> TTS Synthesize -> Playback
      */
     private suspend fun handleIncomingPacket(packet: Packet) {
+        // Drop self packets immediately (local echo / reflected broadcast)
+        if (packet.sourceDeviceId == localDeviceId) {
+            return
+        }
+
         // 0. Periodically prune expired outgoing and reassembly transfers
         val timedOutTransfers = pendingTransferTracker.pruneExpired()
         for (t in timedOutTransfers) {
@@ -753,6 +785,7 @@ class TransceiverCoordinator(
         if (packet.msgType == Packet.TYPE_ACK) {
             val receipt = DeliveryReceipt.deserialize(packet.payload)
             if (receipt != null) {
+                manetRouter.dtnStore.remove(receipt.transferId)
                 val tracked = pendingTransferTracker.onReceiptReceived(receipt)
                 if (tracked != null) {
                     MessageHistoryStore.updateRecordDelivery(receipt.transferId, DeliveryStatus.DELIVERED, tracked.deliveryRttMs)
@@ -806,6 +839,8 @@ class TransceiverCoordinator(
         val effectiveMsgType: Byte
         val fragmentCountForLog: Int?
 
+        val deliveryKey: String
+
         if (packet.isFragmented) {
             DiagnosticsRepository.recordFragmentReceived()
             val fragment = PacketFragment.fromPayload(packet.payload)
@@ -822,6 +857,7 @@ class TransceiverCoordinator(
             effectiveFlags = result.originalFlags
             effectiveMsgType = result.originalMsgType
             fragmentCountForLog = result.fragmentCount
+            deliveryKey = "${packet.sourceDeviceId}_transfer_${result.transferId}"
 
             DiagnosticsRepository.recordMessageReassembled(result.fragmentCount, result.reassemblyTimeMs.toDouble(), result.transferId)
 
@@ -860,6 +896,7 @@ class TransceiverCoordinator(
             effectiveFlags = packet.flags
             effectiveMsgType = packet.msgType
             fragmentCountForLog = null
+            deliveryKey = "${packet.sourceDeviceId}_seq_${packet.sequenceNumber}"
 
             if (packet.requiresAck) {
                 val ackPayload = DeliveryReceipt(packet.sequenceNumber, DeliveryReceipt.STATUS_DELIVERED).serialize()
@@ -891,6 +928,11 @@ class TransceiverCoordinator(
                     }
                 }
             }
+        }
+
+        if (isAlreadyDelivered(deliveryKey)) {
+            Log.i(tag, "Message $deliveryKey already delivered locally — suppressed duplicate TTS and transcript")
+            return
         }
 
         val tRx = BenchmarkClock.nowNanos()
