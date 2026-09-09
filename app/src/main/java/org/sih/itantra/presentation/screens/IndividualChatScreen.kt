@@ -58,10 +58,13 @@ import org.sih.itantra.core.chat.ChatRouteState
 import org.sih.itantra.core.chat.IndividualChatHeaderState
 import org.sih.itantra.core.common.IndicLanguage
 import org.sih.itantra.core.common.MessagePriority
+import org.sih.itantra.core.message.RadioMessageStateMapper
 import org.sih.itantra.core.persistence.MessageDirection
 import org.sih.itantra.core.persistence.MessageRecord
 import org.sih.itantra.core.protocol.DeliveryStatus
 import org.sih.itantra.core.session.PttState
+import org.sih.itantra.presentation.components.MessageRadioStateIndicator
+import org.sih.itantra.presentation.components.MessageRadioTelemetry
 import org.sih.itantra.presentation.theme.LocalRadioColors
 import org.sih.itantra.presentation.viewmodel.TransceiverViewModel
 import java.text.SimpleDateFormat
@@ -604,86 +607,57 @@ private fun ChatMessageBubble(
                     )
                 }
 
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(4.dp))
 
-                // Footer: Language Badge · Hops · ACK Status · Timestamp
+                // Footer: Language Badge · Wire size
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    // Language Badge
+                    Box(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(4.dp))
+                            .background(radioColors.capsule)
+                            .padding(horizontal = 5.dp, vertical = 1.dp)
                     ) {
-                        // Language Badge
-                        Box(
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(4.dp))
-                                .background(radioColors.capsule)
-                                .padding(horizontal = 5.dp, vertical = 1.dp)
-                        ) {
-                            Text(
-                                text = record.language.displayName.take(5),
-                                color = radioColors.textSecondary,
-                                fontSize = 9.sp,
-                                fontFamily = FontFamily.Monospace
-                            )
-                        }
-
-                        // Wire size
-                        Box(
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(4.dp))
-                                .background(radioColors.capsule)
-                                .padding(horizontal = 5.dp, vertical = 1.dp)
-                        ) {
-                            Text(
-                                text = "${record.packetSizeBytes}B",
-                                color = radioColors.textTertiary,
-                                fontSize = 9.sp,
-                                fontFamily = FontFamily.Monospace
-                            )
-                        }
-
-                        // Delivery / Relay Badge
-                        if (isOutgoing) {
-                            val deliveryLabel = when (record.deliveryStatus) {
-                                DeliveryStatus.DELIVERED -> "ACK ✓"
-                                DeliveryStatus.PENDING, DeliveryStatus.SENDING -> {
-                                    if (record.isRelayed) "DTN STORED" else "TRANSMITTING"
-                                }
-                                DeliveryStatus.TIMEOUT -> "FAILED"
-                                DeliveryStatus.NONE -> "SENT"
-                            }
-                            val ackColor = if (record.deliveryStatus == DeliveryStatus.DELIVERED) radioColors.sage else radioColors.warning
-                            Text(
-                                text = deliveryLabel,
-                                color = ackColor,
-                                fontSize = 9.sp,
-                                fontWeight = FontWeight.Bold,
-                                fontFamily = FontFamily.Monospace
-                            )
-                        } else {
-                            val routeLabel = if (record.hopCount > 1 || record.isRelayed) "${record.hopCount} HOPS" else "DIRECT"
-                            Text(
-                                text = routeLabel,
-                                color = if (record.isRelayed) Color(0xFF0288D1) else radioColors.sage,
-                                fontSize = 9.sp,
-                                fontWeight = FontWeight.Bold,
-                                fontFamily = FontFamily.Monospace
-                            )
-                        }
+                        Text(
+                            text = record.language.displayName.take(5),
+                            color = radioColors.textSecondary,
+                            fontSize = 9.sp,
+                            fontFamily = FontFamily.Monospace
+                        )
                     }
 
-                    // Timestamp
-                    Text(
-                        text = formattedTime,
-                        color = radioColors.textSecondary,
-                        fontSize = 10.sp,
-                        fontFamily = FontFamily.Monospace
-                    )
+                    // Wire size
+                    Box(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(4.dp))
+                            .background(radioColors.capsule)
+                            .padding(horizontal = 5.dp, vertical = 1.dp)
+                    ) {
+                        Text(
+                            text = "${record.packetSizeBytes}B",
+                            color = radioColors.textTertiary,
+                            fontSize = 9.sp,
+                            fontFamily = FontFamily.Monospace
+                        )
+                    }
                 }
+
+                Spacer(modifier = Modifier.height(4.dp))
+
+                // Feature 6: Radio-Aware Message State Indicator
+                // Projects real delivery/network state from MessageRecord — no fabrication.
+                val radioTelemetry = remember(record.id, record.deliveryStatus, record.isRelayed) {
+                    RadioMessageStateMapper.map(record)
+                }
+                MessageRadioStateIndicator(
+                    telemetry = radioTelemetry,
+                    formattedTime = formattedTime,
+                    modifier = Modifier.fillMaxWidth()
+                )
 
                 // 4. Progressive Disclosure: Expanded Technical Packet Inspector
                 AnimatedVisibility(
@@ -725,6 +699,13 @@ private fun ChatMessageBubble(
                         if (record.deliveryLatencyMs != null && record.deliveryLatencyMs > 0) {
                             InspectorRow(label = "ACK RTT LATENCY", value = "${record.deliveryLatencyMs} ms")
                         }
+
+                        // Feature 6: Extended Radio Telemetry section inside inspector
+                        Spacer(modifier = Modifier.height(4.dp))
+                        MessageRadioTelemetry(
+                            telemetry = radioTelemetry,
+                            modifier = Modifier.fillMaxWidth()
+                        )
                     }
                 }
             }
