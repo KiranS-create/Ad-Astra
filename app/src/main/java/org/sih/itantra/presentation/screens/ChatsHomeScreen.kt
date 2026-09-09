@@ -102,7 +102,8 @@ fun ChatsHomeScreen(
                 voiceStatus = voiceStatus,
                 onOpenRadio = onOpenRadio,
                 onOpenContacts = onOpenContacts,
-                onOpenGlobalSearch = onOpenGlobalSearch
+                onOpenGlobalSearch = onOpenGlobalSearch,
+                onOpenNearby = onOpenNearby
             )
 
             Spacer(modifier = Modifier.height(10.dp))
@@ -127,7 +128,8 @@ fun ChatsHomeScreen(
             } else if (conversations.isEmpty() && searchQuery.isNotBlank()) {
                 SearchEmptyState(
                     query = searchQuery,
-                    onClearSearch = { viewModel.setChatSearchQuery("") }
+                    onClearSearch = { viewModel.setChatSearchQuery("") },
+                    onOpenGlobalSearch = onOpenGlobalSearch
                 )
             } else {
                 LazyColumn(
@@ -213,7 +215,8 @@ private fun ChatsHeader(
     voiceStatus: VoiceEngineStatus,
     onOpenRadio: () -> Unit,
     onOpenContacts: () -> Unit = {},
-    onOpenGlobalSearch: () -> Unit = {}
+    onOpenGlobalSearch: () -> Unit = {},
+    onOpenNearby: () -> Unit = {}
 ) {
     val radioColors = LocalRadioColors.current
 
@@ -267,7 +270,7 @@ private fun ChatsHeader(
             )
         }
 
-        // Action icons: Search, Contacts, Quick Radio Access
+        // Action icons: Search, Contacts, Nearby Devices, Quick Radio Access
         Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(6.dp)
@@ -301,6 +304,23 @@ private fun ChatsHeader(
                 Icon(
                     imageVector = Icons.Default.Person,
                     contentDescription = "Tactical Contacts",
+                    tint = if (radioColors.isDark) radioColors.sage else radioColors.forest,
+                    modifier = Modifier.size(18.dp)
+                )
+            }
+
+            Box(
+                modifier = Modifier
+                    .size(36.dp)
+                    .clip(CircleShape)
+                    .background(radioColors.capsule)
+                    .border(1.dp, radioColors.border.copy(alpha = 0.5f), CircleShape)
+                    .clickable { onOpenNearby() },
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Sensors,
+                    contentDescription = "Nearby Devices",
                     tint = if (radioColors.isDark) radioColors.sage else radioColors.forest,
                     modifier = Modifier.size(18.dp)
                 )
@@ -862,7 +882,8 @@ private fun TacticalEmptyState(
 @Composable
 private fun SearchEmptyState(
     query: String,
-    onClearSearch: () -> Unit
+    onClearSearch: () -> Unit,
+    onOpenGlobalSearch: () -> Unit = {}
 ) {
     val radioColors = LocalRadioColors.current
 
@@ -887,14 +908,28 @@ private fun SearchEmptyState(
                 fontSize = 11.sp
             )
             Spacer(modifier = Modifier.height(14.dp))
-            TextButton(onClick = onClearSearch) {
-                Text(
-                    text = "CLEAR SEARCH",
-                    color = if (radioColors.isDark) radioColors.sage else radioColors.forest,
-                    fontSize = 11.sp,
-                    fontWeight = FontWeight.Bold,
-                    fontFamily = FontFamily.Monospace
-                )
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                TextButton(onClick = onClearSearch) {
+                    Text(
+                        text = "CLEAR SEARCH",
+                        color = if (radioColors.isDark) radioColors.sage else radioColors.forest,
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold,
+                        fontFamily = FontFamily.Monospace
+                    )
+                }
+                TextButton(onClick = onOpenGlobalSearch) {
+                    Text(
+                        text = "GLOBAL SEARCH →",
+                        color = radioColors.sage,
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold,
+                        fontFamily = FontFamily.Monospace
+                    )
+                }
             }
         }
     }
