@@ -58,13 +58,14 @@ import org.sih.itantra.core.chat.ChatRouteState
 import org.sih.itantra.core.chat.IndividualChatHeaderState
 import org.sih.itantra.core.common.IndicLanguage
 import org.sih.itantra.core.common.MessagePriority
+import org.sih.itantra.core.message.MessageTechnicalInspectorMapper
 import org.sih.itantra.core.message.RadioMessageStateMapper
 import org.sih.itantra.core.persistence.MessageDirection
 import org.sih.itantra.core.persistence.MessageRecord
 import org.sih.itantra.core.protocol.DeliveryStatus
 import org.sih.itantra.core.session.PttState
 import org.sih.itantra.presentation.components.MessageRadioStateIndicator
-import org.sih.itantra.presentation.components.MessageRadioTelemetry
+import org.sih.itantra.presentation.components.MessageTechnicalInspectorCard
 import org.sih.itantra.presentation.theme.LocalRadioColors
 import org.sih.itantra.presentation.viewmodel.TransceiverViewModel
 import java.text.SimpleDateFormat
@@ -659,83 +660,27 @@ private fun ChatMessageBubble(
                     modifier = Modifier.fillMaxWidth()
                 )
 
-                // 4. Progressive Disclosure: Expanded Technical Packet Inspector
+                // 4. Progressive Disclosure: Expanded Technical Packet Inspector (Feature 7)
                 AnimatedVisibility(
                     visible = isExpanded,
                     enter = fadeIn() + expandVertically(),
                     exit = fadeOut() + shrinkVertically()
                 ) {
-                    Column(
+                    val inspector = remember(record.id, record.deliveryStatus, record.isRelayed, record.authStatus) {
+                        MessageTechnicalInspectorMapper.map(record, radioTelemetry)
+                    }
+                    MessageTechnicalInspectorCard(
+                        inspector = inspector,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(top = 10.dp)
-                            .clip(RoundedCornerShape(8.dp))
-                            .background(Color(0xFF0D1612))
-                            .border(1.dp, radioColors.sage.copy(alpha = 0.4f), RoundedCornerShape(8.dp))
-                            .padding(8.dp),
-                        verticalArrangement = Arrangement.spacedBy(3.dp)
-                    ) {
-                        Text(
-                            text = "TECHNICAL PACKET INSPECTOR",
-                            color = radioColors.sage,
-                            fontSize = 9.sp,
-                            fontWeight = FontWeight.Bold,
-                            fontFamily = FontFamily.Monospace
-                        )
-
-                        InspectorRow(label = "DIRECTION", value = if (isOutgoing) "OUTGOING (TX)" else "INCOMING (RX)")
-                        InspectorRow(label = "PEER / SOURCE", value = record.peer)
-                        InspectorRow(label = "PRIORITY", value = "${record.priority.name} (P${record.priority.id})")
-                        InspectorRow(label = "LANGUAGE", value = "${record.language.displayName} (${record.language.isoCode})")
-                        InspectorRow(label = "PAYLOAD WIRE", value = "${record.packetSizeBytes} Bytes")
-                        if (record.semanticSavingsBytes != null && record.semanticSavingsBytes > 0) {
-                            InspectorRow(label = "SEMANTIC SAVINGS", value = "-${record.semanticSavingsBytes} B (-82%)")
-                        }
-                        if (record.fragmentCount != null) {
-                            InspectorRow(label = "FRAGMENTS", value = "${record.fragmentCount} total")
-                        }
-                        InspectorRow(label = "ROUTE HOPS", value = if (record.hopCount <= 1) "Direct (1 hop)" else "${record.hopCount} hops (Relayed)")
-                        InspectorRow(label = "INTEGRITY AUTH", value = if (record.isSecure) "HMAC-SHA256 Valid ✓" else "UNVERIFIED")
-                        if (record.deliveryLatencyMs != null && record.deliveryLatencyMs > 0) {
-                            InspectorRow(label = "ACK RTT LATENCY", value = "${record.deliveryLatencyMs} ms")
-                        }
-
-                        // Feature 6: Extended Radio Telemetry section inside inspector
-                        Spacer(modifier = Modifier.height(4.dp))
-                        MessageRadioTelemetry(
-                            telemetry = radioTelemetry,
-                            modifier = Modifier.fillMaxWidth()
-                        )
-                    }
+                            .padding(top = 8.dp)
+                    )
                 }
             }
         }
     }
 }
 
-@Composable
-private fun InspectorRow(label: String, value: String) {
-    val radioColors = LocalRadioColors.current
-
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        Text(
-            text = label,
-            color = radioColors.textTertiary,
-            fontSize = 9.sp,
-            fontFamily = FontFamily.Monospace
-        )
-        Text(
-            text = value,
-            color = radioColors.textPrimary,
-            fontSize = 9.sp,
-            fontWeight = FontWeight.Medium,
-            fontFamily = FontFamily.Monospace
-        )
-    }
-}
 
 /**
  * Bottom Tactical Composer Bar with Press-to-Talk and Quick Loopback send controls.
