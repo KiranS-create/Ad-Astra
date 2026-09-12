@@ -12,7 +12,9 @@ import org.sih.itantra.presentation.components.RadioNavTab
  */
 sealed interface ScreenDestination {
     /** Feature 2: Tactical Individual Chat screen with canonical peer ID. */
-    data class Chat(val peerId: String) : ScreenDestination
+    data class Chat(val peerId: String) : ScreenDestination {
+        var expandedMessageId: String? = null
+    }
 
     /** Feature 3: Tactical Contacts Directory & Mesh Node list. */
     data object Contacts : ScreenDestination
@@ -22,6 +24,12 @@ sealed interface ScreenDestination {
 
     /** Feature 5: Offline Global Search screen. */
     data object GlobalSearch : ScreenDestination
+
+    /** Feature 9: Message Journey network path visualization. */
+    data class MessageJourney(val messageId: String) : ScreenDestination
+
+    /** Feature 10: Offline QR Node / Contact Pairing. */
+    data object QrPairing : ScreenDestination
 
     /** Neural Model Status & Offline Audit screen. */
     data object ModelAudit : ScreenDestination

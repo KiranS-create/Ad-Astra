@@ -323,4 +323,74 @@ class NavigationBackStackTest {
         // Cannot pop further
         assertFalse(navManager.navigateBack())
     }
+
+    // 20. Specified Flow 1: Chats -> Contacts -> Nearby -> Back -> Contacts -> Back -> Chats
+    @Test
+    fun testSpecifiedFlow1_Chats_to_Contacts_to_Nearby_andBack() {
+        navManager.selectTab(RadioNavTab.CHATS)
+        assertEquals(RadioNavTab.CHATS, navManager.currentTab)
+        assertNull(navManager.currentDestination)
+
+        // -> Contacts
+        navManager.navigateTo(ScreenDestination.Contacts)
+        assertEquals(ScreenDestination.Contacts, navManager.currentDestination)
+
+        // -> Nearby
+        navManager.navigateTo(ScreenDestination.NearbyDevices)
+        assertEquals(ScreenDestination.NearbyDevices, navManager.currentDestination)
+
+        // -> Back -> Contacts
+        assertTrue(navManager.navigateBack())
+        assertEquals(ScreenDestination.Contacts, navManager.currentDestination)
+
+        // -> Back -> Chats
+        assertTrue(navManager.navigateBack())
+        assertNull(navManager.currentDestination)
+        assertEquals(RadioNavTab.CHATS, navManager.currentTab)
+    }
+
+    // 21. Specified Flow 2: Chats -> Message/Chat -> Message Journey -> Back -> Chat -> Back -> Chats
+    @Test
+    fun testSpecifiedFlow2_Chats_to_Chat_to_MessageJourney_andBack() {
+        navManager.selectTab(RadioNavTab.CHATS)
+
+        // -> Message / Chat
+        navManager.navigateTo(ScreenDestination.Chat("Node #209070"))
+        assertEquals(ScreenDestination.Chat("Node #209070"), navManager.currentDestination)
+
+        // -> Message Journey
+        navManager.navigateTo(ScreenDestination.MessageJourney("msg-001"))
+        assertEquals(ScreenDestination.MessageJourney("msg-001"), navManager.currentDestination)
+
+        // -> Back -> Inspector / Chat
+        assertTrue(navManager.navigateBack())
+        assertEquals(ScreenDestination.Chat("Node #209070"), navManager.currentDestination)
+
+        // -> Back -> Chats
+        assertTrue(navManager.navigateBack())
+        assertNull(navManager.currentDestination)
+        assertEquals(RadioNavTab.CHATS, navManager.currentTab)
+    }
+
+    // 22. Specified Flow 3: Contacts -> QR Pairing -> Back -> Contacts
+    @Test
+    fun testSpecifiedFlow3_Contacts_to_QrPairing_andBack() {
+        navManager.selectTab(RadioNavTab.CHATS)
+        navManager.navigateTo(ScreenDestination.Contacts)
+        assertEquals(ScreenDestination.Contacts, navManager.currentDestination)
+
+        // -> QR Pairing
+        navManager.navigateTo(ScreenDestination.QrPairing)
+        assertEquals(ScreenDestination.QrPairing, navManager.currentDestination)
+
+        // -> Back -> Contacts
+        assertTrue(navManager.navigateBack())
+        assertEquals(ScreenDestination.Contacts, navManager.currentDestination)
+
+        // -> Back -> Chats
+        assertTrue(navManager.navigateBack())
+        assertNull(navManager.currentDestination)
+        assertEquals(RadioNavTab.CHATS, navManager.currentTab)
+    }
 }
+

@@ -1,5 +1,6 @@
 package org.sih.itantra.presentation.screens
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
@@ -32,16 +33,23 @@ import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Send
+import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material.icons.filled.WarningAmber
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
+import org.sih.itantra.core.tts.MessagePlaybackState
+import org.sih.itantra.core.tts.TtsLanguage
+import org.sih.itantra.core.tts.TtsVoiceRegistry
+import org.sih.itantra.presentation.components.MessageLanguageBadge
+import org.sih.itantra.presentation.components.TtsPlaybackIndicator
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -84,6 +92,9 @@ fun IndividualChatScreen(
     peerId: String,
     viewModel: TransceiverViewModel,
     onBack: () -> Unit,
+    onOpenMessageJourney: (String) -> Unit = {},
+    initialExpandedMessageId: String? = null,
+    onExpandedMessageIdChanged: (String?) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val radioColors = LocalRadioColors.current
@@ -91,6 +102,8 @@ fun IndividualChatScreen(
     val allMessages by viewModel.messageHistory.collectAsState()
     val topologySnapshot by viewModel.meshTopologySnapshot.collectAsState()
     val localNodeId = viewModel.coordinator.manetRouter.localNodeId
+    val playbackState by viewModel.messagePlaybackState.collectAsState()
+    val ttsRegistry = viewModel.ttsVoiceRegistry
 
     // Mark as read immediately on opening
     LaunchedEffect(peerId) {
@@ -108,7 +121,14 @@ fun IndividualChatScreen(
     }
 
     var showRouteInspector by remember { mutableStateOf(false) }
-    var expandedMessageId by remember { mutableStateOf<String?>(null) }
+    var expandedMessageId by rememberSaveable { mutableStateOf(initialExpandedMessageId) }
+
+    // Intercept Back to collapse technical inspector if expanded (Back -> Inspector -> Back -> Chat)
+    BackHandler(enabled = expandedMessageId != null) {
+        expandedMessageId = null
+        onExpandedMessageIdChanged(null)
+    }
+
     val listState = rememberLazyListState()
 
     // Auto-scroll to latest message on update
@@ -129,7 +149,14 @@ fun IndividualChatScreen(
             localNodeId = localNodeId,
             showRouteInspector = showRouteInspector,
             onToggleRouteInspector = { showRouteInspector = !showRouteInspector },
-            onBack = onBack
+            onBack = {
+                if (expandedMessageId != null) {
+                    expandedMessageId = null
+                    onExpandedMessageIdChanged(null)
+                } else {
+                    onBack()
+                }
+            }
         )
 
         // Expandable Route Inspector Card (Progressive Disclosure)
@@ -181,11 +208,29 @@ fun IndividualChatScreen(
                         ChatMessageBubble(
                             record = msg,
                             isExpanded = expandedMessageId == msg.id,
+                            playbackState = playbackState,
+                            ttsRegistry = ttsRegistry,
                             onToggleExpand = {
-                                expandedMessageId = if (expandedMessageId == msg.id) null else msg.id
+                                val newId = if (expandedMessageId == msg.id) null else msg.id
+                                expandedMessageId = newId
+                                onExpandedMessageIdChanged(newId)
                             },
                             onPlayVoice = {
-                                viewModel.playVoiceMessage(msg.text, msg.language)
+                                viewModel.playMessageVoice(
+                                    messageId = msg.id,
+                                    text = msg.text,
+                                    language = msg.language,
+                                    peerId = peerId,
+                                    isUrgent = msg.priority.isEmergency
+                                )
+                            },
+                            onStopVoice = {
+                                viewModel.stopVoicePlayback()
+                            },
+                            onOpenJourney = { journeyMsgId ->
+                                expandedMessageId = journeyMsgId
+                                onExpandedMessageIdChanged(journeyMsgId)
+                                onOpenMessageJourney(journeyMsgId)
                             }
                         )
                     }
@@ -480,8 +525,12 @@ private fun EmergencyThreadBanner() {
 private fun ChatMessageBubble(
     record: MessageRecord,
     isExpanded: Boolean,
+    playbackState: MessagePlaybackState,
+    ttsRegistry: TtsVoiceRegistry,
     onToggleExpand: () -> Unit,
-    onPlayVoice: () -> Unit
+    onPlayVoice: () -> Unit,
+    onStopVoice: () -> Unit,
+    onOpenJourney: (String) -> Unit = {}
 ) {
     val radioColors = LocalRadioColors.current
     val isOutgoing = record.direction == MessageDirection.SENT
@@ -503,6 +552,9 @@ private fun ChatMessageBubble(
     }
 
     val alignment = if (isOutgoing) Alignment.End else Alignment.Start
+
+    val isCurrentActive = playbackState.messageId == record.id && playbackState.isActive
+    val isCurrentPlaying = playbackState.messageId == record.id && playbackState.isPlaying
 
     Column(
         modifier = Modifier
@@ -544,13 +596,18 @@ private fun ChatMessageBubble(
                         modifier = Modifier
                             .size(28.dp)
                             .clip(CircleShape)
-                            .background(if (radioColors.isDark) radioColors.sage else radioColors.forest)
-                            .clickable { onPlayVoice() },
+                            .background(
+                                if (isCurrentActive) radioColors.alert
+                                else if (radioColors.isDark) radioColors.sage else radioColors.forest
+                            )
+                            .clickable {
+                                if (isCurrentActive) onStopVoice() else onPlayVoice()
+                            },
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
-                            imageVector = Icons.Default.PlayArrow,
-                            contentDescription = "Play Message Voice",
+                            imageVector = if (isCurrentActive) Icons.Default.Stop else Icons.Default.PlayArrow,
+                            contentDescription = if (isCurrentActive) "Stop Voice Playback" else "Play Message Voice",
                             tint = Color.White,
                             modifier = Modifier.size(16.dp)
                         )
@@ -566,12 +623,22 @@ private fun ChatMessageBubble(
                     ) {
                         val barHeights = listOf(6, 12, 16, 8, 14, 10, 5, 12, 8, 15, 6)
                         barHeights.forEach { h ->
+                            val dynamicHeight = if (isCurrentPlaying) {
+                                ((h * 1.2).toInt()).coerceIn(4, 18)
+                            } else h
+                            val barColor = if (isCurrentPlaying) {
+                                radioColors.sage
+                            } else if (isCurrentActive) {
+                                radioColors.warning
+                            } else {
+                                radioColors.sage.copy(alpha = 0.8f)
+                            }
                             Box(
                                 modifier = Modifier
                                     .width(2.5.dp)
-                                    .height(h.dp)
+                                    .height(dynamicHeight.dp)
                                     .clip(RoundedCornerShape(1.dp))
-                                    .background(radioColors.sage.copy(alpha = 0.8f))
+                                    .background(barColor)
                             )
                         }
                     }
@@ -579,8 +646,8 @@ private fun ChatMessageBubble(
                     Spacer(modifier = Modifier.width(6.dp))
 
                     Text(
-                        text = "${(record.measuredLatencyMs / 1000.0).coerceAtLeast(0.1).toString().take(3)}s",
-                        color = radioColors.textTertiary,
+                        text = if (isCurrentPlaying) "PLAY" else "${(record.measuredLatencyMs / 1000.0).coerceAtLeast(0.1).toString().take(3)}s",
+                        color = if (isCurrentPlaying) radioColors.sage else radioColors.textTertiary,
                         fontSize = 9.sp,
                         fontFamily = FontFamily.Monospace
                     )
@@ -616,20 +683,15 @@ private fun ChatMessageBubble(
                     horizontalArrangement = Arrangement.spacedBy(4.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    // Language Badge
-                    Box(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(4.dp))
-                            .background(radioColors.capsule)
-                            .padding(horizontal = 5.dp, vertical = 1.dp)
-                    ) {
-                        Text(
-                            text = record.language.displayName.take(5),
-                            color = radioColors.textSecondary,
-                            fontSize = 9.sp,
-                            fontFamily = FontFamily.Monospace
-                        )
+                    // Feature 11: Language-Aware Badge
+                    val ttsProfile = remember(record.language) {
+                        ttsRegistry.getProfile(TtsLanguage.fromIndicLanguage(record.language))
                     }
+                    MessageLanguageBadge(
+                        language = ttsProfile.language,
+                        isTtsReady = ttsProfile.isAvailable,
+                        statusLabel = ttsProfile.statusLabel
+                    )
 
                     // Wire size
                     Box(
@@ -645,6 +707,11 @@ private fun ChatMessageBubble(
                             fontFamily = FontFamily.Monospace
                         )
                     }
+                }
+
+                // Feature 11: Active Playback Indicator (shows status, loading, playing, or failure)
+                if (playbackState.messageId == record.id && (playbackState.isActive || playbackState.isFailed)) {
+                    TtsPlaybackIndicator(playbackState = playbackState)
                 }
 
                 Spacer(modifier = Modifier.height(4.dp))
@@ -671,6 +738,7 @@ private fun ChatMessageBubble(
                     }
                     MessageTechnicalInspectorCard(
                         inspector = inspector,
+                        onOpenJourney = onOpenJourney,
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(top = 8.dp)

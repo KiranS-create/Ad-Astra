@@ -60,6 +60,13 @@ import org.sih.itantra.core.discovery.UwbDiscoverySource
 import org.sih.itantra.core.search.LocalSearchRepository
 import org.sih.itantra.core.search.SearchContactItem
 import org.sih.itantra.core.search.SearchIndex
+import org.sih.itantra.core.tts.MessagePlaybackState
+import org.sih.itantra.core.tts.TtsLanguage
+import org.sih.itantra.core.tts.TtsPlaybackStatus
+import org.sih.itantra.core.tts.TtsResolutionResult
+import org.sih.itantra.core.tts.TtsVoiceRegistry
+import org.sih.itantra.core.tts.TtsVoiceResolver
+import kotlinx.coroutines.Job
 
 enum class VoiceEngineStatus(val label: String) {
     READY("READY"),
@@ -171,10 +178,153 @@ class TransceiverViewModel(application: Application) : AndroidViewModel(applicat
         return chatRepository.getHeaderState(peerId)
     }
 
+    // -------------------------------------------------------------------------
+    // Feature 11: Multilingual Playback & Language-Aware TTS
+    // -------------------------------------------------------------------------
+
+    val ttsVoiceRegistry: TtsVoiceRegistry = TtsVoiceRegistry.fromModelAssetManager(coordinator.modelAssetManager)
+    val ttsVoiceResolver: TtsVoiceResolver = TtsVoiceResolver(ttsVoiceRegistry)
+
+    private val _messagePlaybackState = MutableStateFlow(MessagePlaybackState.IDLE)
+    val messagePlaybackState: StateFlow<MessagePlaybackState> = _messagePlaybackState.asStateFlow()
+    private var activePlaybackJob: Job? = null
+
     fun playVoiceMessage(text: String, language: IndicLanguage = activeLanguage.value) {
         viewModelScope.launch {
             coordinator.testSynthesizeAndPlay(text, language)
         }
+    }
+
+    fun playMessageVoice(
+        messageId: String,
+        text: String,
+        language: IndicLanguage?,
+        peerId: String? = null,
+        isUrgent: Boolean = false
+    ) {
+        if (text.isBlank()) return
+
+        if (_messagePlaybackState.value.messageId == messageId && _messagePlaybackState.value.isActive) {
+            stopVoicePlayback()
+            return
+        }
+
+        activePlaybackJob?.cancel()
+        coordinator.tts.stop()
+
+        activePlaybackJob = viewModelScope.launch {
+            val peerNodeId = peerId?.toIntOrNull() ?: peerId?.removePrefix("#")?.toIntOrNull()
+            val peerContact = peerNodeId?.let { contactRepository.getContact(it) }
+                ?: peerId?.let { contactRepository.getContactByCallsign(it) }
+            val peerLang = peerContact?.identity?.supportedLanguages?.firstOrNull()
+
+            val resolution = ttsVoiceResolver.resolve(
+                messageLanguage = language,
+                peerLanguage = peerLang,
+                activeAppLanguage = activeLanguage.value
+            )
+
+            when (resolution) {
+                is TtsResolutionResult.Resolved -> {
+                    val resolvedLang = resolution.profile.language
+                    val indicLang = resolvedLang.toIndicLanguageOrNull() ?: IndicLanguage.ENGLISH
+
+                    _messagePlaybackState.value = MessagePlaybackState(
+                        messageId = messageId,
+                        status = TtsPlaybackStatus.LOADING_VOICE,
+                        language = resolvedLang
+                    )
+
+                    if (!coordinator.tts.isReadyForLanguage(indicLang)) {
+                        coordinator.tts.prepareLanguage(indicLang)
+                        coordinator.tts.awaitReady(indicLang, 10000L)
+                    }
+
+                    _messagePlaybackState.value = MessagePlaybackState(
+                        messageId = messageId,
+                        status = TtsPlaybackStatus.SYNTHESIZING,
+                        language = resolvedLang
+                    )
+
+                    val played = coordinator.tts.synthesize(text, indicLang, isUrgent)
+
+                    if (played) {
+                        _messagePlaybackState.value = MessagePlaybackState(
+                            messageId = messageId,
+                            status = TtsPlaybackStatus.COMPLETED,
+                            language = resolvedLang
+                        )
+                        delay(500)
+                        _messagePlaybackState.value = MessagePlaybackState.IDLE
+                    } else {
+                        _messagePlaybackState.value = MessagePlaybackState(
+                            messageId = messageId,
+                            status = TtsPlaybackStatus.FAILED,
+                            language = resolvedLang,
+                            error = "SYNTHESIS FAILED"
+                        )
+                        delay(2000)
+                        _messagePlaybackState.value = MessagePlaybackState.IDLE
+                    }
+                }
+                is TtsResolutionResult.Unavailable -> {
+                    _messagePlaybackState.value = MessagePlaybackState(
+                        messageId = messageId,
+                        status = TtsPlaybackStatus.UNAVAILABLE,
+                        language = resolution.language,
+                        error = resolution.reason
+                    )
+                    delay(2500)
+                    _messagePlaybackState.value = MessagePlaybackState.IDLE
+                }
+                is TtsResolutionResult.UnknownLanguage -> {
+                    if (resolution.fallbackProfile != null) {
+                        val fallbackLang = resolution.fallbackProfile.language
+                        val indicLang = fallbackLang.toIndicLanguageOrNull() ?: IndicLanguage.ENGLISH
+                        _messagePlaybackState.value = MessagePlaybackState(
+                            messageId = messageId,
+                            status = TtsPlaybackStatus.SYNTHESIZING,
+                            language = fallbackLang
+                        )
+                        val played = coordinator.tts.synthesize(text, indicLang, isUrgent)
+                        if (played) {
+                            _messagePlaybackState.value = MessagePlaybackState(
+                                messageId = messageId,
+                                status = TtsPlaybackStatus.COMPLETED,
+                                language = fallbackLang
+                            )
+                            delay(500)
+                            _messagePlaybackState.value = MessagePlaybackState.IDLE
+                        } else {
+                            _messagePlaybackState.value = MessagePlaybackState(
+                                messageId = messageId,
+                                status = TtsPlaybackStatus.FAILED,
+                                language = fallbackLang,
+                                error = "SYNTHESIS FAILED"
+                            )
+                            delay(2000)
+                            _messagePlaybackState.value = MessagePlaybackState.IDLE
+                        }
+                    } else {
+                        _messagePlaybackState.value = MessagePlaybackState(
+                            messageId = messageId,
+                            status = TtsPlaybackStatus.UNAVAILABLE,
+                            language = TtsLanguage.UNKNOWN,
+                            error = resolution.reason
+                        )
+                        delay(2500)
+                        _messagePlaybackState.value = MessagePlaybackState.IDLE
+                    }
+                }
+            }
+        }
+    }
+
+    fun stopVoicePlayback() {
+        activePlaybackJob?.cancel()
+        activePlaybackJob = null
+        coordinator.tts.stop()
+        _messagePlaybackState.value = MessagePlaybackState.IDLE
     }
 
     fun sendChatMessage(peerId: String, text: String) {

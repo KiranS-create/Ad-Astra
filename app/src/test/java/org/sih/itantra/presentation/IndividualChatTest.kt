@@ -22,6 +22,10 @@ import org.sih.itantra.core.persistence.MessageHistoryStore
 import org.sih.itantra.core.persistence.MessageRecord
 import org.sih.itantra.core.protocol.DeliveryStatus
 import org.sih.itantra.core.protocol.GeoLocation
+import org.sih.itantra.core.tts.TtsLanguage
+import org.sih.itantra.core.tts.TtsResolutionResult
+import org.sih.itantra.core.tts.TtsVoiceRegistry
+import org.sih.itantra.core.tts.TtsVoiceResolver
 import java.io.File
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -362,5 +366,40 @@ class IndividualChatTest {
         assertTrue("Radio must precede Chats (Radio first on left)", radioPos < chatsPos)
         assertTrue("Chats must precede Diagnostics", chatsPos < diagPos)
         assertTrue("Diagnostics must precede Settings", diagPos < setPos)
+    }
+
+    @Test
+    fun testMultilingualMessageBadgeAndTtsResolution() {
+        val resolver = TtsVoiceResolver(TtsVoiceRegistry.DEFAULT)
+
+        val hindiRecord = createRecord(language = IndicLanguage.HINDI, text = "नमस्ते")
+        val tamilRecord = createRecord(language = IndicLanguage.TAMIL, text = "வணக்கம்")
+        val englishRecord = createRecord(language = IndicLanguage.ENGLISH, text = "Hello")
+
+        val hindiRes = resolver.resolveFromRecord(hindiRecord)
+        val tamilRes = resolver.resolveFromRecord(tamilRecord)
+        val englishRes = resolver.resolveFromRecord(englishRecord)
+
+        assertTrue(hindiRes is TtsResolutionResult.Resolved)
+        assertTrue(tamilRes is TtsResolutionResult.Resolved)
+        assertTrue(englishRes is TtsResolutionResult.Resolved)
+
+        assertEquals("HI", (hindiRes as TtsResolutionResult.Resolved).profile.language.badgeCode)
+        assertEquals("TA", (tamilRes as TtsResolutionResult.Resolved).profile.language.badgeCode)
+        assertEquals("EN", (englishRes as TtsResolutionResult.Resolved).profile.language.badgeCode)
+    }
+
+    @Test
+    fun testIndividualChatScreenIntegratesMultilingualPlaybackComponents() {
+        val chatScreenFile = File("src/main/java/org/sih/itantra/presentation/screens/IndividualChatScreen.kt")
+        assertTrue("IndividualChatScreen.kt must exist", chatScreenFile.exists())
+        val code = chatScreenFile.readText()
+
+        // Verify Feature 11 components are integrated
+        assertTrue("Must reference MessageLanguageBadge", code.contains("MessageLanguageBadge("))
+        assertTrue("Must reference TtsPlaybackIndicator", code.contains("TtsPlaybackIndicator("))
+        assertTrue("Must wire playbackState", code.contains("playbackState"))
+        assertTrue("Must wire playMessageVoice", code.contains("playMessageVoice("))
+        assertTrue("Must wire stopVoicePlayback", code.contains("stopVoicePlayback("))
     }
 }

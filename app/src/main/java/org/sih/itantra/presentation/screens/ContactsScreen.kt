@@ -31,6 +31,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.QrCodeScanner
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Sensors
 import androidx.compose.material3.BasicAlertDialog
@@ -78,6 +79,7 @@ fun ContactsScreen(
     onOpenChat: (nodeId: Int) -> Unit = {},
     onBack: () -> Unit = {},
     onOpenNearby: () -> Unit = {},
+    onOpenQrPairing: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val radioColors = LocalRadioColors.current
@@ -194,7 +196,36 @@ fun ContactsScreen(
                         }
                     }
 
-                    Spacer(modifier = Modifier.width(8.dp))
+                    Spacer(modifier = Modifier.width(6.dp))
+
+                    // QR Pairing Button
+                    Box(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(6.dp))
+                            .background(radioColors.capsule)
+                            .border(1.dp, radioColors.border, RoundedCornerShape(6.dp))
+                            .clickable { onOpenQrPairing() }
+                            .padding(horizontal = 8.dp, vertical = 4.dp)
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                imageVector = Icons.Default.QrCodeScanner,
+                                contentDescription = "QR Pairing",
+                                tint = if (radioColors.isDark) radioColors.sage else radioColors.forest,
+                                modifier = Modifier.size(14.dp)
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(
+                                text = "QR",
+                                color = if (radioColors.isDark) radioColors.sage else radioColors.forest,
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.Bold,
+                                fontFamily = FontFamily.Monospace
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.width(6.dp))
 
                     // Node Count Capsule
                     Box(

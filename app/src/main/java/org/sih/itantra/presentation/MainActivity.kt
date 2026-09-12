@@ -40,6 +40,9 @@ import org.sih.itantra.presentation.screens.MainTransceiverScreen
 import org.sih.itantra.presentation.screens.ModelStatusScreen
 import org.sih.itantra.presentation.screens.NearbyDevicesScreen
 import org.sih.itantra.presentation.screens.SettingsScreen
+import org.sih.itantra.presentation.screens.MessageJourneyScreen
+import org.sih.itantra.presentation.screens.QrPairingScreen
+import org.sih.itantra.core.message.journey.MessageJourneyMapper
 import org.sih.itantra.presentation.navigation.NavigationStateManager
 import org.sih.itantra.presentation.navigation.ScreenDestination
 import org.sih.itantra.presentation.theme.ITantraTheme
@@ -84,7 +87,9 @@ class MainActivity : ComponentActivity() {
                         navManager.navigateTo(ScreenDestination.SihDemo)
                     }
 
-                    BackHandler(enabled = navManager.canNavigateBack) {
+                    BackHandler(
+                        enabled = navManager.canNavigateBack
+                    ) {
                         navManager.navigateBack()
                     }
 
@@ -93,6 +98,44 @@ class MainActivity : ComponentActivity() {
                             IndividualChatScreen(
                                 peerId = dest.peerId,
                                 viewModel = viewModel,
+                                onBack = { navManager.navigateBack() },
+                                initialExpandedMessageId = dest.expandedMessageId,
+                                onExpandedMessageIdChanged = { dest.expandedMessageId = it },
+                                onOpenMessageJourney = { messageId ->
+                                    dest.expandedMessageId = messageId
+                                    navManager.navigateTo(ScreenDestination.MessageJourney(messageId))
+                                },
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .statusBarsPadding()
+                                    .navigationBarsPadding()
+                            )
+                        }
+                        is ScreenDestination.MessageJourney -> {
+                            val record = remember(dest.messageId) {
+                                MessageHistoryStore.getRecords().firstOrNull { it.id == dest.messageId }
+                                    ?: viewModel.messageHistory.value.firstOrNull { it.id == dest.messageId }
+                                    ?: org.sih.itantra.core.persistence.MessageRecord(
+                                        id = dest.messageId,
+                                        timestamp = System.currentTimeMillis(),
+                                        direction = org.sih.itantra.core.persistence.MessageDirection.SENT,
+                                        language = org.sih.itantra.core.common.IndicLanguage.ENGLISH,
+                                        priority = org.sih.itantra.core.common.MessagePriority.NORMAL,
+                                        text = "Message #${dest.messageId}",
+                                        peer = "Node #Unknown",
+                                        packetSizeBytes = 128,
+                                        rawAudioEquivalentBytes = 0L,
+                                        measuredLatencyMs = 1.0,
+                                        isRelayed = false,
+                                        hopCount = 1,
+                                        deliveryStatus = org.sih.itantra.core.protocol.DeliveryStatus.DELIVERED
+                                    )
+                            }
+                            val journey = remember(record) {
+                                MessageJourneyMapper.map(record)
+                            }
+                            MessageJourneyScreen(
+                                journey = journey,
                                 onBack = { navManager.navigateBack() },
                                 modifier = Modifier
                                     .fillMaxSize()
@@ -149,6 +192,20 @@ class MainActivity : ComponentActivity() {
                                 },
                                 onBack = { navManager.navigateBack() },
                                 onOpenNearby = { navManager.navigateTo(ScreenDestination.NearbyDevices) },
+                                onOpenQrPairing = { navManager.navigateTo(ScreenDestination.QrPairing) },
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .statusBarsPadding()
+                                    .navigationBarsPadding()
+                            )
+                        }
+                        is ScreenDestination.QrPairing -> {
+                            QrPairingScreen(
+                                localNodeId = viewModel.coordinator.manetRouter.localNodeId,
+                                callsign = "NODE ALPHA",
+                                displayName = "Tactical Unit Alpha",
+                                contactRepository = viewModel.contactRepository,
+                                onBack = { navManager.navigateBack() },
                                 modifier = Modifier
                                     .fillMaxSize()
                                     .statusBarsPadding()
