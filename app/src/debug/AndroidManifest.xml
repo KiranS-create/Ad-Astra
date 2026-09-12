@@ -13,5 +13,10 @@
             android:name="org.sih.itantra.presentation.GlobalSearchActivity"
             android:exported="true"
             android:theme="@android:style/Theme.Material.NoActionBar" />
+        <activity
+            android:name="org.sih.itantra.presentation.MessageJourneyActivity"
+            android:exported="true"
+            android:theme="@android:style/Theme.Material.NoActionBar" />
     </application>
+
 </manifest>

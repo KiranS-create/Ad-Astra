@@ -2,6 +2,7 @@ package org.sih.itantra.presentation.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -40,7 +41,8 @@ import org.sih.itantra.presentation.theme.LocalRadioColors
 @Composable
 fun MessageTechnicalInspectorCard(
     inspector: MessageTechnicalInspector,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onOpenJourney: ((String) -> Unit)? = null
 ) {
     val radioColors = LocalRadioColors.current
 
@@ -114,6 +116,35 @@ fun MessageTechnicalInspectorCard(
                     modifier = Modifier.fillMaxWidth(),
                     thickness = 0.5.dp,
                     color = radioColors.border.copy(alpha = 0.2f)
+                )
+            }
+        }
+
+        // Feature 9 Interaction Hook: View Message Journey
+        if (onOpenJourney != null) {
+            Spacer(modifier = Modifier.height(2.dp))
+            HorizontalDivider(
+                modifier = Modifier.fillMaxWidth(),
+                thickness = 0.5.dp,
+                color = radioColors.border.copy(alpha = 0.3f)
+            )
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(4.dp))
+                    .background(radioColors.capsule)
+                    .border(1.dp, radioColors.sage.copy(alpha = 0.4f), RoundedCornerShape(4.dp))
+                    .clickable { onOpenJourney(inspector.messageId) }
+                    .padding(vertical = 7.dp, horizontal = 10.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "VIEW MESSAGE JOURNEY →",
+                    color = if (radioColors.isDark) radioColors.sage else radioColors.forest,
+                    fontSize = 9.5.sp,
+                    fontWeight = FontWeight.Bold,
+                    fontFamily = FontFamily.Monospace,
+                    letterSpacing = 0.5.sp
                 )
             }
         }
