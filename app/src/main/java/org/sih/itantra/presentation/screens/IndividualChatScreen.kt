@@ -66,14 +66,21 @@ import org.sih.itantra.core.chat.ChatRouteState
 import org.sih.itantra.core.chat.IndividualChatHeaderState
 import org.sih.itantra.core.common.IndicLanguage
 import org.sih.itantra.core.common.MessagePriority
+import org.sih.itantra.core.emergency.EmergencyAction
+import org.sih.itantra.core.emergency.EmergencyUiMapper
+import org.sih.itantra.core.emergency.EmergencyUiState
 import org.sih.itantra.core.message.MessageTechnicalInspectorMapper
 import org.sih.itantra.core.message.RadioMessageStateMapper
 import org.sih.itantra.core.persistence.MessageDirection
 import org.sih.itantra.core.persistence.MessageRecord
 import org.sih.itantra.core.protocol.DeliveryStatus
 import org.sih.itantra.core.session.PttState
+import org.sih.itantra.presentation.components.EmergencyBanner
+import org.sih.itantra.presentation.components.EmergencyDistressButton
+import org.sih.itantra.presentation.components.EmergencyMessageBubble
 import org.sih.itantra.presentation.components.MessageRadioStateIndicator
 import org.sih.itantra.presentation.components.MessageTechnicalInspectorCard
+import org.sih.itantra.presentation.screens.EmergencyComposer
 import org.sih.itantra.presentation.theme.LocalRadioColors
 import org.sih.itantra.presentation.viewmodel.TransceiverViewModel
 import java.text.SimpleDateFormat
@@ -105,6 +112,8 @@ fun IndividualChatScreen(
     val playbackState by viewModel.messagePlaybackState.collectAsState()
     val ttsRegistry = viewModel.ttsVoiceRegistry
 
+    var emergencyUiState by remember { mutableStateOf(EmergencyUiState.IDLE) }
+
     // Mark as read immediately on opening
     LaunchedEffect(peerId) {
         viewModel.markConversationAsRead(peerId)
@@ -115,6 +124,11 @@ fun IndividualChatScreen(
         viewModel.getThreadMessages(peerId)
     }
 
+    // Feature 12: Dynamic emergency context derived from thread history (distinguishes active vs historical)
+    val emergencyContext = remember(threadMessages) {
+        EmergencyUiMapper.map(threadMessages)
+    }
+
     // Dynamic header state derived from topology and thread
     val headerState = remember(allMessages, topologySnapshot, peerId) {
         viewModel.getChatHeaderState(peerId)
@@ -123,10 +137,14 @@ fun IndividualChatScreen(
     var showRouteInspector by remember { mutableStateOf(false) }
     var expandedMessageId by rememberSaveable { mutableStateOf(initialExpandedMessageId) }
 
-    // Intercept Back to collapse technical inspector if expanded (Back -> Inspector -> Back -> Chat)
-    BackHandler(enabled = expandedMessageId != null) {
-        expandedMessageId = null
-        onExpandedMessageIdChanged(null)
+    // Intercept Back to dismiss emergency composer or collapse technical inspector if expanded
+    BackHandler(enabled = emergencyUiState.isEmergencyComposerOpen || expandedMessageId != null) {
+        if (emergencyUiState.isEmergencyComposerOpen) {
+            emergencyUiState = EmergencyUiState.IDLE
+        } else if (expandedMessageId != null) {
+            expandedMessageId = null
+            onExpandedMessageIdChanged(null)
+        }
     }
 
     val listState = rememberLazyListState()
@@ -138,11 +156,14 @@ fun IndividualChatScreen(
         }
     }
 
-    Column(
+    Box(
         modifier = modifier
             .fillMaxSize()
             .background(radioColors.background)
     ) {
+        Column(
+            modifier = Modifier.fillMaxSize()
+        ) {
         // 1. Peer Header with Tactical Telemetry & Route Inspector Toggle
         IndividualChatHeader(
             headerState = headerState,
@@ -171,10 +192,8 @@ fun IndividualChatScreen(
             )
         }
 
-        // Emergency Distress Banner if thread has active emergency
-        if (headerState.isEmergency) {
-            EmergencyThreadBanner()
-        }
+        // Feature 12: Emergency Distress Banner (distinguishes active vs historical)
+        EmergencyBanner(context = emergencyContext)
 
         // 2. Chronological Message Timeline (LazyColumn)
         Box(
@@ -205,50 +224,118 @@ fun IndividualChatScreen(
                         .padding(vertical = 8.dp)
                 ) {
                     items(threadMessages, key = { it.id }) { msg ->
-                        ChatMessageBubble(
-                            record = msg,
-                            isExpanded = expandedMessageId == msg.id,
-                            playbackState = playbackState,
-                            ttsRegistry = ttsRegistry,
-                            onToggleExpand = {
-                                val newId = if (expandedMessageId == msg.id) null else msg.id
-                                expandedMessageId = newId
-                                onExpandedMessageIdChanged(newId)
-                            },
-                            onPlayVoice = {
-                                viewModel.playMessageVoice(
-                                    messageId = msg.id,
-                                    text = msg.text,
-                                    language = msg.language,
-                                    peerId = peerId,
-                                    isUrgent = msg.priority.isEmergency
-                                )
-                            },
-                            onStopVoice = {
-                                viewModel.stopVoicePlayback()
-                            },
-                            onOpenJourney = { journeyMsgId ->
-                                expandedMessageId = journeyMsgId
-                                onExpandedMessageIdChanged(journeyMsgId)
-                                onOpenMessageJourney(journeyMsgId)
-                            }
-                        )
+                        val isDistress = msg.priority == MessagePriority.DISTRESS || msg.priority == MessagePriority.ALERT
+                        if (isDistress) {
+                            EmergencyMessageBubble(
+                                record = msg,
+                                isExpanded = expandedMessageId == msg.id,
+                                playbackState = playbackState,
+                                ttsRegistry = ttsRegistry,
+                                onToggleExpand = {
+                                    val newId = if (expandedMessageId == msg.id) null else msg.id
+                                    expandedMessageId = newId
+                                    onExpandedMessageIdChanged(newId)
+                                },
+                                onPlayVoice = {
+                                    viewModel.playMessageVoice(
+                                        messageId = msg.id,
+                                        text = msg.text,
+                                        language = msg.language,
+                                        peerId = peerId,
+                                        isUrgent = true
+                                    )
+                                },
+                                onStopVoice = {
+                                    viewModel.stopVoicePlayback()
+                                },
+                                onOpenJourney = { journeyMsgId: String ->
+                                    expandedMessageId = journeyMsgId
+                                    onExpandedMessageIdChanged(journeyMsgId)
+                                    onOpenMessageJourney(journeyMsgId)
+                                }
+                            )
+                        } else {
+                            ChatMessageBubble(
+                                record = msg,
+                                isExpanded = expandedMessageId == msg.id,
+                                playbackState = playbackState,
+                                ttsRegistry = ttsRegistry,
+                                onToggleExpand = {
+                                    val newId = if (expandedMessageId == msg.id) null else msg.id
+                                    expandedMessageId = newId
+                                    onExpandedMessageIdChanged(newId)
+                                },
+                                onPlayVoice = {
+                                    viewModel.playMessageVoice(
+                                        messageId = msg.id,
+                                        text = msg.text,
+                                        language = msg.language,
+                                        peerId = peerId,
+                                        isUrgent = false
+                                    )
+                                },
+                                onStopVoice = {
+                                    viewModel.stopVoicePlayback()
+                                },
+                                onOpenJourney = { journeyMsgId: String ->
+                                    expandedMessageId = journeyMsgId
+                                    onExpandedMessageIdChanged(journeyMsgId)
+                                    onOpenMessageJourney(journeyMsgId)
+                                }
+                            )
+                        }
                     }
                 }
             }
         }
 
-        // 3. Bottom Composer: Tactical PTT Button + Quick Action Send
+        // 3. Bottom Composer: Tactical PTT Button + Emergency Distress + Quick Action Send
         ChatComposerBar(
             peerId = peerId,
             pttState = pttState,
             onStartPtt = { viewModel.startPtt() },
             onStopPtt = { viewModel.stopPtt() },
+            onOpenDistress = {
+                val hasLoc = viewModel.hasLocationPermission()
+                emergencyUiState = EmergencyUiState(
+                    isEmergencyComposerOpen = true,
+                    gpsFixAvailable = hasLoc
+                )
+            },
             onSendQuickMessage = {
                 viewModel.testNeuralLoopback()
             }
         )
     }
+
+    // 4. Feature 12: Emergency Distress Composer Modal Overlay
+    if (emergencyUiState.isEmergencyComposerOpen) {
+        EmergencyComposer(
+            peerDestination = headerState.displayName,
+            uiState = emergencyUiState,
+            onActionSelected = { act ->
+                emergencyUiState = emergencyUiState.copy(selectedAction = act)
+            },
+            onCustomNoteChanged = { note ->
+                emergencyUiState = emergencyUiState.copy(customNote = note)
+            },
+            onRequestConfirmation = {
+                emergencyUiState = emergencyUiState.copy(isConfirmationOpen = true)
+            },
+            onDismissConfirmation = {
+                emergencyUiState = emergencyUiState.copy(isConfirmationOpen = false)
+            },
+            onConfirmSend = {
+                val textToSend = emergencyUiState.effectiveMessageText
+                viewModel.sendDistress(customText = textToSend)
+                emergencyUiState = EmergencyUiState.IDLE
+            },
+            onDismiss = {
+                emergencyUiState = EmergencyUiState.IDLE
+            }
+        )
+    }
+}
 }
 
 /**
@@ -759,6 +846,7 @@ private fun ChatComposerBar(
     pttState: PttState,
     onStartPtt: () -> Unit,
     onStopPtt: () -> Unit,
+    onOpenDistress: () -> Unit,
     onSendQuickMessage: () -> Unit
 ) {
     val radioColors = LocalRadioColors.current
@@ -781,10 +869,15 @@ private fun ChatComposerBar(
             .fillMaxWidth()
             .background(radioColors.surface)
             .border(1.dp, radioColors.border.copy(alpha = 0.5f))
-            .padding(horizontal = 12.dp, vertical = 10.dp),
+            .padding(horizontal = 10.dp, vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
+        // Feature 12: Dedicated Emergency Distress Action Button
+        EmergencyDistressButton(
+            onClick = onOpenDistress
+        )
+
         // Tactical PTT Button (Press and Hold)
         Box(
             modifier = Modifier
