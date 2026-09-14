@@ -1,7 +1,6 @@
-# iTantra
-### Indian Multilingual TTS & STT Aided Neural Transceiver Radio Access for Low Bitrate Links
+# Ad Astra — iTantra
 
-**SIH 2026**  
+**Smart India Hackathon 2026**  
 **Problem Statement:** SIH26173  
 **Team:** Ad Astra  
 
@@ -60,7 +59,7 @@ iTantra supports 10 languages with offline execution:
 ## 5. Obtaining and Installing the APK
 
 For evaluators and jury members who want to test iTantra directly without compiling:
-1. Download the pre-built demo APK (`app-debug.apk`) from the **[Releases](https://github.com/KiranS-create/iTantra/releases)** section.
+1. Download the pre-built demo APK (`app-debug.apk`) from the **[Releases](https://github.com/KiranS-create/Ad-Astra/releases)** section.
 2. Enable installation from unknown sources on your Android device if prompted.
 3. Install via `adb` or transfer the file to the phone:
    ```bash
