@@ -304,12 +304,34 @@ fun EmergencyMessageBubble(
                         )
                     }
 
-                    // Feature 16B: VBR Representation Mode Badge
+                    // Feature 16B & 18: VBR Representation Mode Badge
                     record.representationMode?.let { mode ->
-                        val (vbrBg, vbrBorder, vbrText) = when (mode) {
-                            "SEMANTIC" -> Triple(radioColors.sage.copy(alpha = 0.2f), radioColors.sage.copy(alpha = 0.6f), radioColors.sage)
-                            "COMPACT" -> Triple(radioColors.warning.copy(alpha = 0.2f), radioColors.warning.copy(alpha = 0.6f), radioColors.warning)
-                            else -> Triple(radioColors.capsule, radioColors.border.copy(alpha = 0.4f), radioColors.textTertiary)
+                        val isEnhanced = mode == "SEMANTIC_ENHANCED" || mode == "BASE_PLUS_ENHANCEMENT"
+                        val isBaseOnly = mode == "SEMANTIC_BASE" || mode == "BASE_ONLY"
+                        val isSemantic = mode == "SEMANTIC"
+                        val isCompact = mode == "COMPACT"
+
+                        val vbrBg = when {
+                            isEnhanced || isBaseOnly || isSemantic -> radioColors.sage.copy(alpha = 0.2f)
+                            isCompact -> radioColors.warning.copy(alpha = 0.2f)
+                            else -> radioColors.capsule
+                        }
+                        val vbrBorder = when {
+                            isEnhanced || isBaseOnly || isSemantic -> radioColors.sage.copy(alpha = 0.6f)
+                            isCompact -> radioColors.warning.copy(alpha = 0.6f)
+                            else -> radioColors.border.copy(alpha = 0.4f)
+                        }
+                        val vbrText = when {
+                            isEnhanced || isBaseOnly || isSemantic -> radioColors.sage
+                            isCompact -> radioColors.warning
+                            else -> radioColors.textTertiary
+                        }
+                        val label = when {
+                            isEnhanced -> "BASE+ENH"
+                            isBaseOnly -> "BASE ONLY"
+                            isSemantic -> "SEMANTIC"
+                            isCompact -> "COMPACT"
+                            else -> mode
                         }
                         Box(
                             modifier = Modifier
@@ -319,7 +341,7 @@ fun EmergencyMessageBubble(
                                 .padding(horizontal = 5.dp, vertical = 1.dp)
                         ) {
                             Text(
-                                text = mode,
+                                text = label,
                                 color = vbrText,
                                 fontSize = 9.sp,
                                 fontWeight = FontWeight.Bold,

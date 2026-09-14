@@ -115,15 +115,37 @@ object MessageTechnicalInspectorMapper {
             style = if (telemetry.priorityContext.isEmergency) TechnicalFieldStyle.ALERT else TechnicalFieldStyle.NORMAL
         ))
         record.representationMode?.let { mode ->
+            val label = when (mode) {
+                "SEMANTIC_ENHANCED", "BASE_PLUS_ENHANCEMENT" -> "SEMANTIC BASE + ENHANCEMENT"
+                "SEMANTIC_BASE", "BASE_ONLY" -> "SEMANTIC BASE"
+                "SEMANTIC" -> "SEMANTIC"
+                "COMPACT" -> "COMPACT"
+                else -> "FULL"
+            }
             fields.add(TechnicalInspectorField(
                 "VBR REPRESENTATION",
-                mode,
-                style = when (mode) {
-                    "SEMANTIC" -> TechnicalFieldStyle.HIGHLIGHT
-                    "COMPACT" -> TechnicalFieldStyle.WARNING
+                label,
+                style = when {
+                    mode.contains("SEMANTIC") || mode.contains("BASE") -> TechnicalFieldStyle.HIGHLIGHT
+                    mode == "COMPACT" -> TechnicalFieldStyle.WARNING
                     else -> TechnicalFieldStyle.NORMAL
                 }
             ))
+        }
+
+        record.semanticBaseBytes?.let { b ->
+            fields.add(TechnicalInspectorField("BASE PAYLOAD", "$b B (tactical core)", style = TechnicalFieldStyle.HIGHLIGHT))
+        }
+        record.enhancementBytes?.let { e ->
+            val text = if (e > 0) "$e B (context layer)" else "0 B (omitted / constrained link)"
+            fields.add(TechnicalInspectorField("ENHANCEMENT PAYLOAD", text, style = if (e > 0) TechnicalFieldStyle.SUCCESS else TechnicalFieldStyle.NORMAL))
+        }
+        record.enhancementReceived?.let { r ->
+            val text = if (r) "Yes (Progressive enhancement active)" else "No (Base-only tactical fallback)"
+            fields.add(TechnicalInspectorField("ENHANCEMENT RECEIVED", text, style = if (r) TechnicalFieldStyle.SUCCESS else TechnicalFieldStyle.WARNING))
+        }
+        record.semanticSchemaVersion?.let { v ->
+            fields.add(TechnicalInspectorField("SCHEMA VERSION", "v$v", style = TechnicalFieldStyle.NORMAL))
         }
 
         return TechnicalInspectorSection("MESSAGE", fields)
@@ -304,6 +326,21 @@ object MessageTechnicalInspectorMapper {
         }
 
         fields.add(TechnicalInspectorField("WIRE PAYLOAD", "${record.packetSizeBytes} Bytes"))
+
+        if (record.isSemantic || record.representationMode?.contains("SEMANTIC") == true || record.representationMode?.contains("BASE") == true) {
+            val baseBytes = record.semanticBaseBytes ?: (if (record.isSemantic) 8 else 0)
+            val enhBytes = record.enhancementBytes ?: 0
+            fields.add(TechnicalInspectorField("BASE PAYLOAD", "$baseBytes Bytes"))
+            fields.add(TechnicalInspectorField("ENHANCEMENT PAYLOAD", "$enhBytes Bytes"))
+            fields.add(TechnicalInspectorField("SCHEMA VERSION", "v${record.semanticSchemaVersion ?: 1}"))
+            record.enhancementReceived?.let { received ->
+                fields.add(TechnicalInspectorField(
+                    "ENHANCEMENT RECEIVED",
+                    if (received) "YES ✓ (Decoded)" else "NO (Base Only)",
+                    style = if (received) TechnicalFieldStyle.SUCCESS else TechnicalFieldStyle.WARNING
+                ))
+            }
+        }
 
         if (record.rawAudioEquivalentBytes > 0) {
             fields.add(TechnicalInspectorField(

@@ -1118,7 +1118,9 @@ class TransceiverViewModel(application: Application) : AndroidViewModel(applicat
     fun sendVbrTestMessage(mode: org.sih.itantra.core.vbr.AdaptiveRepresentationMode, customText: String? = null) {
         viewModelScope.launch {
             val text = customText ?: when (mode) {
-                org.sih.itantra.core.vbr.AdaptiveRepresentationMode.SEMANTIC -> "Medical emergency 3 people injured ambulance required"
+                org.sih.itantra.core.vbr.AdaptiveRepresentationMode.SEMANTIC,
+                org.sih.itantra.core.vbr.AdaptiveRepresentationMode.SEMANTIC_BASE -> "Medical emergency 3 people injured sector 4 ambulance required"
+                org.sih.itantra.core.vbr.AdaptiveRepresentationMode.SEMANTIC_ENHANCED -> "Medical emergency. Three people injured at sector 4. Ambulance required."
                 org.sih.itantra.core.vbr.AdaptiveRepresentationMode.COMPACT -> "Please note that we have team Alpha 1 holding position at Sector 4 right now"
                 org.sih.itantra.core.vbr.AdaptiveRepresentationMode.FULL -> "All stations, this is base operator reporting full status check on primary channel."
                 org.sih.itantra.core.vbr.AdaptiveRepresentationMode.UNKNOWN -> "Test message representation mode"
@@ -1149,20 +1151,22 @@ class TransceiverViewModel(application: Application) : AndroidViewModel(applicat
     }
 
     /**
-     * Feature 17: Transmits a test message processed through the targeted refinement pipeline.
+     * Feature 17 & 18: Transmits a test message processed through the targeted refinement and semantic representation pipeline.
      */
     fun sendTargetedTestMessage(
-        mode: org.sih.itantra.core.vbr.AdaptiveRepresentationMode = org.sih.itantra.core.vbr.AdaptiveRepresentationMode.SEMANTIC,
+        mode: org.sih.itantra.core.vbr.AdaptiveRepresentationMode = org.sih.itantra.core.vbr.AdaptiveRepresentationMode.SEMANTIC_ENHANCED,
         customText: String? = null
     ) {
         viewModelScope.launch {
             val text = customText ?: when (mode) {
-                org.sih.itantra.core.vbr.AdaptiveRepresentationMode.SEMANTIC -> "SOS MEDICAL ASSISTANCE REQUIRED AT SECTOR 4"
+                org.sih.itantra.core.vbr.AdaptiveRepresentationMode.SEMANTIC,
+                org.sih.itantra.core.vbr.AdaptiveRepresentationMode.SEMANTIC_BASE -> "Medical emergency 3 people injured sector 4 ambulance required"
+                org.sih.itantra.core.vbr.AdaptiveRepresentationMode.SEMANTIC_ENHANCED -> "Medical emergency. Three people injured at sector 4. Ambulance required."
                 org.sih.itantra.core.vbr.AdaptiveRepresentationMode.COMPACT -> "Report SECTOR 4 grid 72.5 coordinates verified"
                 org.sih.itantra.core.vbr.AdaptiveRepresentationMode.FULL -> "Team this is patrol base moving to waypoint"
                 org.sih.itantra.core.vbr.AdaptiveRepresentationMode.UNKNOWN -> "Targeted refined test message"
             }
-            coordinator.sendAlert(text, isDistress = (mode == org.sih.itantra.core.vbr.AdaptiveRepresentationMode.SEMANTIC), mode = mode)
+            coordinator.sendAlert(text, isDistress = mode.isSemantic, mode = mode)
         }
     }
 

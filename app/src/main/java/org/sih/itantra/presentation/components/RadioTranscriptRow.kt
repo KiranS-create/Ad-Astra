@@ -437,12 +437,29 @@ fun RadioTranscriptRow(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(5.dp)
                     ) {
-                        // Feature 16B: VBR Representation Mode Badge
+                        // Feature 16B & 18: VBR Representation Mode Badge
                         record.representationMode?.let { mode ->
-                            val (modeColor, modeBg) = when (mode) {
-                                "SEMANTIC" -> Pair(if (radioColors.isDark) radioColors.sage else radioColors.forest, (if (radioColors.isDark) radioColors.sage else radioColors.forest).copy(alpha = 0.15f))
-                                "COMPACT" -> Pair(radioColors.warning, radioColors.warning.copy(alpha = 0.15f))
-                                else -> Pair(radioColors.textTertiary, radioColors.surfaceHighlight)
+                            val isEnhanced = mode == "SEMANTIC_ENHANCED" || mode == "BASE_PLUS_ENHANCEMENT"
+                            val isBaseOnly = mode == "SEMANTIC_BASE" || mode == "BASE_ONLY"
+                            val isSemantic = mode == "SEMANTIC"
+                            val isCompact = mode == "COMPACT"
+
+                            val modeColor = when {
+                                isEnhanced || isBaseOnly || isSemantic -> if (radioColors.isDark) radioColors.sage else radioColors.forest
+                                isCompact -> radioColors.warning
+                                else -> radioColors.textTertiary
+                            }
+                            val modeBg = when {
+                                isEnhanced || isBaseOnly || isSemantic -> (if (radioColors.isDark) radioColors.sage else radioColors.forest).copy(alpha = 0.15f)
+                                isCompact -> radioColors.warning.copy(alpha = 0.15f)
+                                else -> radioColors.surfaceHighlight
+                            }
+                            val label = when {
+                                isEnhanced -> "BASE+ENH"
+                                isBaseOnly -> "BASE ONLY"
+                                isSemantic -> "SEMANTIC"
+                                isCompact -> "COMPACT"
+                                else -> mode
                             }
                             Box(
                                 modifier = Modifier
@@ -452,7 +469,7 @@ fun RadioTranscriptRow(
                                     .padding(horizontal = 3.dp, vertical = 1.dp)
                             ) {
                                 Text(
-                                    text = mode,
+                                    text = label,
                                     color = modeColor,
                                     fontSize = 8.sp,
                                     fontWeight = FontWeight.Bold,

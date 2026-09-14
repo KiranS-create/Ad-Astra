@@ -349,24 +349,16 @@ class MainActivity : ComponentActivity() {
             "send_vbr_test" -> {
                 val modeStr = intent?.getStringExtra("mode") ?: "FULL"
                 val text = intent?.getStringExtra("text")
-                val mode = when (modeStr.uppercase()) {
-                    "SEMANTIC" -> org.sih.itantra.core.vbr.AdaptiveRepresentationMode.SEMANTIC
-                    "COMPACT" -> org.sih.itantra.core.vbr.AdaptiveRepresentationMode.COMPACT
-                    else -> org.sih.itantra.core.vbr.AdaptiveRepresentationMode.FULL
-                }
+                val mode = org.sih.itantra.core.vbr.AdaptiveRepresentationMode.fromString(modeStr)
                 viewModel.sendVbrTestMessage(mode, text)
             }
             "run_refinement_benchmark" -> {
                 viewModel.runRefinementBenchmark()
             }
             "send_targeted_test" -> {
-                val modeStr = intent?.getStringExtra("mode") ?: "SEMANTIC"
+                val modeStr = intent?.getStringExtra("mode") ?: "SEMANTIC_ENHANCED"
                 val text = intent?.getStringExtra("text")
-                val mode = when (modeStr.uppercase()) {
-                    "FULL" -> org.sih.itantra.core.vbr.AdaptiveRepresentationMode.FULL
-                    "COMPACT" -> org.sih.itantra.core.vbr.AdaptiveRepresentationMode.COMPACT
-                    else -> org.sih.itantra.core.vbr.AdaptiveRepresentationMode.SEMANTIC
-                }
+                val mode = org.sih.itantra.core.vbr.AdaptiveRepresentationMode.fromString(modeStr)
                 viewModel.sendTargetedTestMessage(mode, text)
             }
             "start_node_mode" -> {

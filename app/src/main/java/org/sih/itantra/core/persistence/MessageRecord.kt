@@ -35,5 +35,9 @@ data class MessageRecord(
     val isSecure: Boolean = false,
     val authStatus: String? = null,
     val qosStatus: String? = null,
-    val representationMode: String? = null // "FULL", "COMPACT", or "SEMANTIC"
+    val representationMode: String? = null, // "FULL", "COMPACT", "SEMANTIC", "SEMANTIC_BASE", or "SEMANTIC_ENHANCED"
+    val semanticBaseBytes: Int? = null,
+    val enhancementBytes: Int? = null,
+    val enhancementReceived: Boolean? = null,
+    val semanticSchemaVersion: Int? = null
 )

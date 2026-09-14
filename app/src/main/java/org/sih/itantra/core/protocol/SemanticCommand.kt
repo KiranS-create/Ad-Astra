@@ -77,6 +77,8 @@ data class SemanticCommand(
     val severity: EmergencySeverity = EmergencySeverity.CRITICAL,
     val parameter: Short = 0
 ) {
+    val sector: Int get() = parameter.toInt()
+
     /**
      * Serialize into ultra-compact 6-byte binary payload.
      */
@@ -97,6 +99,7 @@ data class SemanticCommand(
     fun toBadgeString(): String {
         val parts = mutableListOf("SEMANTIC", category.label)
         if (count > 0) parts.add(count.toString())
+        if (parameter > 0) parts.add("SECTOR $parameter")
         if (subtype != EmergencySubtype.NONE) parts.add(subtype.label)
         return parts.joinToString(" • ")
     }
@@ -129,6 +132,10 @@ data class SemanticCommand(
                 EmergencySubtype.UNCONSCIOUS -> details.add("$peopleLabel UNCONSCIOUS")
                 else -> details.add(peopleLabel)
             }
+        }
+
+        if (parameter > 0) {
+            details.add("SECTOR $parameter")
         }
 
         when (subtype) {

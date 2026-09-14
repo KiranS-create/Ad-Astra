@@ -35,6 +35,8 @@ import org.sih.itantra.core.vbr.AdaptiveMessageRepresentation
 import org.sih.itantra.core.vbr.AdaptiveRepresentationMode
 import org.sih.itantra.core.vbr.AdaptiveRepresentationPolicy
 import org.sih.itantra.core.vbr.CompactTextGenerator
+import org.sih.itantra.core.vbr.SemanticBase
+import org.sih.itantra.core.vbr.SemanticEnhancement
 import org.sih.itantra.core.protocol.SemanticCommand
 import org.sih.itantra.core.protocol.SemanticEmergencyClassifier
 import org.sih.itantra.core.stt.OfflineSpeechRecognizer
@@ -408,13 +410,14 @@ class TransceiverCoordinator(
             text = finalText,
             networkMode = currentNetMode,
             language = lang,
-            semanticConfidence = 0.90f
+            semanticConfidence = 0.90f,
+            useLayeredSemantic = true
         )
 
-        val isSemantic = representation.mode == AdaptiveRepresentationMode.SEMANTIC
+        val isSemantic = representation.mode.isSemantic
         val semanticCmd = representation.semanticCommand
         val semanticSummary = semanticCmd?.toBadgeString()
-        val semanticSavings = if (semanticCmd != null) (rawBytes.size - SemanticCommand.SIZE_BYTES).coerceAtLeast(0) else null
+        val semanticSavings = if (semanticCmd != null) (rawBytes.size - representation.wirePayloadSizeBytes).coerceAtLeast(0) else null
 
         val effectivePriority = when {
             semanticCmd != null -> when (semanticCmd.severity) {
@@ -427,7 +430,9 @@ class TransceiverCoordinator(
         }
 
         val flagVal: Byte = when (representation.mode) {
-            AdaptiveRepresentationMode.SEMANTIC -> Packet.FLAG_SEMANTIC.toByte()
+            AdaptiveRepresentationMode.SEMANTIC,
+            AdaptiveRepresentationMode.SEMANTIC_BASE,
+            AdaptiveRepresentationMode.SEMANTIC_ENHANCED -> Packet.FLAG_SEMANTIC.toByte()
             AdaptiveRepresentationMode.COMPACT -> {
                 val base = Packet.FLAG_COMPACT
                 val comp = if (representation.isCompressed) Packet.FLAG_COMPRESSED else 0
@@ -569,7 +574,7 @@ class TransceiverCoordinator(
                 direction = MessageDirection.SENT,
                 language = lang,
                 priority = effectivePriority,
-                text = if (isSemantic) semanticCmd!!.toDisplayString() else representation.text,
+                text = if (isSemantic) representation.text else representation.text,
                 peer = "Broadcast",
                 packetSizeBytes = totalWireBytes,
                 rawAudioEquivalentBytes = rawAudioBytes,
@@ -583,7 +588,11 @@ class TransceiverCoordinator(
                 isSecure = hasAuthKey,
                 authStatus = if (hasAuthKey) "AUTH ✓" else "UNVERIFIED",
                 qosStatus = qosStatus,
-                representationMode = representation.mode.name
+                representationMode = representation.mode.name,
+                semanticBaseBytes = if (isSemantic) representation.basePayloadSizeBytes else null,
+                enhancementBytes = if (isSemantic) representation.enhancementPayloadSizeBytes else null,
+                enhancementReceived = if (isSemantic) (representation.semanticEnhancement != null) else null,
+                semanticSchemaVersion = if (isSemantic) 1 else null
             )
         )
 
@@ -988,21 +997,45 @@ class TransceiverCoordinator(
         val isCompressed = (effectiveFlags.toInt() and 0xFF and Packet.FLAG_COMPRESSED) != 0
 
         val repMode: String
+        var rxBasePayloadBytes: Int? = null
+        var rxEnhPayloadBytes: Int? = null
+        var rxEnhReceived: Boolean? = null
+        var rxSchemaVersion: Int? = null
+
         if (hasSemantic) {
-            val cmd = packet.semanticCommand ?: SemanticCommand.deserialize(effectivePayload)
-            if (cmd != null) {
+            val decoded = SemanticBase.deserializeWithEnhancement(effectivePayload)
+            val base = decoded.base
+            val enh = decoded.enhancement
+            if (base != null) {
                 isSemantic = true
-                displayText = cmd.toDisplayString()
-                ttsSpeechText = cmd.toTtsText(packet.language)
-                semanticSummary = cmd.toBadgeString()
-                repMode = "SEMANTIC"
+                displayText = base.toDisplayString(enh?.text)
+                ttsSpeechText = base.command.toTtsText(packet.language)
+                semanticSummary = base.command.toBadgeString()
+                repMode = if (enh != null) "SEMANTIC_ENHANCED" else "SEMANTIC_BASE"
+                rxBasePayloadBytes = SemanticBase.BASE_SIZE_BYTES.coerceAtMost(effectivePayload.size)
+                rxEnhPayloadBytes = if (enh != null) (effectivePayload.size - SemanticBase.BASE_SIZE_BYTES).coerceAtLeast(0) else 0
+                rxEnhReceived = (enh != null)
+                rxSchemaVersion = base.schemaVersion.toInt()
             } else {
-                val decompressedBytes = AdaptiveCompressor.decompress(effectivePayload, isCompressed)
-                displayText = String(decompressedBytes, Charsets.UTF_8)
-                ttsSpeechText = displayText
-                isSemantic = false
-                semanticSummary = null
-                repMode = if (isCompact) "COMPACT" else "FULL"
+                val cmd = packet.semanticCommand ?: SemanticCommand.deserialize(effectivePayload)
+                if (cmd != null) {
+                    isSemantic = true
+                    displayText = cmd.toDisplayString()
+                    ttsSpeechText = cmd.toTtsText(packet.language)
+                    semanticSummary = cmd.toBadgeString()
+                    repMode = "SEMANTIC_BASE"
+                    rxBasePayloadBytes = effectivePayload.size
+                    rxEnhPayloadBytes = 0
+                    rxEnhReceived = false
+                    rxSchemaVersion = 1
+                } else {
+                    val decompressedBytes = AdaptiveCompressor.decompress(effectivePayload, isCompressed)
+                    displayText = String(decompressedBytes, Charsets.UTF_8)
+                    ttsSpeechText = displayText
+                    isSemantic = false
+                    semanticSummary = null
+                    repMode = if (isCompact) "COMPACT" else "FULL"
+                }
             }
         } else if (isCompact) {
             val decompressedBytes = AdaptiveCompressor.decompress(effectivePayload, isCompressed)
@@ -1075,7 +1108,11 @@ class TransceiverCoordinator(
                 fragmentCount = fragmentCountForLog,
                 isSecure = isVerified,
                 authStatus = authStatusLabel,
-                representationMode = repMode
+                representationMode = repMode,
+                semanticBaseBytes = rxBasePayloadBytes,
+                enhancementBytes = rxEnhPayloadBytes,
+                enhancementReceived = rxEnhReceived,
+                semanticSchemaVersion = rxSchemaVersion
             )
         )
 
@@ -1106,11 +1143,14 @@ class TransceiverCoordinator(
                 networkMode = currentNet,
                 language = lang,
                 semanticConfidence = 0.90f,
-                forceMode = mode
+                forceMode = mode,
+                useLayeredSemantic = true
             )
 
             val flagVal: Byte = when (rep.mode) {
-                AdaptiveRepresentationMode.SEMANTIC -> Packet.FLAG_SEMANTIC.toByte()
+                AdaptiveRepresentationMode.SEMANTIC,
+                AdaptiveRepresentationMode.SEMANTIC_BASE,
+                AdaptiveRepresentationMode.SEMANTIC_ENHANCED -> Packet.FLAG_SEMANTIC.toByte()
                 AdaptiveRepresentationMode.COMPACT -> {
                     val base = Packet.FLAG_COMPACT
                     val comp = if (rep.isCompressed) Packet.FLAG_COMPRESSED else 0
@@ -1154,12 +1194,16 @@ class TransceiverCoordinator(
                     packetSizeBytes = signedPacket.payload.size + Packet.MIN_PACKET_SIZE + (if (signedPacket.isAuthenticated) Packet.AUTH_TAG_SIZE_BYTES else 0),
                     rawAudioEquivalentBytes = 0L,
                     measuredLatencyMs = 12.0,
-                    isSemantic = rep.mode == AdaptiveRepresentationMode.SEMANTIC,
+                    isSemantic = rep.mode.isSemantic,
                     semanticSummary = rep.semanticCommand?.toBadgeString(),
-                    semanticSavingsBytes = if (rep.mode == AdaptiveRepresentationMode.SEMANTIC) (cleanText.toByteArray(Charsets.UTF_8).size - SemanticCommand.SIZE_BYTES).coerceAtLeast(0) else null,
+                    semanticSavingsBytes = if (rep.mode.isSemantic) (cleanText.toByteArray(Charsets.UTF_8).size - rep.wirePayloadSizeBytes).coerceAtLeast(0) else null,
                     isSecure = key != null,
                     authStatus = if (key != null) "AUTH ✓" else "UNVERIFIED",
-                    representationMode = rep.mode.name
+                    representationMode = rep.mode.name,
+                    semanticBaseBytes = if (rep.mode.isSemantic) rep.basePayloadSizeBytes else null,
+                    enhancementBytes = if (rep.mode.isSemantic) rep.enhancementPayloadSizeBytes else null,
+                    enhancementReceived = if (rep.mode.isSemantic) (rep.semanticEnhancement != null) else null,
+                    semanticSchemaVersion = if (rep.mode.isSemantic) 1 else null
                 )
             )
         }

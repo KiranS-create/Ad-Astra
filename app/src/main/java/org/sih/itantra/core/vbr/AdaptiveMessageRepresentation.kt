@@ -22,6 +22,10 @@ data class AdaptiveMessageRepresentation(
     val confidence: Float,
     val isCompressed: Boolean = false,
     val semanticCommand: SemanticCommand? = null,
+    val semanticBase: SemanticBase? = null,
+    val semanticEnhancement: SemanticEnhancement? = null,
+    val basePayloadSizeBytes: Int = 0,
+    val enhancementPayloadSizeBytes: Int = 0,
     val explanation: String = ""
 ) {
     override fun equals(other: Any?): Boolean {
@@ -34,6 +38,10 @@ data class AdaptiveMessageRepresentation(
                 wirePayloadSizeBytes == other.wirePayloadSizeBytes &&
                 confidence == other.confidence &&
                 semanticCommand == other.semanticCommand &&
+                semanticBase == other.semanticBase &&
+                semanticEnhancement == other.semanticEnhancement &&
+                basePayloadSizeBytes == other.basePayloadSizeBytes &&
+                enhancementPayloadSizeBytes == other.enhancementPayloadSizeBytes &&
                 explanation == other.explanation
     }
 
@@ -44,6 +52,10 @@ data class AdaptiveMessageRepresentation(
         result = 31 * result + wirePayloadSizeBytes
         result = 31 * result + confidence.hashCode()
         result = 31 * result + (semanticCommand?.hashCode() ?: 0)
+        result = 31 * result + (semanticBase?.hashCode() ?: 0)
+        result = 31 * result + (semanticEnhancement?.hashCode() ?: 0)
+        result = 31 * result + basePayloadSizeBytes
+        result = 31 * result + enhancementPayloadSizeBytes
         result = 31 * result + explanation.hashCode()
         return result
     }

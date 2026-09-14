@@ -37,7 +37,8 @@ object AdaptiveRepresentationPolicy {
         networkMode: AdaptiveNetworkMode,
         language: IndicLanguage = IndicLanguage.HINDI,
         semanticConfidence: Float = 0.90f,
-        forceMode: AdaptiveRepresentationMode? = null
+        forceMode: AdaptiveRepresentationMode? = null,
+        useLayeredSemantic: Boolean = false
     ): AdaptiveMessageRepresentation {
         val trimmed = text.trim()
         val semanticCandidate = SemanticEmergencyClassifier.classify(trimmed)
@@ -45,6 +46,20 @@ object AdaptiveRepresentationPolicy {
         // 1. Manual / Explicit Override
         if (forceMode != null) {
             return when (forceMode) {
+                AdaptiveRepresentationMode.SEMANTIC_BASE -> {
+                    val cmd = semanticCandidate ?: SemanticCommand(
+                        category = EmergencyCategory.OTHER,
+                        severity = EmergencySeverity.CRITICAL
+                    )
+                    buildSemanticBaseRepresentation(cmd, semanticConfidence, "Forced SEMANTIC_BASE (BASE ONLY) mode")
+                }
+                AdaptiveRepresentationMode.SEMANTIC_ENHANCED -> {
+                    val cmd = semanticCandidate ?: SemanticCommand(
+                        category = EmergencyCategory.OTHER,
+                        severity = EmergencySeverity.CRITICAL
+                    )
+                    buildSemanticEnhancedRepresentation(cmd, trimmed, semanticConfidence, "Forced SEMANTIC_ENHANCED (BASE + ENH) mode")
+                }
                 AdaptiveRepresentationMode.SEMANTIC -> {
                     val cmd = semanticCandidate ?: SemanticCommand(
                         category = EmergencyCategory.OTHER,
@@ -70,41 +85,83 @@ object AdaptiveRepresentationPolicy {
 
         if (hasHighConfidenceSemantic) {
             val cmd = semanticCandidate!!
-            return when (networkMode) {
-                AdaptiveNetworkMode.DEGRADED,
-                AdaptiveNetworkMode.LIMITED,
-                AdaptiveNetworkMode.CONGESTED,
-                AdaptiveNetworkMode.DTN_STORED,
-                AdaptiveNetworkMode.OFFLINE,
-                AdaptiveNetworkMode.WAITING_FOR_ROUTE -> {
-                    buildSemanticRepresentation(
-                        cmd = cmd,
-                        confidence = semanticConfidence,
-                        explanation = "Constrained network (${networkMode.label}): 6-byte survival payload selected"
-                    )
-                }
-                AdaptiveNetworkMode.HEALTHY,
-                AdaptiveNetworkMode.UNKNOWN -> {
-                    if (cmd.severity == EmergencySeverity.CRITICAL ||
-                        cmd.category in setOf(
-                            EmergencyCategory.MEDICAL,
-                            EmergencyCategory.FIRE,
-                            EmergencyCategory.TRAPPED,
-                            EmergencyCategory.RESCUE,
-                            EmergencyCategory.EVACUATION
+            if (useLayeredSemantic) {
+                return when (networkMode) {
+                    AdaptiveNetworkMode.DEGRADED,
+                    AdaptiveNetworkMode.LIMITED,
+                    AdaptiveNetworkMode.CONGESTED,
+                    AdaptiveNetworkMode.DTN_STORED,
+                    AdaptiveNetworkMode.OFFLINE,
+                    AdaptiveNetworkMode.WAITING_FOR_ROUTE -> {
+                        buildSemanticBaseRepresentation(
+                            cmd = cmd,
+                            confidence = semanticConfidence,
+                            explanation = "Constrained network (${networkMode.label}): 8-byte survival base payload selected"
                         )
-                    ) {
+                    }
+                    AdaptiveNetworkMode.HEALTHY,
+                    AdaptiveNetworkMode.UNKNOWN -> {
+                        if (cmd.severity == EmergencySeverity.CRITICAL ||
+                            cmd.category in setOf(
+                                EmergencyCategory.MEDICAL,
+                                EmergencyCategory.FIRE,
+                                EmergencyCategory.TRAPPED,
+                                EmergencyCategory.RESCUE,
+                                EmergencyCategory.EVACUATION
+                            )
+                        ) {
+                            buildSemanticEnhancedRepresentation(
+                                cmd = cmd,
+                                originalText = trimmed,
+                                confidence = semanticConfidence,
+                                explanation = "Critical emergency (${cmd.category.label}): prioritized as semantic base + enhancement"
+                            )
+                        } else {
+                            // Non-critical command in healthy network transmits verbatim
+                            buildFullRepresentation(
+                                trimmed,
+                                "Healthy network: natural language verbatim representation preserved"
+                            )
+                        }
+                    }
+                }
+            } else {
+                return when (networkMode) {
+                    AdaptiveNetworkMode.DEGRADED,
+                    AdaptiveNetworkMode.LIMITED,
+                    AdaptiveNetworkMode.CONGESTED,
+                    AdaptiveNetworkMode.DTN_STORED,
+                    AdaptiveNetworkMode.OFFLINE,
+                    AdaptiveNetworkMode.WAITING_FOR_ROUTE -> {
                         buildSemanticRepresentation(
                             cmd = cmd,
                             confidence = semanticConfidence,
-                            explanation = "Critical emergency (${cmd.category.label}): prioritized as 6-byte semantic structure"
+                            explanation = "Constrained network (${networkMode.label}): 6-byte survival payload selected"
                         )
-                    } else {
-                        // Non-critical command in healthy network transmits verbatim
-                        buildFullRepresentation(
-                            trimmed,
-                            "Healthy network: natural language verbatim representation preserved"
-                        )
+                    }
+                    AdaptiveNetworkMode.HEALTHY,
+                    AdaptiveNetworkMode.UNKNOWN -> {
+                        if (cmd.severity == EmergencySeverity.CRITICAL ||
+                            cmd.category in setOf(
+                                EmergencyCategory.MEDICAL,
+                                EmergencyCategory.FIRE,
+                                EmergencyCategory.TRAPPED,
+                                EmergencyCategory.RESCUE,
+                                EmergencyCategory.EVACUATION
+                            )
+                        ) {
+                            buildSemanticRepresentation(
+                                cmd = cmd,
+                                confidence = semanticConfidence,
+                                explanation = "Critical emergency (${cmd.category.label}): prioritized as 6-byte semantic structure"
+                            )
+                        } else {
+                            // Non-critical command in healthy network transmits verbatim
+                            buildFullRepresentation(
+                                trimmed,
+                                "Healthy network: natural language verbatim representation preserved"
+                            )
+                        }
                     }
                 }
             }
@@ -148,7 +205,72 @@ object AdaptiveRepresentationPolicy {
         }
     }
 
-    private fun buildSemanticRepresentation(
+    fun buildSemanticBaseRepresentation(
+        cmd: SemanticCommand,
+        confidence: Float,
+        explanation: String
+    ): AdaptiveMessageRepresentation {
+        val base = SemanticBase.fromCommand(cmd)
+        val payload = base.serialize(hasEnhancement = false)
+        return AdaptiveMessageRepresentation(
+            mode = AdaptiveRepresentationMode.SEMANTIC_BASE,
+            text = base.toDisplayString(),
+            payloadBytes = payload,
+            wirePayloadSizeBytes = payload.size,
+            confidence = confidence,
+            semanticCommand = cmd,
+            semanticBase = base,
+            semanticEnhancement = null,
+            basePayloadSizeBytes = payload.size,
+            enhancementPayloadSizeBytes = 0,
+            explanation = explanation
+        )
+    }
+
+    fun buildSemanticEnhancedRepresentation(
+        cmd: SemanticCommand,
+        originalText: String,
+        confidence: Float,
+        explanation: String,
+        refinedText: String? = null
+    ): AdaptiveMessageRepresentation {
+        val base = SemanticBase.fromCommand(cmd)
+        val primaryText = refinedText ?: originalText
+        val detailText = if (refinedText != null && refinedText != originalText) originalText else null
+        val enhancement = SemanticEnhancement(text = primaryText, detail = detailText)
+        val combinedPayload = SemanticBase.serializeComposite(base, enhancement)
+
+        return AdaptiveMessageRepresentation(
+            mode = AdaptiveRepresentationMode.SEMANTIC_ENHANCED,
+            text = base.toDisplayString(enhancementText = primaryText),
+            payloadBytes = combinedPayload,
+            wirePayloadSizeBytes = combinedPayload.size,
+            confidence = confidence,
+            semanticCommand = cmd,
+            semanticBase = base,
+            semanticEnhancement = enhancement,
+            basePayloadSizeBytes = SemanticBase.BASE_SIZE_BYTES,
+            enhancementPayloadSizeBytes = combinedPayload.size - SemanticBase.BASE_SIZE_BYTES,
+            explanation = explanation
+        )
+    }
+
+    fun selectLayered(
+        text: String,
+        networkMode: AdaptiveNetworkMode,
+        language: IndicLanguage = IndicLanguage.HINDI,
+        semanticConfidence: Float = 0.90f,
+        forceMode: AdaptiveRepresentationMode? = null
+    ): AdaptiveMessageRepresentation = select(
+        text = text,
+        networkMode = networkMode,
+        language = language,
+        semanticConfidence = semanticConfidence,
+        forceMode = forceMode,
+        useLayeredSemantic = true
+    )
+
+    fun buildSemanticRepresentation(
         cmd: SemanticCommand,
         confidence: Float,
         explanation: String
@@ -161,6 +283,10 @@ object AdaptiveRepresentationPolicy {
             wirePayloadSizeBytes = payload.size,
             confidence = confidence,
             semanticCommand = cmd,
+            semanticBase = null,
+            semanticEnhancement = null,
+            basePayloadSizeBytes = 0,
+            enhancementPayloadSizeBytes = 0,
             explanation = explanation
         )
     }
