@@ -1127,6 +1127,45 @@ class TransceiverViewModel(application: Application) : AndroidViewModel(applicat
         }
     }
 
+    /**
+     * Feature 17: Executes the comparative targeted refinement benchmark across the standard 5-utterance suite.
+     */
+    fun runRefinementBenchmark() {
+        viewModelScope.launch {
+            android.util.Log.i("ITantraBench", "=== STARTING FEATURE 17 TARGETED REFINEMENT BENCHMARK ===")
+            val runner = org.sih.itantra.core.speech.benchmark.TargetedRefinementBenchmarkRunner()
+            val results = runner.runStandardSuite { current, total, result ->
+                android.util.Log.i(
+                    "ITantraBench",
+                    "[${current}/${total}] ${result.utteranceName}: Baseline=${String.format(java.util.Locale.US, "%.1f", result.pipelineA_SerialBatch.endOfSpeechToPacketReadyMs)}ms, Naive=${String.format(java.util.Locale.US, "%.1f", result.pipelineB_SerialTwoPass.endOfSpeechToPacketReadyMs)}ms, 16A=${String.format(java.util.Locale.US, "%.1f", result.pipelineC_Feature16A.endOfSpeechToPacketReadyMs)}ms, Feature17=${String.format(java.util.Locale.US, "%.1f", result.pipelineD_Feature17Targeted.endOfSpeechToPacketReadyMs)}ms (RedVsBase: ${String.format(java.util.Locale.US, "%.1f", result.latencyReductionVsBaselinePercent)}%, RedVs16A: ${String.format(java.util.Locale.US, "%.1f", result.latencyReductionVs16APercent)}%, PreEndRefinements=${result.targetedMetrics.preEndpointRefinementsCount}, PostEndRefinements=${result.targetedMetrics.postEndpointRefinementsCount}, EndWaitMs=${String.format(java.util.Locale.US, "%.2f", result.targetedMetrics.endpointWaitingNanos / 1_000_000.0)})"
+                )
+                android.util.Log.i(
+                    "ITantraBench",
+                    " -> Final text: \"${result.pipelineD_Feature17Targeted.finalTranscription}\""
+                )
+            }
+            android.util.Log.i("ITantraBench", "=== FEATURE 17 BENCHMARK COMPLETED: ${results.size} UTTERANCES EVALUATED ===")
+        }
+    }
+
+    /**
+     * Feature 17: Transmits a test message processed through the targeted refinement pipeline.
+     */
+    fun sendTargetedTestMessage(
+        mode: org.sih.itantra.core.vbr.AdaptiveRepresentationMode = org.sih.itantra.core.vbr.AdaptiveRepresentationMode.SEMANTIC,
+        customText: String? = null
+    ) {
+        viewModelScope.launch {
+            val text = customText ?: when (mode) {
+                org.sih.itantra.core.vbr.AdaptiveRepresentationMode.SEMANTIC -> "SOS MEDICAL ASSISTANCE REQUIRED AT SECTOR 4"
+                org.sih.itantra.core.vbr.AdaptiveRepresentationMode.COMPACT -> "Report SECTOR 4 grid 72.5 coordinates verified"
+                org.sih.itantra.core.vbr.AdaptiveRepresentationMode.FULL -> "Team this is patrol base moving to waypoint"
+                org.sih.itantra.core.vbr.AdaptiveRepresentationMode.UNKNOWN -> "Targeted refined test message"
+            }
+            coordinator.sendAlert(text, isDistress = (mode == org.sih.itantra.core.vbr.AdaptiveRepresentationMode.SEMANTIC), mode = mode)
+        }
+    }
+
     fun testSynthesizeSpeech(text: String) {
         viewModelScope.launch {
             coordinator.testSynthesizeAndPlay(text)
