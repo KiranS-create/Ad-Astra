@@ -15,6 +15,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import org.sih.itantra.core.message.RadioDeliveryState
 import org.sih.itantra.core.message.RadioMessageTelemetry
+import org.sih.itantra.core.network.AdaptiveNetworkUiMapper
 import org.sih.itantra.presentation.theme.LocalRadioColors
 
 /**
@@ -55,9 +56,9 @@ fun MessageRadioStateIndicator(
             fontWeight = FontWeight.Bold
         )
 
-        // State label
+        // State label (Feature 14 canonical adaptive delivery state)
         Text(
-            text = state.label,
+            text = AdaptiveNetworkUiMapper.resolveAdaptiveDeliveryLabel(state),
             color = stateColor,
             fontSize = 9.sp,
             fontFamily = FontFamily.Monospace,

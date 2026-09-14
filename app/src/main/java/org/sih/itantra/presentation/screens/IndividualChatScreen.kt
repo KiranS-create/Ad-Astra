@@ -38,11 +38,15 @@ import androidx.compose.material.icons.filled.WarningAmber
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
+import org.sih.itantra.core.network.AdaptiveComposerState
+import org.sih.itantra.core.network.AdaptiveNetworkUiMapper
 import org.sih.itantra.core.tts.MessagePlaybackState
 import org.sih.itantra.core.tts.TtsLanguage
 import org.sih.itantra.core.tts.TtsVoiceRegistry
 import org.sih.itantra.presentation.components.MessageLanguageBadge
 import org.sih.itantra.presentation.components.TtsPlaybackIndicator
+import org.sih.itantra.presentation.components.network.AdaptiveNetworkNotice
+import org.sih.itantra.presentation.components.network.NetworkContextBanner
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -111,6 +115,7 @@ fun IndividualChatScreen(
     val localNodeId = viewModel.coordinator.manetRouter.localNodeId
     val playbackState by viewModel.messagePlaybackState.collectAsState()
     val ttsRegistry = viewModel.ttsVoiceRegistry
+    val commHealth by viewModel.communicationHealthState.collectAsState()
 
     var emergencyUiState by remember { mutableStateOf(EmergencyUiState.IDLE) }
 
@@ -132,6 +137,11 @@ fun IndividualChatScreen(
     // Dynamic header state derived from topology and thread
     val headerState = remember(allMessages, topologySnapshot, peerId) {
         viewModel.getChatHeaderState(peerId)
+    }
+
+    // Feature 14: Dynamic adaptive network state derived from health, route and thread history
+    val adaptiveUiState = remember(commHealth, headerState, threadMessages) {
+        AdaptiveNetworkUiMapper.map(commHealth, headerState, threadMessages)
     }
 
     var showRouteInspector by remember { mutableStateOf(false) }
@@ -191,6 +201,9 @@ fun IndividualChatScreen(
                 localNodeId = localNodeId
             )
         }
+
+        // Feature 14: Tactical Adaptive Network-Context Banner
+        NetworkContextBanner(bannerState = adaptiveUiState.banner)
 
         // Feature 12: Emergency Distress Banner (distinguishes active vs historical)
         EmergencyBanner(context = emergencyContext)
@@ -293,6 +306,7 @@ fun IndividualChatScreen(
         ChatComposerBar(
             peerId = peerId,
             pttState = pttState,
+            adaptiveComposerState = adaptiveUiState.composer,
             onStartPtt = { viewModel.startPtt() },
             onStopPtt = { viewModel.stopPtt() },
             onOpenDistress = {
@@ -839,11 +853,13 @@ private fun ChatMessageBubble(
 
 /**
  * Bottom Tactical Composer Bar with Press-to-Talk and Quick Loopback send controls.
+ * Feature 14: Dynamically adapts interaction affordances to the current network state.
  */
 @Composable
 private fun ChatComposerBar(
     peerId: String,
     pttState: PttState,
+    adaptiveComposerState: AdaptiveComposerState,
     onStartPtt: () -> Unit,
     onStopPtt: () -> Unit,
     onOpenDistress: () -> Unit,
@@ -851,86 +867,120 @@ private fun ChatComposerBar(
 ) {
     val radioColors = LocalRadioColors.current
 
+    val activePttStates = setOf(
+        PttState.RECORDING,
+        PttState.SPEECH_DETECTED,
+        PttState.STT_PROCESSING,
+        PttState.TRANSMITTING
+    )
+
     val pttLabel = when (pttState) {
         PttState.RECORDING, PttState.SPEECH_DETECTED -> "RECORDING... RELEASE TO SEND"
         PttState.STT_PROCESSING -> "STT PROCESSING..."
         PttState.TRANSMITTING -> "TRANSMITTING..."
-        else -> "HOLD TO TALK"
+        else -> adaptiveComposerState.pttButtonLabel
     }
 
     val pttBg = when (pttState) {
         PttState.RECORDING, PttState.SPEECH_DETECTED -> radioColors.alert
         PttState.STT_PROCESSING, PttState.TRANSMITTING -> radioColors.warning
-        else -> if (radioColors.isDark) radioColors.sage else radioColors.forest
+        else -> if (adaptiveComposerState.isOffline) {
+            Color(0xFF8B2500)
+        } else if (radioColors.isDark) radioColors.sage else radioColors.forest
     }
 
-    Row(
+    Column(
         modifier = Modifier
             .fillMaxWidth()
             .background(radioColors.surface)
             .border(1.dp, radioColors.border.copy(alpha = 0.5f))
-            .padding(horizontal = 10.dp, vertical = 10.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
+            .padding(horizontal = 10.dp, vertical = 8.dp),
+        verticalArrangement = Arrangement.spacedBy(6.dp)
     ) {
-        // Feature 12: Dedicated Emergency Distress Action Button
-        EmergencyDistressButton(
-            onClick = onOpenDistress
-        )
+        // Feature 14: Adaptive Network Notice (Truthful delivery expectation)
+        AdaptiveNetworkNotice(composerState = adaptiveComposerState)
 
-        // Tactical PTT Button (Press and Hold)
-        Box(
-            modifier = Modifier
-                .weight(1f)
-                .height(46.dp)
-                .clip(RoundedCornerShape(12.dp))
-                .background(pttBg)
-                .pointerInput(Unit) {
-                    detectTapGestures(
-                        onPress = {
-                            onStartPtt()
-                            tryAwaitRelease()
-                            onStopPtt()
-                        }
-                    )
-                },
-            contentAlignment = Alignment.Center
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
+            // Feature 12: Dedicated Emergency Distress Action Button (Always high priority)
+            EmergencyDistressButton(
+                onClick = onOpenDistress
+            )
+
+            // Tactical PTT Button (Press and Hold)
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .height(46.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(pttBg)
+                    .pointerInput(Unit) {
+                        detectTapGestures(
+                            onPress = {
+                                onStartPtt()
+                                tryAwaitRelease()
+                                onStopPtt()
+                            }
+                        )
+                    },
+                contentAlignment = Alignment.Center
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.padding(horizontal = 8.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Mic,
+                        contentDescription = "PTT Microphone",
+                        tint = Color.White,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Column(horizontalAlignment = Alignment.Start) {
+                        Text(
+                            text = pttLabel,
+                            color = Color.White,
+                            fontSize = if (adaptiveComposerState.pttButtonSubtext != null && pttState !in activePttStates) 10.sp else 11.sp,
+                            fontWeight = FontWeight.Bold,
+                            fontFamily = FontFamily.Monospace,
+                            letterSpacing = 0.4.sp,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                        if (pttState !in activePttStates && adaptiveComposerState.pttButtonSubtext != null) {
+                            Text(
+                                text = adaptiveComposerState.pttButtonSubtext,
+                                color = Color.White.copy(alpha = 0.8f),
+                                fontSize = 8.5.sp,
+                                fontFamily = FontFamily.Monospace,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        }
+                    }
+                }
+            }
+
+            // Quick Send Loopback Button
+            Box(
+                modifier = Modifier
+                    .size(46.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(radioColors.capsule)
+                    .border(1.dp, radioColors.border.copy(alpha = 0.6f), RoundedCornerShape(12.dp))
+                    .clickable { onSendQuickMessage() },
+                contentAlignment = Alignment.Center
+            ) {
                 Icon(
-                    imageVector = Icons.Default.Mic,
-                    contentDescription = "PTT Microphone",
-                    tint = Color.White,
+                    imageVector = Icons.Default.Send,
+                    contentDescription = if (adaptiveComposerState.isOffline) "Queue for delivery" else "Quick Send Test Packet",
+                    tint = if (radioColors.isDark) radioColors.sage else radioColors.forest,
                     modifier = Modifier.size(18.dp)
                 )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text = pttLabel,
-                    color = Color.White,
-                    fontSize = 11.sp,
-                    fontWeight = FontWeight.Bold,
-                    fontFamily = FontFamily.Monospace,
-                    letterSpacing = 0.5.sp
-                )
             }
-        }
-
-        // Quick Send Loopback Button
-        Box(
-            modifier = Modifier
-                .size(46.dp)
-                .clip(RoundedCornerShape(12.dp))
-                .background(radioColors.capsule)
-                .border(1.dp, radioColors.border.copy(alpha = 0.6f), RoundedCornerShape(12.dp))
-                .clickable { onSendQuickMessage() },
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(
-                imageVector = Icons.Default.Send,
-                contentDescription = "Quick Send Test Packet",
-                tint = if (radioColors.isDark) radioColors.sage else radioColors.forest,
-                modifier = Modifier.size(18.dp)
-            )
         }
     }
 }
