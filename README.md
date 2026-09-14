@@ -88,15 +88,15 @@ In disaster zones, remote search-and-rescue operations, and tactical field deplo
 
 The application interface is built with **Jetpack Compose**, designed for rapid high-stress tactical operations:
 
-| 1. Walkie-Talkie & HUD | 2. Tactical Chat & Voice Playback | 3. Technical Packet Inspector |
+| 1. Main Transceiver HUD | 2. Tactical Chat & Voice Playback | 3. Technical Packet Inspector |
 |:---:|:---:|:---:|
 | <img src="docs/assets/screenshots/01-walkie-talkie.png" width="240" alt="PTT Walkie Talkie" /> | <img src="docs/assets/screenshots/02-tactical-chat.png" width="240" alt="Tactical Chat" /> | <img src="docs/assets/screenshots/03-message-inspector.png" width="240" alt="Packet Inspector" /> |
-| Push-to-Talk HUD with real-time waveform & confidence telemetry | Emergency priority cards, playback controls & delivery markers | Byte-level radio header analysis, hex dump & CRC/HMAC state |
+| Push-to-Talk HUD with real-time audio telemetry, Indic language selector & bottom navigation | Emergency priority cards, playback controls & delivery markers | Byte-level radio header analysis, hex dump & CRC/HMAC state |
 
 | 4. Network Health & Telemetry | 5. Peer & Mesh Discovery | 6. Radio & Relay Settings |
 |:---:|:---:|:---:|
 | <img src="docs/assets/screenshots/04-communication-health.png" width="240" alt="Health Diagnostics" /> | <img src="docs/assets/screenshots/05-peer-mesh-discovery.png" width="240" alt="Peer Discovery" /> | <img src="docs/assets/screenshots/06-radio-settings-relay.png" width="240" alt="Radio Settings" /> |
-| Transport telemetry, packet loss, bandwidth & route graphs | Wi-Fi multicast and Bluetooth SPP peer connectivity states | Autonomous mesh relay toggle, 10 Indic languages & HMAC key |
+| Transport telemetry, packet loss, bandwidth & route graphs | Local BLE discovery, mesh topology and node scanning | Autonomous mesh relay toggle, 10 Indic languages & HMAC key |
 
 ---
 
@@ -105,7 +105,7 @@ The application interface is built with **Jetpack Compose**, designed for rapid 
 ### 4.1 Two-Pass Speech Pipeline & Zero-Wait Splicing
 - **Continuous Pass 1:** Decodes streaming audio frames as the operator speaks.
 - **Selective Pass 2 Refinement:** When natural speech pauses ($\ge 250\text{ ms}$) occur, high-value tokens (emergency codes, numbers, coordinates) are evaluated and refined in the background.
-- **Zero-Wait Finalization:** When the Push-to-Talk (PTT) button is released, in-flight background tasks cancel immediately and completed refinements splice into the final transcript, handing the packet to the transmission layer in **$< 10\text{ ms}$**.
+- **Zero-Wait Finalization:** When the Push-to-Talk (PTT) button is released, in-flight background tasks cancel immediately and completed refinements splice into the final transcript, handing the packet to the transmission layer in **$< 10\text{ ms}$** (measured local CPU release splice and dispatch latency).
 
 ### 4.2 Adaptive Representation Wire Footprints
 To adapt to varying radio channel qualities, iTantra adjusts message serialization dynamically:
@@ -135,21 +135,32 @@ All models execute fully on-device without external cloud connectivity:
 
 ---
 
-## 5. Quick Start & Build Guide
+## 5. Evaluation & Build Guide
 
-### Prerequisites
+### Fastest Evaluation Path (Pre-Built APK)
+For hackathon evaluators and jury members wishing to run the application immediately without compiling from source:
+1. **Download APK:** Download the pre-built [`app-debug.apk`](https://github.com/KiranS-create/Ad-Astra/releases/tag/v1.0.0-sih26173) from Release `v1.0.0-sih26173` (contains all bundled on-device model weights).
+2. **Install on Two Devices:** Install the APK on two physical Android handsets (`adb install -r app-debug.apk` or transfer via USB).
+3. **Grant Permissions:** Grant Microphone and Nearby Devices / Location permissions on first launch.
+4. **Run Two-Phone Off-Grid Demo:** Connect both devices to the same Wi-Fi network/hotspot (or pair over Bluetooth SPP) and hold Push-to-Talk to transmit offline voice packets.
+
+---
+
+### Building from Source (Optional)
+
+#### Prerequisites
 - **Android Studio Ladybug (2024.2+)** or IntelliJ IDEA with Android plugin
 - **JDK 17** (configured via `JAVA_HOME`)
 - **Android SDK API 34** with Build Tools `34.0.0`
 - Physical Android device running **Android 10+ (API 29+)** with ARM64 architecture
 
-### 1. Clone the Repository
+#### 1. Clone the Repository
 ```bash
 git clone https://github.com/KiranS-create/Ad-Astra.git
 cd Ad-Astra
 ```
 
-### 2. Run Automated Unit Tests
+#### 2. Run Automated Unit Tests
 ```bash
 # Windows
 .\gradlew.bat testDebugUnitTest
@@ -159,7 +170,7 @@ cd Ad-Astra
 ```
 *All 678+ unit tests will execute and verify protocol framing, speech splicing, representation encoding, and mesh routing.*
 
-### 3. Build & Install Debug APK
+#### 3. Build & Install Debug APK
 ```bash
 # Build the APK
 .\gradlew.bat assembleDebug
@@ -167,10 +178,6 @@ cd Ad-Astra
 # Install to connected device via ADB
 adb install -r app/build/outputs/apk/debug/app-debug.apk
 ```
-
-### 4. Pre-Built APK Download
-A complete pre-built release containing all bundled model assets is available on GitHub Releases:
-- **[Download v1.0.0-sih26173 (app-debug.apk)](https://github.com/KiranS-create/Ad-Astra/releases/tag/v1.0.0-sih26173)**
 
 ---
 
@@ -181,11 +188,12 @@ The project has been physically validated across two ARM64 Android smartphones i
 - **Device B:** Samsung Galaxy A55 5G (Android 14, Exynos 1480, 8 GB RAM)
 
 **Verified Behaviors:**
-- [x] Push-to-Talk speech recognition to packet transmission in $< 10\text{ ms}$ after release.
+- [x] Push-to-Talk speech recognition to packet transmission queue in $< 10\text{ ms}$ after release (local CPU splicing and dispatch).
 - [x] Wi-Fi UDP multicast packet delivery over ad-hoc local hotspots without internet access.
 - [x] Bluetooth Classic SPP serial transmission between paired devices.
 - [x] Multi-hop mesh relay forwarding with loop suppression and TTL decrement.
 - [x] Offline neural voice synthesis on receiving handset across 9 Indian languages + English.
+
 
 *For complete test procedures and logs, refer to [docs/TESTING.md](docs/TESTING.md).*
 
