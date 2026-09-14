@@ -114,6 +114,17 @@ object MessageTechnicalInspectorMapper {
             "${record.priority.name} (P${record.priority.id})",
             style = if (telemetry.priorityContext.isEmergency) TechnicalFieldStyle.ALERT else TechnicalFieldStyle.NORMAL
         ))
+        record.representationMode?.let { mode ->
+            fields.add(TechnicalInspectorField(
+                "VBR REPRESENTATION",
+                mode,
+                style = when (mode) {
+                    "SEMANTIC" -> TechnicalFieldStyle.HIGHLIGHT
+                    "COMPACT" -> TechnicalFieldStyle.WARNING
+                    else -> TechnicalFieldStyle.NORMAL
+                }
+            ))
+        }
 
         return TechnicalInspectorSection("MESSAGE", fields)
     }

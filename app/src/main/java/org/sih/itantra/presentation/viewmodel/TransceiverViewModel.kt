@@ -1112,6 +1112,21 @@ class TransceiverViewModel(application: Application) : AndroidViewModel(applicat
         testNeuralLoopback()
     }
 
+    /**
+     * Feature 16B: Transmits a test message explicitly encoded in the given representation mode.
+     */
+    fun sendVbrTestMessage(mode: org.sih.itantra.core.vbr.AdaptiveRepresentationMode, customText: String? = null) {
+        viewModelScope.launch {
+            val text = customText ?: when (mode) {
+                org.sih.itantra.core.vbr.AdaptiveRepresentationMode.SEMANTIC -> "Medical emergency 3 people injured ambulance required"
+                org.sih.itantra.core.vbr.AdaptiveRepresentationMode.COMPACT -> "Please note that we have team Alpha 1 holding position at Sector 4 right now"
+                org.sih.itantra.core.vbr.AdaptiveRepresentationMode.FULL -> "All stations, this is base operator reporting full status check on primary channel."
+                org.sih.itantra.core.vbr.AdaptiveRepresentationMode.UNKNOWN -> "Test message representation mode"
+            }
+            coordinator.sendAlert(text, isDistress = false, mode = mode)
+        }
+    }
+
     fun testSynthesizeSpeech(text: String) {
         viewModelScope.launch {
             coordinator.testSynthesizeAndPlay(text)

@@ -34,5 +34,6 @@ data class MessageRecord(
     val deliveryLatencyMs: Long? = null,
     val isSecure: Boolean = false,
     val authStatus: String? = null,
-    val qosStatus: String? = null
+    val qosStatus: String? = null,
+    val representationMode: String? = null // "FULL", "COMPACT", or "SEMANTIC"
 )

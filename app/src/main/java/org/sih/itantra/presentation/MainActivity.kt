@@ -346,6 +346,16 @@ class MainActivity : ComponentActivity() {
             "send_test_packet" -> {
                 viewModel.testNeuralLoopback()
             }
+            "send_vbr_test" -> {
+                val modeStr = intent?.getStringExtra("mode") ?: "FULL"
+                val text = intent?.getStringExtra("text")
+                val mode = when (modeStr.uppercase()) {
+                    "SEMANTIC" -> org.sih.itantra.core.vbr.AdaptiveRepresentationMode.SEMANTIC
+                    "COMPACT" -> org.sih.itantra.core.vbr.AdaptiveRepresentationMode.COMPACT
+                    else -> org.sih.itantra.core.vbr.AdaptiveRepresentationMode.FULL
+                }
+                viewModel.sendVbrTestMessage(mode, text)
+            }
             "start_node_mode" -> {
                 viewModel.startNodeMode()
             }

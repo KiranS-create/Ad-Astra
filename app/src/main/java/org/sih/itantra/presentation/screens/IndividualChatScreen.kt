@@ -893,6 +893,30 @@ private fun ChatMessageBubble(
                             fontFamily = FontFamily.Monospace
                         )
                     }
+
+                    // Feature 16B: VBR Representation Mode Badge
+                    record.representationMode?.let { mode ->
+                        val (vbrBg, vbrBorder, vbrText) = when (mode) {
+                            "SEMANTIC" -> Triple(radioColors.sage.copy(alpha = 0.2f), radioColors.sage.copy(alpha = 0.6f), radioColors.sage)
+                            "COMPACT" -> Triple(radioColors.warning.copy(alpha = 0.2f), radioColors.warning.copy(alpha = 0.6f), radioColors.warning)
+                            else -> Triple(radioColors.capsule, radioColors.border.copy(alpha = 0.4f), radioColors.textTertiary)
+                        }
+                        Box(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(4.dp))
+                                .background(vbrBg)
+                                .border(1.dp, vbrBorder, RoundedCornerShape(4.dp))
+                                .padding(horizontal = 5.dp, vertical = 1.dp)
+                        ) {
+                            Text(
+                                text = mode,
+                                color = vbrText,
+                                fontSize = 9.sp,
+                                fontWeight = FontWeight.Bold,
+                                fontFamily = FontFamily.Monospace
+                            )
+                        }
+                    }
                 }
 
                 // Feature 11: Active Playback Indicator (shows status, loading, playing, or failure)

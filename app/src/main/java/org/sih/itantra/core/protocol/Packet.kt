@@ -47,6 +47,9 @@ data class Packet(
     val isSemantic: Boolean
         get() = (flags.toInt() and FLAG_SEMANTIC) != 0 || semanticCommand != null
 
+    val isCompact: Boolean
+        get() = (flags.toInt() and 0xFF and FLAG_COMPACT) != 0
+
     val isAuthenticated: Boolean
         get() = (flags.toInt() and FLAG_AUTHENTICATED) != 0 && authTag != null
 
@@ -105,6 +108,7 @@ data class Packet(
         const val FLAG_HAS_LOCATION: Int = 1 shl 4
         const val FLAG_SEMANTIC: Int = 1 shl 5
         const val FLAG_AUTHENTICATED: Int = 1 shl 6
+        const val FLAG_COMPACT: Int = 1 shl 7 // 0x80 (128) - Feature 16B Adaptive VBR Shorthand
 
         const val DEFAULT_TTL: Byte = 3
 

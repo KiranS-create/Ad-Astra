@@ -437,6 +437,30 @@ fun RadioTranscriptRow(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(5.dp)
                     ) {
+                        // Feature 16B: VBR Representation Mode Badge
+                        record.representationMode?.let { mode ->
+                            val (modeColor, modeBg) = when (mode) {
+                                "SEMANTIC" -> Pair(if (radioColors.isDark) radioColors.sage else radioColors.forest, (if (radioColors.isDark) radioColors.sage else radioColors.forest).copy(alpha = 0.15f))
+                                "COMPACT" -> Pair(radioColors.warning, radioColors.warning.copy(alpha = 0.15f))
+                                else -> Pair(radioColors.textTertiary, radioColors.surfaceHighlight)
+                            }
+                            Box(
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(3.dp))
+                                    .background(modeBg)
+                                    .border(1.dp, modeColor.copy(alpha = 0.4f), RoundedCornerShape(3.dp))
+                                    .padding(horizontal = 3.dp, vertical = 1.dp)
+                            ) {
+                                Text(
+                                    text = mode,
+                                    color = modeColor,
+                                    fontSize = 8.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    fontFamily = FontFamily.Monospace
+                                )
+                            }
+                        }
+
                         // Tactical QoS Priority Badge
                         val (pColor, pText) = when (record.priority) {
                             MessagePriority.DISTRESS -> Pair(radioColors.alert, "P3")
