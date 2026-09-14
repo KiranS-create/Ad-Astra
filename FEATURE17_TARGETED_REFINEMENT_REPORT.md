@@ -1,9 +1,9 @@
-# FEATURE 17 — TARGETED REFINEMENT FOR PIPELINED SPEECH REPORT
+# FEATURE 17 â€” TARGETED REFINEMENT FOR PIPELINED SPEECH REPORT
 
-**Project:** iTantra — Tactical Offline MANET Voice/Data Mesh Communication System  
+**Project:** iTantra â€” Tactical Offline MANET Voice/Data Mesh Communication System  
 **Hackathon:** Smart India Hackathon 2026 (PS SIH26173)  
 **Implementation Phase:** Feature 17 (Targeted Refinement for Pipelined Speech)  
-**Validated Baseline:** Features 1–16B  
+**Validated Baseline:** Features 1â€“16B  
 **Automated Unit Tests:** **678 / 678 Passing** (100% Pass Rate, 0 Failures, 29 dedicated Feature 17 tests)  
 **Physical Verification Hardware:**
 - **Node A (Benchmark & Transmitter):** Samsung Galaxy A55 5G (`RZCY9396AGX`, Android 14)
@@ -26,7 +26,7 @@ Feature 17 solves this by enforcing the core architectural mandate:
    - Endpoint waiting time: **Strictly 0.00 ms**.
 2. **Selective, High-Value Candidate Selection:**
    Rather than re-transcribing generic filler speech, the system selectively targets tokens that carry high tactical significance or high acoustic vulnerability:
-   - **Emergency Distress Keywords:** `DISTRESS`, `AMBUSH`, `SOS`, `CASUALTY`, `मदद`, `घायल`, `அவசரம்`.
+   - **Emergency Distress Keywords:** `DISTRESS`, `AMBUSH`, `SOS`, `CASUALTY`, `à¤®à¤¦à¤¦`, `à¤˜à¤¾à¤¯à¤²`, `à®…à®µà®šà®°à®®à¯`.
    - **Numbers, Coordinates, & Callsigns:** Grid coordinates (`72.5`), sector numbers (`4`), tactical callsigns (`ALPHA`, `BRAVO`).
    - **Hypothesis Instability:** Tokens exhibiting acoustic flux across streaming frames.
    - **Script Ambiguity:** Cross-lingual terms and transliterations across English, Devanagari, and Tamil.
@@ -92,7 +92,7 @@ The benchmark was executed directly on **Node A (Samsung Galaxy A55 5G, ADB: `RZ
 | **Utterance 2 (Numbers / Coordinates)**<br>*"Report SECTOR 4 72.5 coordinates verified"* | 385.4 ms | 240.0 ms | 34.7 ms | **24.3 ms** | **-93.7%** | 2 | **0** | **0.00 ms** |
 | **Utterance 3 (Tactical Callsigns)**<br>*"ALPHA unit check at checkpoint bravo"* | 388.4 ms | 244.2 ms | 57.1 ms | **63.9 ms** | **-83.6%** | 2 | **0** | **0.00 ms** |
 | **Utterance 4 (Emergency Distress)**<br>*"SOS medical assistance required operator at sector 9"* | 482.2 ms | 282.0 ms | 48.5 ms | **10.2 ms** | **-97.9%** | 2 | **0** | **0.00 ms** |
-| **Utterance 5 (Hindi / Indic Tactical)**<br>*"मदद चाहिए घायल ऑपरेटर चार पर है"* | 431.7 ms | 261.3 ms | 58.6 ms | **25.3 ms** | **-94.1%** | 2 | **0** | **0.00 ms** |
+| **Utterance 5 (Hindi / Indic Tactical)**<br>*"à¤®à¤¦à¤¦ à¤šà¤¾à¤¹à¤¿à¤ à¤˜à¤¾à¤¯à¤² à¤‘à¤ªà¤°à¥‡à¤Ÿà¤° à¤šà¤¾à¤° à¤ªà¤° à¤¹à¥ˆ"* | 431.7 ms | 261.3 ms | 58.6 ms | **25.3 ms** | **-94.1%** | 2 | **0** | **0.00 ms** |
 | **SUITE AVERAGE** | **423.98 ms** | **257.76 ms** | **49.36 ms** | **25.88 ms** | **-93.6%** | **1.6** | **0** | **0.00 ms** |
 
 ### Benchmark Key Findings
@@ -117,13 +117,13 @@ Node #209070                                 Node #209071 / Transceiver
       |          "Report SECTOR 4 grid 72 5 coordinates"   |
       |                                                    |
       |--------- [SEMANTIC] Mode: 46B (6B Binary) -------->| (Rcvd & rendered)
-      |          "🚨 EMERGENCY ALERT"                      |
+      |          "ðŸš¨ EMERGENCY ALERT"                      |
 ```
 
 ### Real-Time Over-the-Air Logcat Evidence on Phone B (`RF8N927PM9N`)
 ```text
-09-14 15:40:11.832  7179  7214 I TransceiverCoordinator: Received 'Report SECTOR 4 grid 72 5 coordinates verified ।' (HINDI) [Mode=COMPACT] from Node #209070 (Auth=AUTH ✓, Semantic=false, Priority=ALERT, Relayed=false, Hop=0, Frags=null)
-09-14 15:40:18.914  7179  7221 I TransceiverCoordinator: Received '🚨 EMERGENCY ALERT' (HINDI) [Mode=SEMANTIC] from Node #209070 (Auth=AUTH ✓, Semantic=true, Priority=ALERT, Relayed=false, Hop=0, Frags=null)
+09-14 15:40:11.832  7179  7214 I TransceiverCoordinator: Received 'Report SECTOR 4 grid 72 5 coordinates verified à¥¤' (HINDI) [Mode=COMPACT] from Node #209070 (Auth=AUTH âœ“, Semantic=false, Priority=ALERT, Relayed=false, Hop=0, Frags=null)
+09-14 15:40:18.914  7179  7221 I TransceiverCoordinator: Received 'ðŸš¨ EMERGENCY ALERT' (HINDI) [Mode=SEMANTIC] from Node #209070 (Auth=AUTH âœ“, Semantic=true, Priority=ALERT, Relayed=false, Hop=0, Frags=null)
 ```
 
 ### Visual Verification Artifacts
@@ -131,16 +131,15 @@ Node #209070                                 Node #209071 / Transceiver
 #### 1. Real Reception in Chat Screen (`phoneB_chat_opened_real.png`)
 Shows received bubbles with active tactical headers, retention countdown, and representation badges:
 - **`[FULL]` Message:** 86B wire footprint, verbatim text.
-- **`[COMPACT]` Message:** 89B wire footprint, refined text *"Report SECTOR 4 grid 72 5 coordinates verified ।"*, amber capsule badge.
-- **`[SEMANTIC]` Message:** 46B wire footprint, *"🚨 EMERGENCY ALERT"*, green capsule badge.
-
-![Phone B Real Chat Screen](C:\Users\kiran akash\.gemini\antigravity\brain\1d6f1dd7-7dc8-4989-9572-aface120b562\phoneB_chat_opened_real.png)
+- **`[COMPACT]` Message:** 89B wire footprint, refined text *"Report SECTOR 4 grid 72 5 coordinates verified à¥¤"*, amber capsule badge.
+- **`[SEMANTIC]` Message:** 46B wire footprint, *"ðŸš¨ EMERGENCY ALERT"*, green capsule badge.
+*Screenshot: `phoneB_chat_opened_real.png`*
 
 ---
 
 ## 5. Automated Unit Test Verification (678 / 678 Passing)
 
-29 new unit tests were implemented in [`TargetedRefinementTest.kt`](file:///C:/Projects/iTantra/app/src/test/java/org/sih/itantra/core/speech/TargetedRefinementTest.kt), bringing total regression coverage to **678 / 678 passing**:
+29 new unit tests were implemented in [`TargetedRefinementTest.kt`](app/src/test/java/org/sih/itantra/core/speech/TargetedRefinementTest.kt), bringing total regression coverage to **678 / 678 passing**:
 
 ```text
 BUILD SUCCESSFUL in 38s
@@ -150,7 +149,7 @@ BUILD SUCCESSFUL in 38s
 ### Test Coverage Highlights:
 1. `testPolicyExtractsEmergencyDistressCandidates`: Confirms immediate detection and highest-priority scoring for distress words.
 2. `testPolicyExtractsNumberAndCoordinateCandidates`: Confirms coordinate and grid token isolation.
-3. `testPolicyExtractsIndicEmergencyTerms`: Confirms Devanagari (`मदद`, `घायल`) and Tamil (`அவசரம்`) emergency term detection.
+3. `testPolicyExtractsIndicEmergencyTerms`: Confirms Devanagari (`à¤®à¤¦à¤¦`, `à¤˜à¤¾à¤¯à¤²`) and Tamil (`à®…à®µà®šà®°à®®à¯`) emergency term detection.
 4. `testBudgetEnforcesMaxTwoPerWindow`: Validates strict window budgeting.
 5. `testBudgetEnforcesMaxFourPerUtterance`: Validates total utterance cap.
 6. `testBudgetDeduplicatesOverlappingSpans`: Prevents duplicate compute on identical text spans.
@@ -164,15 +163,15 @@ BUILD SUCCESSFUL in 38s
 
 | Component | Path | Responsibility |
 | :--- | :--- | :--- |
-| **`RefinementCandidate`** | [`RefinementCandidate.kt`](file:///C:/Projects/iTantra/app/src/main/java/org/sih/itantra/core/speech/refinement/RefinementCandidate.kt) | Models candidate tokens, refinement reasons, confidence scores, and span offsets. |
-| **`TargetedRefinementPolicy`** | [`TargetedRefinementPolicy.kt`](file:///C:/Projects/iTantra/app/src/main/java/org/sih/itantra/core/speech/refinement/TargetedRefinementPolicy.kt) | Pure deterministic candidate extractor & multi-criteria priority scorer (English, Hindi, Tamil). |
-| **`RefinementBudget`** | [`RefinementBudget.kt`](file:///C:/Projects/iTantra/app/src/main/java/org/sih/itantra/core/speech/refinement/RefinementBudget.kt) | Manages window limits (max 2), utterance limits (max 4), and span de-duplication. |
-| **`TargetedPass2Refiner`** | [`TargetedPass2Refiner.kt`](file:///C:/Projects/iTantra/app/src/main/java/org/sih/itantra/core/speech/refinement/TargetedPass2Refiner.kt) | Targeted acoustic refiner with tactical normalization. |
-| **`TargetedRefinementMetrics`** | [`TargetedRefinementMetrics.kt`](file:///C:/Projects/iTantra/app/src/main/java/org/sih/itantra/core/speech/refinement/TargetedRefinementMetrics.kt) | High-resolution monotonic timing, RTF calculations, and telemetry mappers. |
-| **`TargetedTwoPassSpeechEngine`** | [`TargetedTwoPassSpeechEngine.kt`](file:///C:/Projects/iTantra/app/src/main/java/org/sih/itantra/core/speech/refinement/TargetedTwoPassSpeechEngine.kt) | Full pipeline implementation with silence-interval worker and instant zero-wait finalizer. |
-| **`TargetedRefinementBenchmarkRunner`** | [`TargetedRefinementBenchmarkRunner.kt`](file:///C:/Projects/iTantra/app/src/main/java/org/sih/itantra/core/speech/benchmark/TargetedRefinementBenchmarkRunner.kt) | Automated comparative runner measuring all 4 pipelines across standard test utterances. |
-| **`MainActivity` & `TransceiverViewModel`** | [`MainActivity.kt`](file:///C:/Projects/iTantra/app/src/main/java/org/sih/itantra/presentation/MainActivity.kt) | Integrated benchmark intent triggers (`run_refinement_benchmark`) and diagnostic events. |
-| **`TargetedRefinementTest`** | [`TargetedRefinementTest.kt`](file:///C:/Projects/iTantra/app/src/test/java/org/sih/itantra/core/speech/TargetedRefinementTest.kt) | 29 comprehensive unit tests verifying policies, budgets, refiners, and pipeline behavior. |
+| **`RefinementCandidate`** | [`RefinementCandidate.kt`](app/src/main/java/org/sih/itantra/core/speech/refinement/RefinementCandidate.kt) | Models candidate tokens, refinement reasons, confidence scores, and span offsets. |
+| **`TargetedRefinementPolicy`** | [`TargetedRefinementPolicy.kt`](app/src/main/java/org/sih/itantra/core/speech/refinement/TargetedRefinementPolicy.kt) | Pure deterministic candidate extractor & multi-criteria priority scorer (English, Hindi, Tamil). |
+| **`RefinementBudget`** | [`RefinementBudget.kt`](app/src/main/java/org/sih/itantra/core/speech/refinement/RefinementBudget.kt) | Manages window limits (max 2), utterance limits (max 4), and span de-duplication. |
+| **`TargetedPass2Refiner`** | [`TargetedPass2Refiner.kt`](app/src/main/java/org/sih/itantra/core/speech/refinement/TargetedPass2Refiner.kt) | Targeted acoustic refiner with tactical normalization. |
+| **`TargetedRefinementMetrics`** | [`TargetedRefinementMetrics.kt`](app/src/main/java/org/sih/itantra/core/speech/refinement/TargetedRefinementMetrics.kt) | High-resolution monotonic timing, RTF calculations, and telemetry mappers. |
+| **`TargetedTwoPassSpeechEngine`** | [`TargetedTwoPassSpeechEngine.kt`](app/src/main/java/org/sih/itantra/core/speech/refinement/TargetedTwoPassSpeechEngine.kt) | Full pipeline implementation with silence-interval worker and instant zero-wait finalizer. |
+| **`TargetedRefinementBenchmarkRunner`** | [`TargetedRefinementBenchmarkRunner.kt`](app/src/main/java/org/sih/itantra/core/speech/benchmark/TargetedRefinementBenchmarkRunner.kt) | Automated comparative runner measuring all 4 pipelines across standard test utterances. |
+| **`MainActivity` & `TransceiverViewModel`** | [`MainActivity.kt`](app/src/main/java/org/sih/itantra/presentation/MainActivity.kt) | Integrated benchmark intent triggers (`run_refinement_benchmark`) and diagnostic events. |
+| **`TargetedRefinementTest`** | [`TargetedRefinementTest.kt`](app/src/test/java/org/sih/itantra/core/speech/TargetedRefinementTest.kt) | 29 comprehensive unit tests verifying policies, budgets, refiners, and pipeline behavior. |
 
 ---
 
@@ -182,4 +181,4 @@ Feature 17 successfully realizes the iTantra tactical speech vision:
 - **Natural speech pauses are converted into compute opportunities.**
 - **Post-speech turnaround latency is reduced by 93.6% compared to baseline batch processing.**
 - **Zero post-endpoint delay is rigorously maintained.**
-- **Full backward compatibility and interoperability with Features 1–16B are preserved.**
+- **Full backward compatibility and interoperability with Features 1â€“16B are preserved.**

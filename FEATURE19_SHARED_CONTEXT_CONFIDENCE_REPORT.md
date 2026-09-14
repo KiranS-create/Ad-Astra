@@ -1,6 +1,6 @@
-# Feature 19: Shared Context + Confidence-Aware Communication — Technical Validation Report
+﻿# Feature 19: Shared Context + Confidence-Aware Communication â€” Technical Validation Report
 
-**Project:** iTantra — Tactical Off-Grid Speech & Data Mesh (Smart India Hackathon 2026, Problem Statement SIH26173)  
+**Project:** iTantra â€” Tactical Off-Grid Speech & Data Mesh (Smart India Hackathon 2026, Problem Statement SIH26173)  
 **Date:** September 14, 2026  
 **Status:** COMPLETED & PHYSICALLY VALIDATED ON DUAL HARDWARE NODES  
 **Test Suite:** 733 / 733 Tests Passing (100% Success Rate)
@@ -13,9 +13,9 @@ Feature 19 introduces **Shared Context + Confidence-Aware Communication** to iTa
 
 Transmitting redundant contextual boilerplate across constrained tactical radio channels (VHF, UHF, LoRa, Wi-Fi Direct) wastes scarce channel time, increases packet collision probability, and degrades network capacity. Feature 19 transitions iTantra from stateless transmission to **contextual state reuse via ultra-compact tactical deltas**, governed by strict deterministic confidence thresholds:
 
-1. **Contextual State Reuse (6–9 Byte Payloads, 46–48 Byte Wire Packets):**
+1. **Contextual State Reuse (6â€“9 Byte Payloads, 46â€“48 Byte Wire Packets):**
    - First transmission establishes an authoritative tactical context (e.g. `SEMANTIC_BASE`, 48 bytes total wire).
-   - Subsequent updates transmit only the modified tactical fields via bitmask-driven **`ContextDelta`** payloads (6 bytes keep-alive / 7 bytes for count update / 46–47 bytes total wire).
+   - Subsequent updates transmit only the modified tactical fields via bitmask-driven **`ContextDelta`** payloads (6 bytes keep-alive / 7 bytes for count update / 46â€“47 bytes total wire).
    - Over **60% bandwidth reduction** compared to enhanced semantic packets and over **99.9% reduction** compared to raw digital audio.
 
 2. **Strict Confidence Enforcement (Never Trust Low-Confidence Context):**
@@ -75,8 +75,8 @@ A `ContextDelta` payload begins with a compact 6-byte header, followed by only t
 | Tactical Update Scenario | Payload Size | Canonical Header + CRC + HMAC | Total Wire Size | Comparison vs Enhanced | Comparison vs Raw Audio |
 | :--- | :---: | :---: | :---: | :---: | :---: |
 | **Keep-Alive / Confirm State** | **6 Bytes** | 40 Bytes | **46 Bytes** | **-60.7%** | **> 99.9%** |
-| **Single Field (e.g. People Count 3 → 4)** | **7 Bytes** | 40 Bytes | **47 Bytes** | **-59.8%** | **> 99.9%** |
-| **Sector Relocation (Sector 4 → Sector 9)** | **8 Bytes** | 40 Bytes | **48 Bytes** | **-59.0%** | **> 99.9%** |
+| **Single Field (e.g. People Count 3 â†’ 4)** | **7 Bytes** | 40 Bytes | **47 Bytes** | **-59.8%** | **> 99.9%** |
+| **Sector Relocation (Sector 4 â†’ Sector 9)** | **8 Bytes** | 40 Bytes | **48 Bytes** | **-59.0%** | **> 99.9%** |
 | **Two Fields (Count + Severity Esc.)** | **8 Bytes** | 40 Bytes | **48 Bytes** | **-59.0%** | **> 99.9%** |
 | **SEMANTIC_BASE (Feature 18)** | 8 Bytes | 40 Bytes | 48 Bytes | -59.0% | > 99.9% |
 | **SEMANTIC_ENHANCED (Base + Text)** | 77 Bytes | 40 Bytes | 117 Bytes | Baseline | 99.8% |
@@ -136,7 +136,7 @@ sequenceDiagram
 
 ### Scenario 1: Base Context Establishment
 - **Transmission:** Node A transmitted `SEMANTIC_BASE` alert ("Medical emergency 3 people injured sector 4 ambulance required").
-- **Reception:** Node B received the packet over the air, authenticated HMAC-SHA256 (`AUTH ✓`), and extracted:
+- **Reception:** Node B received the packet over the air, authenticated HMAC-SHA256 (`AUTH âœ“`), and extracted:
   - Mode: `SEMANTIC_BASE`
   - Wire Size: **48 Bytes**
   - Context Initialized: **`Context ID #30780 v1`**
@@ -147,7 +147,7 @@ sequenceDiagram
 - **Transmission:** Node A transmitted `CONTEXT_DELTA` targeting Context `#30780`.
 - **Reception:** Node B matched active context `#30780`, applied delta, advanced version to `v2`:
   - Mode: `CONTEXT_DELTA`
-  - Wire Payload: **6–7 Bytes**
+  - Wire Payload: **6â€“7 Bytes**
   - Wire Packet: **46 Bytes** (vs 117 Bytes for enhanced)
   - UI Badge: **`[CTX DELTA]`**
   - Technical Inspector:
@@ -169,7 +169,7 @@ sequenceDiagram
 
 ## 5. Specification Verification Matrix (All 35 Tests Passing)
 
-All 35 explicit specifications were implemented and validated via [`SharedContextTest.kt`](file:///C:/Projects/iTantra/app/src/test/java/org/sih/itantra/core/context/SharedContextTest.kt):
+All 35 explicit specifications were implemented and validated via [`SharedContextTest.kt`](app/src/test/java/org/sih/itantra/core/context/SharedContextTest.kt):
 
 | Spec # | Specification Name | Status | Verified In |
 | :---: | :--- | :---: | :--- |
@@ -219,21 +219,21 @@ The following components implement Feature 19 in `app/src/main/java/org/sih/itan
 
 ```
 core/
-├── context/
-│   ├── ContextConfidence.kt        // Pure deterministic scoring (0..100), levels, and authority gates
-│   ├── SharedContextEntry.kt       // Immutable tactical fact model with monotonic versioning & TTL
-│   └── SharedContextStore.kt       // Thread-safe bounded (64) LRU store with conflict resolution
-├── vbr/
-│   ├── ContextDelta.kt             // 0xCD discriminator, 6B header, bitmask delta serializer/deserializer
-│   ├── AdaptiveRepresentationMode.kt // Added CONTEXT_DELTA representation mode
-│   ├── AdaptiveMessageRepresentation.kt // Carries contextId, version, delta fields, and fallback state
-│   └── AdaptiveRepresentationPolicy.kt // Evaluates context presence, diffs changes, or falls back to base
-├── message/
-│   └── MessageTechnicalInspectorMapper.kt // Exposes Context ID, Version, Confidence, Deltas to UI
-├── persistence/
-│   └── MessageRecord.kt            // Persists context metadata in SQLite/Room message history
-└── session/
-    └── TransceiverCoordinator.kt   // Integrates context delta transmission, reception, caching, & fallback
+â”œâ”€â”€ context/
+â”‚   â”œâ”€â”€ ContextConfidence.kt        // Pure deterministic scoring (0..100), levels, and authority gates
+â”‚   â”œâ”€â”€ SharedContextEntry.kt       // Immutable tactical fact model with monotonic versioning & TTL
+â”‚   â””â”€â”€ SharedContextStore.kt       // Thread-safe bounded (64) LRU store with conflict resolution
+â”œâ”€â”€ vbr/
+â”‚   â”œâ”€â”€ ContextDelta.kt             // 0xCD discriminator, 6B header, bitmask delta serializer/deserializer
+â”‚   â”œâ”€â”€ AdaptiveRepresentationMode.kt // Added CONTEXT_DELTA representation mode
+â”‚   â”œâ”€â”€ AdaptiveMessageRepresentation.kt // Carries contextId, version, delta fields, and fallback state
+â”‚   â””â”€â”€ AdaptiveRepresentationPolicy.kt // Evaluates context presence, diffs changes, or falls back to base
+â”œâ”€â”€ message/
+â”‚   â””â”€â”€ MessageTechnicalInspectorMapper.kt // Exposes Context ID, Version, Confidence, Deltas to UI
+â”œâ”€â”€ persistence/
+â”‚   â””â”€â”€ MessageRecord.kt            // Persists context metadata in SQLite/Room message history
+â””â”€â”€ session/
+    â””â”€â”€ TransceiverCoordinator.kt   // Integrates context delta transmission, reception, caching, & fallback
 ```
 
 ---
@@ -241,7 +241,7 @@ core/
 ## 7. Conclusion
 
 Feature 19 fulfills all design goals specified for **Shared Context + Confidence-Aware Communication**:
-1. **Ultra-Low Bandwidth:** Yields 46–48 byte wire packets (6–9 byte payloads), representing a >60% bandwidth reduction over enhanced packets.
+1. **Ultra-Low Bandwidth:** Yields 46â€“48 byte wire packets (6â€“9 byte payloads), representing a >60% bandwidth reduction over enhanced packets.
 2. **Deterministic & Bounded:** Zero distributed database overhead; capped at 64 entries with deterministic LRU eviction.
 3. **Safety-Critical Confidence:** Unambiguous authority gates prevent corrupted or low-confidence speech from poisoning situational state.
 4. **Physical Reality:** 100% verified on dual Samsung Android phones with live over-the-air RF transmissions and real-time inspector verification.

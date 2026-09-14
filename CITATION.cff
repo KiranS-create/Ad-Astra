@@ -1,0 +1,21 @@
+cff-version: 1.2.0
+message: "If you reference or build upon this project in academic or technical work, please cite it as below."
+title: "iTantra: Offline Multilingual Voice-to-Packet MANET Transceiver"
+abstract: "An offline-first Android neural voice communication system designed for low-bandwidth ad-hoc mesh networks, combining on-device speech recognition, compact binary packet transmission, and local neural voice reconstruction."
+authors:
+  - name: "Team Ad Astra"
+repository-code: "https://github.com/KiranS-create/Ad-Astra"
+license: "MIT"
+keywords:
+  - "manet"
+  - "mesh-networking"
+  - "offline-first"
+  - "speech-recognition"
+  - "voice-synthesis"
+  - "smart-india-hackathon"
+  - "android"
+  - "sherpa-onnx"
+date-released: "2026-09-14"
+conference:
+  name: "Smart India Hackathon 2026"
+  problem-statement: "SIH26173"

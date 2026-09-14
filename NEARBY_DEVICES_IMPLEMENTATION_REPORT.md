@@ -197,15 +197,9 @@ Feature 4 was validated in live operation on physical hardware via ADB.
    - Tapped `[ CONFIRM & ADD ]`; triggered the callback contract without error.
 
 ### Validation Screenshots
-- **Main Discovery Screen (State B)**:  
-  `nearby_screen.png`  
-  Path: `C:\Users\kiran akash\.gemini\antigravity\brain\d3ad2bb5-63ff-40bc-a995-839b4b27ece5\nearby_screen.png`
-- **Expanded Device Card Telemetry (State C)**:  
-  `nearby_expanded.png`  
-  Path: `C:\Users\kiran akash\.gemini\antigravity\brain\d3ad2bb5-63ff-40bc-a995-839b4b27ece5\nearby_expanded.png`
-- **Trust Confirmation Security Dialog (State C)**:  
-  `nearby_dialog_shown.png`  
-  Path: `C:\Users\kiran akash\.gemini\antigravity\brain\d3ad2bb5-63ff-40bc-a995-839b4b27ece5\nearby_dialog_shown.png`
+- **Main Discovery Screen (State B)**: `nearby_screen.png`
+- **Expanded Device Card Telemetry (State C)**: `nearby_expanded.png`
+- **Trust Confirmation Security Dialog (State C)**: `nearby_dialog_shown.png`
 
 ---
 

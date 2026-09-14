@@ -1,7 +1,7 @@
-# iTantra Tactical Communications System — Feature 16A Report
+﻿# iTantra Tactical Communications System â€” Feature 16A Report
 ## Two-Pass Pipelined Speech Benchmark & Real-Time Prototype
 **Project:** Smart India Hackathon 2026 | Problem Statement: SIH26173  
-**Feature:** Feature 16A — Two-Pass Pipelined Speech Benchmark  
+**Feature:** Feature 16A â€” Two-Pass Pipelined Speech Benchmark  
 **Target Architecture:** Android (Kotlin, Jetpack Compose, Coroutines, StateFlow, Sherpa-ONNX 1.13.7)  
 **Hardware Profile:** Samsung Galaxy A55 5G (Phone A, `RZCY9396AGX`, ARM64-v8a)  
 **Test Suite Status:** 617 / 617 unit tests passing (100% success rate, 0 failures)  
@@ -26,7 +26,7 @@ The baseline iTantra speech system was audited prior to prototyping:
    - `SherpaOnnxSpeechRecognizer` feeds all samples into an `OfflineRecognizer` (using IndicConformer NeMo CTC for Indic languages, Dolphin CTC for Odia, or Whisper-Tiny INT8 for English).
    - The CPU executes inference sequentially on the entire audio block **after** speech has already concluded.
 4. **Sentence & Semantic Finalization:**
-   - `SentenceFinalizer.finalizeSentence()` applies language punctuation (Hindi danda '।', English '.') and removes repetitive CTC loop artifacts.
+   - `SentenceFinalizer.finalizeSentence()` applies language punctuation (Hindi danda 'à¥¤', English '.') and removes repetitive CTC loop artifacts.
    - `VoiceCommandEngine` and `SemanticEmergencyClassifier` classify commands sequentially.
    - The final payload is compressed, fragmented if $> 200\text{B}$, authenticated via HMAC-SHA256, and passed to the QoS priority queue.
 
@@ -56,28 +56,28 @@ The central architectural mandate:
 Rather than buffering audio passively and running a massive batch computation after speech terminates, Feature 16A divides the problem into concurrent streaming stages:
 ```
                       MICROPHONE (16 kHz PCM)
-                                │
-                                ▼
+                                â”‚
+                                â–¼
                        NON-BLOCKING CHUNK FEED
                        (Bounded Channel, Cap=32)
-                                │
-            ┌───────────────────┴───────────────────┐
-            │                                       │
-            ▼                                       ▼
+                                â”‚
+            â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”´â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+            â”‚                                       â”‚
+            â–¼                                       â–¼
      PASS 1 STREAMING                         NEXT CHUNK CAPTURE
-  (200–500ms Audio Chunks)                    (Zero Blocking)
-            │
-            ▼
+  (200â€“500ms Audio Chunks)                    (Zero Blocking)
+            â”‚
+            â–¼
    PARTIAL HYPOTHESIS
-            │
-            ▼
+            â”‚
+            â–¼
   OPPORTUNISTIC PASS 2
   (Seizes Natural Silence)
-            │
-            ▼
+            â”‚
+            â–¼
    STABLE HYPOTHESIS & SEMANTICS
-            │
-            ▼
+            â”‚
+            â–¼
     INSTANT PACKET READY (< 50 ms)
 ```
 
@@ -111,7 +111,7 @@ In Feature 16A:
 
 ### 6. Pass 1 Responsibilities
 - Low-latency incremental processing ($RTF \le 0.15$).
-- Ingestion of 200–500ms audio chunks.
+- Ingestion of 200â€“500ms audio chunks.
 - Rapid generation of `Pass1Hypothesis` partial transcripts during active speech.
 - Updating `_partialHypothesisFlow` so operator feedback or UI indicators can display recognition progress in real time.
 
@@ -201,7 +201,7 @@ Audio Duration: 3600 ms (12 chunks)
 ---
 
 ### 15. Candidate Model & Runtime Options for Feature 16B
-An investigation of `sherpa-onnx-1.13.7.aar` was conducted in [`ZipformerInvestigation.kt`](file:///C:/Projects/iTantra/app/src/main/java/org/sih/itantra/core/speech/model/ZipformerInvestigation.kt):
+An investigation of `sherpa-onnx-1.13.7.aar` was conducted in [`ZipformerInvestigation.kt`](app/src/main/java/org/sih/itantra/core/speech/model/ZipformerInvestigation.kt):
 1. **Runtime Verification:**
    - The native library (`sherpa-onnx-1.13.7.aar`) contains `OnlineRecognizer`, `OnlineStream`, `OnlineZipformer2CtcModelConfig`, and `OnlineTransducerModelConfig`.
    - Native C++ binaries (`libonnxruntime.so`, `libsherpa-onnx-jni.so`) support `arm64-v8a`, `armeabi-v7a`, `x86`, and `x86_64`.
@@ -226,7 +226,7 @@ An investigation of `sherpa-onnx-1.13.7.aar` was conducted in [`ZipformerInvesti
 ---
 
 ### 17. Automated Test Suite Summary (617 / 617 Passing)
-The following 17 tests in [`TwoPassSpeechPipelineTest.kt`](file:///C:/Projects/iTantra/app/src/test/java/org/sih/itantra/core/speech/TwoPassSpeechPipelineTest.kt) were added and verified:
+The following 17 tests in [`TwoPassSpeechPipelineTest.kt`](app/src/test/java/org/sih/itantra/core/speech/TwoPassSpeechPipelineTest.kt) were added and verified:
 1. `testChunkOrdering`: Strict sequential chunk processing order.
 2. `testPass1Completion`: Pass 1 incremental hypothesis generation.
 3. `testPass2Scheduling`: Pass 2 triggered on silence chunks.

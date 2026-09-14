@@ -1,6 +1,6 @@
-# Feature 18: Semantic Base + Enhancement Layer — Technical Validation Report
+﻿# Feature 18: Semantic Base + Enhancement Layer â€” Technical Validation Report
 
-**Project:** iTantra — Tactical Off-Grid Speech & Data Mesh (Smart India Hackathon 2026, Problem Statement SIH26173)  
+**Project:** iTantra â€” Tactical Off-Grid Speech & Data Mesh (Smart India Hackathon 2026, Problem Statement SIH26173)  
 **Date:** September 14, 2026  
 **Status:** COMPLETED & PHYSICALLY VALIDATED ON DUAL HARDWARE NODES  
 **Test Suite:** 698 / 698 Tests Passing (100% Success Rate)
@@ -16,7 +16,7 @@ Feature 18 introduces the **Semantic Base + Enhancement Layer** to iTantra's tac
      - Bytes 0..5: Structured tactical command (Category, Subtype, Severity, Count, Sector/Parameter).
      - Byte 6: Semantic schema version (`0x01`).
      - Byte 7: Capability & presence flags (`0x01 = FLAG_HAS_ENHANCEMENT`).
-   - **Tactical Autonomy**: A node receiving *only* the 8-byte Base payload can independently reconstruct and display a complete, fully actionable emergency card (e.g. `🚨 MEDICAL EMERGENCY — 3 PEOPLE • SECTOR 4 • AMBULANCE REQUIRED`) without requiring any additional packets or enhancement data.
+   - **Tactical Autonomy**: A node receiving *only* the 8-byte Base payload can independently reconstruct and display a complete, fully actionable emergency card (e.g. `ðŸš¨ MEDICAL EMERGENCY â€” 3 PEOPLE â€¢ SECTOR 4 â€¢ AMBULANCE REQUIRED`) without requiring any additional packets or enhancement data.
 2. **Layer 2: ENHANCEMENT LAYER (Opportunistic Context)**
    - **Schema-versioned, length-prefixed container**:
      - Carries natural language transcript text, operator nuance, and optional detail.
@@ -63,9 +63,9 @@ Feature 18 introduces the **Semantic Base + Enhancement Layer** to iTantra's tac
 
 | Representation Mode | Base Payload | Enhancement Payload | Canonical Header + CRC + Auth | Total Wire Size | Compression Ratio vs Raw Audio | Post-Endpoint Delay |
 | :--- | :---: | :---: | :---: | :---: | :---: | :---: |
-| **Raw PCM Voice (Reference)** | — | — | — | ~64,000 B/s | Reference (1.0x) | — |
-| **FULL (Raw Tactical Text)** | — | ~120 B | 40 B | 160 B | 400x | < 0.1 ms |
-| **COMPACT (Compressed Text)** | — | ~50 B | 40 B | 90 B | 711x | < 0.2 ms |
+| **Raw PCM Voice (Reference)** | â€” | â€” | â€” | ~64,000 B/s | Reference (1.0x) | â€” |
+| **FULL (Raw Tactical Text)** | â€” | ~120 B | 40 B | 160 B | 400x | < 0.1 ms |
+| **COMPACT (Compressed Text)** | â€” | ~50 B | 40 B | 90 B | 711x | < 0.2 ms |
 | **SEMANTIC_ENHANCED (Base + Enh)** | **8 B** | **69 B** | **40 B** | **117 B** | **547x** | **< 0.2 ms** |
 | **SEMANTIC_BASE (Base Only)** | **8 B** | **0 B** | **40 B** | **48 B** | **1,333x** | **< 0.1 ms** |
 
@@ -73,7 +73,7 @@ Feature 18 introduces the **Semantic Base + Enhancement Layer** to iTantra's tac
 
 ## 3. Network-Aware Selection Policy
 
-In [`AdaptiveRepresentationPolicy.kt`](file:///C:/Projects/iTantra/app/src/main/java/org/sih/itantra/core/vbr/AdaptiveRepresentationPolicy.kt), the transmission engine dynamically maps network state and classification confidence to the optimal layer:
+In [`AdaptiveRepresentationPolicy.kt`](app/src/main/java/org/sih/itantra/core/vbr/AdaptiveRepresentationPolicy.kt), the transmission engine dynamically maps network state and classification confidence to the optimal layer:
 
 ```mermaid
 graph TD
@@ -107,12 +107,12 @@ Physical validation was executed across two real, battery-powered Android hardwa
   - Serialization Time: `< 0.2 ms`
   - Post-Endpoint Latency: `0 ms` (no post-silence delay)
 - **Receiver (Phone B) Rendering:**
-  - Tactical Emergency Card: `🚨 MEDICAL EMERGENCY`
-  - Structured Action Line: `3 PEOPLE • SECTOR 4 • AMBULANCE REQUIRED`
-  - Natural Language Context: `📝 Medical emergency 3 people injured sector 4 ambulance required`
-  - Badges: `[HI · TTS READY]`, `[117B]`, `[TTL: 7m]`, sage-green `[BASE+ENH]` badge.
+  - Tactical Emergency Card: `ðŸš¨ MEDICAL EMERGENCY`
+  - Structured Action Line: `3 PEOPLE â€¢ SECTOR 4 â€¢ AMBULANCE REQUIRED`
+  - Natural Language Context: `ðŸ“ Medical emergency 3 people injured sector 4 ambulance required`
+  - Badges: `[HI Â· TTS READY]`, `[117B]`, `[TTL: 7m]`, sage-green `[BASE+ENH]` badge.
 
-### Test Scenario 2: SEMANTIC_BASE (Base Only Layer — Autonomous Tactical Fallback)
+### Test Scenario 2: SEMANTIC_BASE (Base Only Layer â€” Autonomous Tactical Fallback)
 - **Input Spoken Intent:** `"Medical emergency 3 people injured sector 4 ambulance required"`
 - **Link Condition:** Simulated constrained / degraded mesh condition (`SEMANTIC_BASE` forced)
 - **Wire Metrics:**
@@ -123,10 +123,10 @@ Physical validation was executed across two real, battery-powered Android hardwa
   - Serialization Time: `< 0.1 ms`
   - Post-Endpoint Latency: `0 ms`
 - **Receiver (Phone B) Rendering:**
-  - Tactical Emergency Card: `🚨 MEDICAL EMERGENCY`
-  - Structured Action Line: `3 PEOPLE • SECTOR 4 • AMBULANCE REQUIRED`
+  - Tactical Emergency Card: `ðŸš¨ MEDICAL EMERGENCY`
+  - Structured Action Line: `3 PEOPLE â€¢ SECTOR 4 â€¢ AMBULANCE REQUIRED`
   - Natural Language Context: Omitted (no blank space or error)
-  - Badges: `[HI · TTS READY]`, `[48B]`, `[TTL: 5m]`, sage-green `[BASE ONLY]` badge.
+  - Badges: `[HI Â· TTS READY]`, `[48B]`, `[TTL: 5m]`, sage-green `[BASE ONLY]` badge.
   - **Verdict:** Phone B successfully and independently reconstructed the full tactical mission card without the enhancement layer.
 
 ---
