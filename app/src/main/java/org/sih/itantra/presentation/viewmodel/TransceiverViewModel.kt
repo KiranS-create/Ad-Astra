@@ -1121,6 +1121,7 @@ class TransceiverViewModel(application: Application) : AndroidViewModel(applicat
                 org.sih.itantra.core.vbr.AdaptiveRepresentationMode.SEMANTIC,
                 org.sih.itantra.core.vbr.AdaptiveRepresentationMode.SEMANTIC_BASE -> "Medical emergency 3 people injured sector 4 ambulance required"
                 org.sih.itantra.core.vbr.AdaptiveRepresentationMode.SEMANTIC_ENHANCED -> "Medical emergency. Three people injured at sector 4. Ambulance required."
+                org.sih.itantra.core.vbr.AdaptiveRepresentationMode.CONTEXT_DELTA -> "Medical emergency 4 people injured sector 4 ambulance required"
                 org.sih.itantra.core.vbr.AdaptiveRepresentationMode.COMPACT -> "Please note that we have team Alpha 1 holding position at Sector 4 right now"
                 org.sih.itantra.core.vbr.AdaptiveRepresentationMode.FULL -> "All stations, this is base operator reporting full status check on primary channel."
                 org.sih.itantra.core.vbr.AdaptiveRepresentationMode.UNKNOWN -> "Test message representation mode"
@@ -1162,6 +1163,7 @@ class TransceiverViewModel(application: Application) : AndroidViewModel(applicat
                 org.sih.itantra.core.vbr.AdaptiveRepresentationMode.SEMANTIC,
                 org.sih.itantra.core.vbr.AdaptiveRepresentationMode.SEMANTIC_BASE -> "Medical emergency 3 people injured sector 4 ambulance required"
                 org.sih.itantra.core.vbr.AdaptiveRepresentationMode.SEMANTIC_ENHANCED -> "Medical emergency. Three people injured at sector 4. Ambulance required."
+                org.sih.itantra.core.vbr.AdaptiveRepresentationMode.CONTEXT_DELTA -> "Medical emergency 4 people injured sector 4 ambulance required"
                 org.sih.itantra.core.vbr.AdaptiveRepresentationMode.COMPACT -> "Report SECTOR 4 grid 72.5 coordinates verified"
                 org.sih.itantra.core.vbr.AdaptiveRepresentationMode.FULL -> "Team this is patrol base moving to waypoint"
                 org.sih.itantra.core.vbr.AdaptiveRepresentationMode.UNKNOWN -> "Targeted refined test message"

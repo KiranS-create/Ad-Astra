@@ -31,10 +31,15 @@ import org.sih.itantra.core.protocol.EmergencySubtype
 import org.sih.itantra.core.protocol.Packet
 import org.sih.itantra.core.protocol.PacketSerializer
 import org.sih.itantra.core.network.AdaptiveNetworkMode
+import org.sih.itantra.core.context.ConflictResolutionResult
+import org.sih.itantra.core.context.ContextConfidence
+import org.sih.itantra.core.context.SharedContextEntry
+import org.sih.itantra.core.context.SharedContextStore
 import org.sih.itantra.core.vbr.AdaptiveMessageRepresentation
 import org.sih.itantra.core.vbr.AdaptiveRepresentationMode
 import org.sih.itantra.core.vbr.AdaptiveRepresentationPolicy
 import org.sih.itantra.core.vbr.CompactTextGenerator
+import org.sih.itantra.core.vbr.ContextDelta
 import org.sih.itantra.core.vbr.SemanticBase
 import org.sih.itantra.core.vbr.SemanticEnhancement
 import org.sih.itantra.core.protocol.SemanticCommand
@@ -411,13 +416,33 @@ class TransceiverCoordinator(
             networkMode = currentNetMode,
             language = lang,
             semanticConfidence = 0.90f,
-            useLayeredSemantic = true
+            useLayeredSemantic = true,
+            sourceDeviceId = localDeviceId,
+            useSharedContext = true
         )
 
         val isSemantic = representation.mode.isSemantic
         val semanticCmd = representation.semanticCommand
         val semanticSummary = semanticCmd?.toBadgeString()
         val semanticSavings = if (semanticCmd != null) (rawBytes.size - representation.wirePayloadSizeBytes).coerceAtLeast(0) else null
+
+        val contextId = representation.contextId ?: if (semanticCmd != null) {
+            SharedContextStore.computeContextId(localDeviceId, semanticCmd.category, semanticCmd.parameter)
+        } else null
+        val contextVersion = representation.contextVersion ?: 1
+        if (contextId != null && semanticCmd != null && representation.mode != AdaptiveRepresentationMode.CONTEXT_DELTA) {
+            val confScore = (representation.confidence * 100).toInt()
+            if (ContextConfidence.isAuthoritative(confScore)) {
+                val entry = SharedContextEntry.fromCommand(contextId, semanticCmd, localDeviceId, confScore)
+                SharedContextStore.put(entry)
+            }
+        } else if (representation.contextDelta != null) {
+            val active = SharedContextStore.get(representation.contextDelta.contextId)
+            if (active != null) {
+                val updated = representation.contextDelta.applyTo(active)
+                SharedContextStore.put(updated)
+            }
+        }
 
         val effectivePriority = when {
             semanticCmd != null -> when (semanticCmd.severity) {
@@ -432,7 +457,8 @@ class TransceiverCoordinator(
         val flagVal: Byte = when (representation.mode) {
             AdaptiveRepresentationMode.SEMANTIC,
             AdaptiveRepresentationMode.SEMANTIC_BASE,
-            AdaptiveRepresentationMode.SEMANTIC_ENHANCED -> Packet.FLAG_SEMANTIC.toByte()
+            AdaptiveRepresentationMode.SEMANTIC_ENHANCED,
+            AdaptiveRepresentationMode.CONTEXT_DELTA -> Packet.FLAG_SEMANTIC.toByte()
             AdaptiveRepresentationMode.COMPACT -> {
                 val base = Packet.FLAG_COMPACT
                 val comp = if (representation.isCompressed) Packet.FLAG_COMPRESSED else 0
@@ -591,8 +617,13 @@ class TransceiverCoordinator(
                 representationMode = representation.mode.name,
                 semanticBaseBytes = if (isSemantic) representation.basePayloadSizeBytes else null,
                 enhancementBytes = if (isSemantic) representation.enhancementPayloadSizeBytes else null,
-                enhancementReceived = if (isSemantic) (representation.semanticEnhancement != null) else null,
-                semanticSchemaVersion = if (isSemantic) 1 else null
+                semanticSchemaVersion = if (isSemantic) 1 else null,
+                contextId = contextId,
+                contextVersion = contextVersion,
+                isContextDelta = (representation.mode == AdaptiveRepresentationMode.CONTEXT_DELTA),
+                contextConfidence = (representation.confidence * 100).toInt(),
+                contextFallback = representation.isContextFallback,
+                deltaSummary = representation.contextDelta?.toSummaryString(null)
             )
         )
 
@@ -1001,33 +1032,59 @@ class TransceiverCoordinator(
         var rxEnhPayloadBytes: Int? = null
         var rxEnhReceived: Boolean? = null
         var rxSchemaVersion: Int? = null
+        var rxContextId: Int? = null
+        var rxContextVersion: Int? = null
+        var rxIsContextDelta = false
+        var rxContextConfidence: Int? = null
+        var rxContextFallback = false
+        var rxDeltaSummary: String? = null
 
         if (hasSemantic) {
-            val decoded = SemanticBase.deserializeWithEnhancement(effectivePayload)
-            val base = decoded.base
-            val enh = decoded.enhancement
-            if (base != null) {
-                isSemantic = true
-                displayText = base.toDisplayString(enh?.text)
-                ttsSpeechText = base.command.toTtsText(packet.language)
-                semanticSummary = base.command.toBadgeString()
-                repMode = if (enh != null) "SEMANTIC_ENHANCED" else "SEMANTIC_BASE"
-                rxBasePayloadBytes = SemanticBase.BASE_SIZE_BYTES.coerceAtMost(effectivePayload.size)
-                rxEnhPayloadBytes = if (enh != null) (effectivePayload.size - SemanticBase.BASE_SIZE_BYTES).coerceAtLeast(0) else 0
-                rxEnhReceived = (enh != null)
-                rxSchemaVersion = base.schemaVersion.toInt()
-            } else {
-                val cmd = packet.semanticCommand ?: SemanticCommand.deserialize(effectivePayload)
-                if (cmd != null) {
-                    isSemantic = true
-                    displayText = cmd.toDisplayString()
-                    ttsSpeechText = cmd.toTtsText(packet.language)
-                    semanticSummary = cmd.toBadgeString()
-                    repMode = "SEMANTIC_BASE"
-                    rxBasePayloadBytes = effectivePayload.size
-                    rxEnhPayloadBytes = 0
-                    rxEnhReceived = false
-                    rxSchemaVersion = 1
+            if (ContextDelta.isContextDeltaPayload(effectivePayload)) {
+                val decodedDelta = ContextDelta.deserialize(effectivePayload)
+                if (decodedDelta != null) {
+                    val delta = decodedDelta.delta
+                    val enh = decodedDelta.enhancement
+                    rxIsContextDelta = true
+                    rxContextId = delta.contextId
+                    rxContextVersion = delta.version
+                    rxEnhReceived = (enh != null)
+                    rxEnhPayloadBytes = if (enh != null) enh.serialize().size else 0
+                    rxBasePayloadBytes = effectivePayload.size - (rxEnhPayloadBytes ?: 0)
+                    rxSchemaVersion = delta.schemaVersion.toInt()
+
+                    val activeContext = SharedContextStore.get(delta.contextId)
+                    if (activeContext != null) {
+                        val updatedContext = delta.applyTo(activeContext)
+                        val res = SharedContextStore.put(updatedContext)
+                        rxDeltaSummary = delta.toSummaryString(activeContext)
+                        rxContextConfidence = updatedContext.confidence
+                        rxContextFallback = (res == ConflictResolutionResult.REJECTED_STALE || res == ConflictResolutionResult.REJECTED_CONFLICT)
+
+                        val baseCmd = updatedContext.toSemanticCommand()
+                        isSemantic = true
+                        val baseDisplay = baseCmd.toDisplayString()
+                        displayText = if (enh?.text != null) "$baseDisplay • \"${enh.text}\"" else baseDisplay
+                        ttsSpeechText = baseCmd.toTtsText(packet.language)
+                        semanticSummary = baseCmd.toBadgeString()
+                        repMode = if (rxContextFallback) "STANDALONE" else "CONTEXT_DELTA"
+                    } else {
+                        // Missing or expired context: safe standalone fallback without crash
+                        rxContextFallback = true
+                        isSemantic = true
+                        rxDeltaSummary = delta.toSummaryString(null)
+                        val fallbackText = buildString {
+                            append("[DELTA v${delta.version} CTX #${delta.contextId}] ")
+                            append(delta.toSummaryString(null))
+                            if (enh?.text != null) {
+                                append(" • \"${enh.text}\"")
+                            }
+                        }
+                        displayText = fallbackText
+                        ttsSpeechText = "Update for context ${delta.contextId}: " + delta.toSummaryString(null)
+                        semanticSummary = "DELTA #${delta.contextId} v${delta.version}"
+                        repMode = "STANDALONE"
+                    }
                 } else {
                     val decompressedBytes = AdaptiveCompressor.decompress(effectivePayload, isCompressed)
                     displayText = String(decompressedBytes, Charsets.UTF_8)
@@ -1035,6 +1092,66 @@ class TransceiverCoordinator(
                     isSemantic = false
                     semanticSummary = null
                     repMode = if (isCompact) "COMPACT" else "FULL"
+                }
+            } else {
+                val decoded = SemanticBase.deserializeWithEnhancement(effectivePayload)
+                val base = decoded.base
+                val enh = decoded.enhancement
+                if (base != null) {
+                    isSemantic = true
+                    displayText = base.toDisplayString(enh?.text)
+                    ttsSpeechText = base.command.toTtsText(packet.language)
+                    semanticSummary = base.command.toBadgeString()
+                    repMode = if (enh != null) "SEMANTIC_ENHANCED" else "SEMANTIC_BASE"
+                    rxBasePayloadBytes = SemanticBase.BASE_SIZE_BYTES.coerceAtMost(effectivePayload.size)
+                    rxEnhPayloadBytes = if (enh != null) (effectivePayload.size - SemanticBase.BASE_SIZE_BYTES).coerceAtLeast(0) else 0
+                    rxEnhReceived = (enh != null)
+                    rxSchemaVersion = base.schemaVersion.toInt()
+
+                    // Cache in SharedContextStore as Version 1
+                    val ctxId = SharedContextStore.computeContextId(packet.sourceDeviceId, base.command.category, base.command.parameter)
+                    rxContextId = ctxId
+                    rxContextVersion = 1
+                    rxContextConfidence = 85
+                    val ctxEntry = SharedContextEntry.fromCommand(
+                        contextId = ctxId,
+                        command = base.command,
+                        sourceDeviceId = packet.sourceDeviceId,
+                        confidence = 85
+                    )
+                    SharedContextStore.put(ctxEntry)
+                } else {
+                    val cmd = packet.semanticCommand ?: SemanticCommand.deserialize(effectivePayload)
+                    if (cmd != null) {
+                        isSemantic = true
+                        displayText = cmd.toDisplayString()
+                        ttsSpeechText = cmd.toTtsText(packet.language)
+                        semanticSummary = cmd.toBadgeString()
+                        repMode = "SEMANTIC_BASE"
+                        rxBasePayloadBytes = effectivePayload.size
+                        rxEnhPayloadBytes = 0
+                        rxEnhReceived = false
+                        rxSchemaVersion = 1
+
+                        val ctxId = SharedContextStore.computeContextId(packet.sourceDeviceId, cmd.category, cmd.parameter)
+                        rxContextId = ctxId
+                        rxContextVersion = 1
+                        rxContextConfidence = 85
+                        val ctxEntry = SharedContextEntry.fromCommand(
+                            contextId = ctxId,
+                            command = cmd,
+                            sourceDeviceId = packet.sourceDeviceId,
+                            confidence = 85
+                        )
+                        SharedContextStore.put(ctxEntry)
+                    } else {
+                        val decompressedBytes = AdaptiveCompressor.decompress(effectivePayload, isCompressed)
+                        displayText = String(decompressedBytes, Charsets.UTF_8)
+                        ttsSpeechText = displayText
+                        isSemantic = false
+                        semanticSummary = null
+                        repMode = if (isCompact) "COMPACT" else "FULL"
+                    }
                 }
             }
         } else if (isCompact) {
@@ -1112,7 +1229,13 @@ class TransceiverCoordinator(
                 semanticBaseBytes = rxBasePayloadBytes,
                 enhancementBytes = rxEnhPayloadBytes,
                 enhancementReceived = rxEnhReceived,
-                semanticSchemaVersion = rxSchemaVersion
+                semanticSchemaVersion = rxSchemaVersion,
+                contextId = rxContextId,
+                contextVersion = rxContextVersion,
+                isContextDelta = rxIsContextDelta,
+                contextConfidence = rxContextConfidence,
+                contextFallback = rxContextFallback,
+                deltaSummary = rxDeltaSummary
             )
         )
 
@@ -1144,19 +1267,40 @@ class TransceiverCoordinator(
                 language = lang,
                 semanticConfidence = 0.90f,
                 forceMode = mode,
-                useLayeredSemantic = true
+                useLayeredSemantic = true,
+                sourceDeviceId = localDeviceId,
+                useSharedContext = true
             )
 
             val flagVal: Byte = when (rep.mode) {
                 AdaptiveRepresentationMode.SEMANTIC,
                 AdaptiveRepresentationMode.SEMANTIC_BASE,
-                AdaptiveRepresentationMode.SEMANTIC_ENHANCED -> Packet.FLAG_SEMANTIC.toByte()
+                AdaptiveRepresentationMode.SEMANTIC_ENHANCED,
+                AdaptiveRepresentationMode.CONTEXT_DELTA -> Packet.FLAG_SEMANTIC.toByte()
                 AdaptiveRepresentationMode.COMPACT -> {
                     val base = Packet.FLAG_COMPACT
                     val comp = if (rep.isCompressed) Packet.FLAG_COMPRESSED else 0
                     (base or comp).toByte()
                 }
                 else -> if (rep.isCompressed) Packet.FLAG_COMPRESSED.toByte() else 0.toByte()
+            }
+
+            val contextId = rep.contextId ?: if (rep.semanticCommand != null) {
+                SharedContextStore.computeContextId(localDeviceId, rep.semanticCommand.category, rep.semanticCommand.parameter)
+            } else null
+            val contextVersion = rep.contextVersion ?: 1
+            if (contextId != null && rep.semanticCommand != null && rep.mode != AdaptiveRepresentationMode.CONTEXT_DELTA) {
+                val confScore = (rep.confidence * 100).toInt()
+                if (ContextConfidence.isAuthoritative(confScore)) {
+                    val entry = SharedContextEntry.fromCommand(contextId, rep.semanticCommand, localDeviceId, confScore)
+                    SharedContextStore.put(entry)
+                }
+            } else if (rep.contextDelta != null) {
+                val active = SharedContextStore.get(rep.contextDelta.contextId)
+                if (active != null) {
+                    val updated = rep.contextDelta.applyTo(active)
+                    SharedContextStore.put(updated)
+                }
             }
 
             val rawPacket = Packet(
@@ -1203,7 +1347,13 @@ class TransceiverCoordinator(
                     semanticBaseBytes = if (rep.mode.isSemantic) rep.basePayloadSizeBytes else null,
                     enhancementBytes = if (rep.mode.isSemantic) rep.enhancementPayloadSizeBytes else null,
                     enhancementReceived = if (rep.mode.isSemantic) (rep.semanticEnhancement != null) else null,
-                    semanticSchemaVersion = if (rep.mode.isSemantic) 1 else null
+                    semanticSchemaVersion = if (rep.mode.isSemantic) 1 else null,
+                    contextId = contextId,
+                    contextVersion = contextVersion,
+                    isContextDelta = (rep.mode == AdaptiveRepresentationMode.CONTEXT_DELTA),
+                    contextConfidence = (rep.confidence * 100).toInt(),
+                    contextFallback = rep.isContextFallback,
+                    deltaSummary = rep.contextDelta?.toSummaryString(null)
                 )
             )
         }

@@ -116,6 +116,7 @@ object MessageTechnicalInspectorMapper {
         ))
         record.representationMode?.let { mode ->
             val label = when (mode) {
+                "CONTEXT_DELTA" -> "CONTEXT DELTA"
                 "SEMANTIC_ENHANCED", "BASE_PLUS_ENHANCEMENT" -> "SEMANTIC BASE + ENHANCEMENT"
                 "SEMANTIC_BASE", "BASE_ONLY" -> "SEMANTIC BASE"
                 "SEMANTIC" -> "SEMANTIC"
@@ -126,10 +127,35 @@ object MessageTechnicalInspectorMapper {
                 "VBR REPRESENTATION",
                 label,
                 style = when {
-                    mode.contains("SEMANTIC") || mode.contains("BASE") -> TechnicalFieldStyle.HIGHLIGHT
+                    mode.contains("DELTA") || mode.contains("SEMANTIC") || mode.contains("BASE") -> TechnicalFieldStyle.HIGHLIGHT
                     mode == "COMPACT" -> TechnicalFieldStyle.WARNING
                     else -> TechnicalFieldStyle.NORMAL
                 }
+            ))
+        }
+
+        record.contextId?.let { cid ->
+            fields.add(TechnicalInspectorField("CONTEXT ID", "#$cid", style = TechnicalFieldStyle.HIGHLIGHT))
+            record.contextVersion?.let { v ->
+                fields.add(TechnicalInspectorField("CONTEXT VERSION", "v$v", style = TechnicalFieldStyle.NORMAL))
+            }
+            record.contextConfidence?.let { conf ->
+                val style = if (conf >= 80) TechnicalFieldStyle.SUCCESS else TechnicalFieldStyle.WARNING
+                val lvl = if (conf >= 80) "HIGH" else if (conf >= 50) "MEDIUM" else "LOW"
+                fields.add(TechnicalInspectorField("CONTEXT CONFIDENCE", "$lvl ($conf/100)", style = style))
+            }
+            record.deltaSummary?.let { summary ->
+                fields.add(TechnicalInspectorField("DELTA FIELDS", summary, style = TechnicalFieldStyle.NORMAL))
+            }
+            val reconText = if (record.contextFallback) {
+                "STANDALONE FALLBACK"
+            } else {
+                "VALID (Reconstructed from Context #$cid v${record.contextVersion ?: 1})"
+            }
+            fields.add(TechnicalInspectorField(
+                "RECONSTRUCTED STATUS",
+                reconText,
+                style = if (record.contextFallback) TechnicalFieldStyle.WARNING else TechnicalFieldStyle.SUCCESS
             ))
         }
 

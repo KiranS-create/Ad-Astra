@@ -39,5 +39,11 @@ data class MessageRecord(
     val semanticBaseBytes: Int? = null,
     val enhancementBytes: Int? = null,
     val enhancementReceived: Boolean? = null,
-    val semanticSchemaVersion: Int? = null
+    val semanticSchemaVersion: Int? = null,
+    val contextId: Int? = null,
+    val contextVersion: Int? = null,
+    val isContextDelta: Boolean = false,
+    val contextConfidence: Int? = null,
+    val contextFallback: Boolean = false,
+    val deltaSummary: String? = null
 )

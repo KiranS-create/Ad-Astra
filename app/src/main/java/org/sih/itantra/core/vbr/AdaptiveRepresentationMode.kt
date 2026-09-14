@@ -17,10 +17,11 @@ enum class AdaptiveRepresentationMode(val label: String, val badgeLabel: String 
     SEMANTIC("SEMANTIC", "SEMANTIC"),
     SEMANTIC_BASE("SEMANTIC_BASE", "BASE ONLY"),
     SEMANTIC_ENHANCED("SEMANTIC_ENHANCED", "BASE+ENH"),
+    CONTEXT_DELTA("CONTEXT_DELTA", "CTX DELTA"),
     UNKNOWN("UNKNOWN", "UNKNOWN");
 
     val isSemantic: Boolean
-        get() = this == SEMANTIC || this == SEMANTIC_BASE || this == SEMANTIC_ENHANCED
+        get() = this == SEMANTIC || this == SEMANTIC_BASE || this == SEMANTIC_ENHANCED || this == CONTEXT_DELTA
 
     companion object {
         fun fromString(value: String?): AdaptiveRepresentationMode {
@@ -31,6 +32,7 @@ enum class AdaptiveRepresentationMode(val label: String, val badgeLabel: String 
                 "SEMANTIC" -> SEMANTIC
                 "SEMANTIC_BASE", "BASE_ONLY" -> SEMANTIC_BASE
                 "SEMANTIC_ENHANCED", "BASE_PLUS_ENHANCEMENT", "BASE_ENHANCED" -> SEMANTIC_ENHANCED
+                "CONTEXT_DELTA", "DELTA", "CTX_DELTA", "CTX DELTA" -> CONTEXT_DELTA
                 else -> entries.firstOrNull { it.name.equals(value, ignoreCase = true) } ?: UNKNOWN
             }
         }

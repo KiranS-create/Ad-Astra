@@ -26,6 +26,10 @@ data class AdaptiveMessageRepresentation(
     val semanticEnhancement: SemanticEnhancement? = null,
     val basePayloadSizeBytes: Int = 0,
     val enhancementPayloadSizeBytes: Int = 0,
+    val contextDelta: ContextDelta? = null,
+    val contextId: Int? = null,
+    val contextVersion: Int? = null,
+    val isContextFallback: Boolean = false,
     val explanation: String = ""
 ) {
     override fun equals(other: Any?): Boolean {
@@ -42,6 +46,10 @@ data class AdaptiveMessageRepresentation(
                 semanticEnhancement == other.semanticEnhancement &&
                 basePayloadSizeBytes == other.basePayloadSizeBytes &&
                 enhancementPayloadSizeBytes == other.enhancementPayloadSizeBytes &&
+                contextDelta == other.contextDelta &&
+                contextId == other.contextId &&
+                contextVersion == other.contextVersion &&
+                isContextFallback == other.isContextFallback &&
                 explanation == other.explanation
     }
 
@@ -56,6 +64,10 @@ data class AdaptiveMessageRepresentation(
         result = 31 * result + (semanticEnhancement?.hashCode() ?: 0)
         result = 31 * result + basePayloadSizeBytes
         result = 31 * result + enhancementPayloadSizeBytes
+        result = 31 * result + (contextDelta?.hashCode() ?: 0)
+        result = 31 * result + (contextId ?: 0)
+        result = 31 * result + (contextVersion ?: 0)
+        result = 31 * result + isContextFallback.hashCode()
         result = 31 * result + explanation.hashCode()
         return result
     }

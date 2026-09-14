@@ -894,29 +894,39 @@ private fun ChatMessageBubble(
                         )
                     }
 
-                    // Feature 16B & 18: VBR Representation Mode Badge
+                    // Feature 16B, 18 & 19: VBR Representation Mode Badge
                     record.representationMode?.let { mode ->
+                        val isContextDelta = mode == "CONTEXT_DELTA" || record.isContextDelta
+                        val isStandalone = mode == "STANDALONE" || record.contextFallback
                         val isEnhanced = mode == "SEMANTIC_ENHANCED" || mode == "BASE_PLUS_ENHANCEMENT"
                         val isBaseOnly = mode == "SEMANTIC_BASE" || mode == "BASE_ONLY"
                         val isSemantic = mode == "SEMANTIC"
                         val isCompact = mode == "COMPACT"
 
                         val vbrBg = when {
+                            isContextDelta -> radioColors.sage.copy(alpha = 0.25f)
+                            isStandalone -> radioColors.warning.copy(alpha = 0.25f)
                             isEnhanced || isBaseOnly || isSemantic -> radioColors.sage.copy(alpha = 0.2f)
                             isCompact -> radioColors.warning.copy(alpha = 0.2f)
                             else -> radioColors.capsule
                         }
                         val vbrBorder = when {
+                            isContextDelta -> radioColors.sage.copy(alpha = 0.8f)
+                            isStandalone -> radioColors.warning.copy(alpha = 0.8f)
                             isEnhanced || isBaseOnly || isSemantic -> radioColors.sage.copy(alpha = 0.6f)
                             isCompact -> radioColors.warning.copy(alpha = 0.6f)
                             else -> radioColors.border.copy(alpha = 0.4f)
                         }
                         val vbrText = when {
+                            isContextDelta -> radioColors.sage
+                            isStandalone -> radioColors.warning
                             isEnhanced || isBaseOnly || isSemantic -> radioColors.sage
                             isCompact -> radioColors.warning
                             else -> radioColors.textTertiary
                         }
                         val label = when {
+                            isContextDelta -> "CTX DELTA"
+                            isStandalone -> "STANDALONE"
                             isEnhanced -> "BASE+ENH"
                             isBaseOnly -> "BASE ONLY"
                             isSemantic -> "SEMANTIC"
