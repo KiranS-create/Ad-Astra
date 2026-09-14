@@ -14,7 +14,7 @@
 
 <br/>
 
-<img src="docs/assets/screenshots/01-walkie-talkie.png" width="340" alt="iTantra Walkie Talkie Tactical Interface" />
+<img src="docs/assets/screenshots/dark/01-main-transceiver.png" width="340" alt="iTantra Main Transceiver — Charcoal (Dark) Theme" />
 
 <br/>
 
@@ -90,13 +90,13 @@ The application interface is built with **Jetpack Compose**, designed for rapid 
 
 | 1. Main Transceiver HUD | 2. Tactical Chat & Voice Playback | 3. Technical Packet Inspector |
 |:---:|:---:|:---:|
-| <img src="docs/assets/screenshots/01-walkie-talkie.png" width="240" alt="PTT Walkie Talkie" /> | <img src="docs/assets/screenshots/02-tactical-chat.png" width="240" alt="Tactical Chat" /> | <img src="docs/assets/screenshots/03-message-inspector.png" width="240" alt="Packet Inspector" /> |
+| <img src="docs/assets/screenshots/dark/01-main-transceiver.png" width="240" alt="PTT Walkie Talkie — Charcoal Dark" /> | <img src="docs/assets/screenshots/02-tactical-chat.png" width="240" alt="Tactical Chat" /> | <img src="docs/assets/screenshots/03-message-inspector.png" width="240" alt="Packet Inspector" /> |
 | Push-to-Talk HUD with real-time audio telemetry, Indic language selector & bottom navigation | Emergency priority cards, playback controls & delivery markers | Byte-level radio header analysis, hex dump & CRC/HMAC state |
 
-| 4. Network Health & Telemetry | 5. Peer & Mesh Discovery | 6. Radio & Relay Settings |
+| 4. Network Health & Telemetry | 5. Tactical Contacts Directory | 6. Radio & Relay Settings |
 |:---:|:---:|:---:|
-| <img src="docs/assets/screenshots/04-communication-health.png" width="240" alt="Health Diagnostics" /> | <img src="docs/assets/screenshots/05-peer-mesh-discovery.png" width="240" alt="Peer Discovery" /> | <img src="docs/assets/screenshots/06-radio-settings-relay.png" width="240" alt="Radio Settings" /> |
-| Transport telemetry, packet loss, bandwidth & route graphs | Local BLE discovery, mesh topology and node scanning | Autonomous mesh relay toggle, 10 Indic languages & HMAC key |
+| <img src="docs/assets/screenshots/light/05-communication-health.png" width="240" alt="Health Diagnostics — Sand Light" /> | <img src="docs/assets/screenshots/dark/06-peer-discovery.png" width="240" alt="Tactical Contacts — Charcoal Dark" /> | <img src="docs/assets/screenshots/light/04-settings.png" width="240" alt="Radio Settings — Sand Light" /> |
+| Transport telemetry, packet loss, bandwidth & route graphs | Peer directory with node callsigns, mesh contact management | Autonomous mesh relay toggle, 10 Indic languages & HMAC key |
 
 ---
 
