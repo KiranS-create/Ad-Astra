@@ -21,10 +21,13 @@ app/build/
 *.jks
 *.keystore
 
-# Temporary logs, captures, and test output
+# Temporary logs, captures, scratch and test output
 *.log
 captures/
 .navigation/
+scratch/
+iTantra Knowledge/
+Reference/
 
 # OS metadata
 .DS_Store

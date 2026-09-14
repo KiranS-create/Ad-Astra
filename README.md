@@ -18,7 +18,7 @@
 
 <br/>
 
-**[Architecture](docs/ARCHITECTURE.md)** • **[Protocol Spec](docs/PROTOCOL.md)** • **[Testing Guide](docs/TESTING.md)** • **[Model Setup](docs/MODELS.md)** • **[Third-Party Licenses](THIRD_PARTY_LICENSES.md)** • **[Latest Release](https://github.com/KiranS-create/Ad-Astra/releases/tag/v1.0.0-sih26173)**
+**[Architecture](docs/ARCHITECTURE.md)** • **[Protocol Spec](docs/PROTOCOL.md)** • **[Testing Guide](docs/TESTING.md)** • **[Model Setup](docs/MODELS.md)** • **[Feature Reports](docs/feature-reports/)** • **[Third-Party Licenses](THIRD_PARTY_LICENSES.md)** • **[Latest Release](https://github.com/KiranS-create/Ad-Astra/releases/tag/v1.0.0-sih26173)**
 
 </div>
 
@@ -90,7 +90,7 @@ The application interface is built with **Jetpack Compose**, designed for rapid 
 
 | 1. Main Transceiver HUD | 2. Tactical Chat & Voice Playback | 3. Technical Packet Inspector |
 |:---:|:---:|:---:|
-| <img src="docs/assets/screenshots/dark/01-main-transceiver.png" width="240" alt="PTT Walkie Talkie — Charcoal Dark" /> | <img src="docs/assets/screenshots/02-tactical-chat.png" width="240" alt="Tactical Chat" /> | <img src="docs/assets/screenshots/03-message-inspector.png" width="240" alt="Packet Inspector" /> |
+| <img src="docs/assets/screenshots/dark/01-main-transceiver.png" width="240" alt="PTT Walkie Talkie — Charcoal Dark" /> | <img src="docs/assets/screenshots/dark/07-tactical-chat.png" width="240" alt="Tactical Chat — Charcoal Dark" /> | <img src="docs/assets/screenshots/dark/08-message-inspector.png" width="240" alt="Packet Inspector — Charcoal Dark" /> |
 | Push-to-Talk HUD with real-time audio telemetry, Indic language selector & bottom navigation | Emergency priority cards, playback controls & delivery markers | Byte-level radio header analysis, hex dump & CRC/HMAC state |
 
 | 4. Network Health & Telemetry | 5. Tactical Contacts Directory | 6. Radio & Relay Settings |
@@ -205,6 +205,8 @@ The project has been physically validated across two ARM64 Android smartphones i
 - **[Protocol Specification](docs/PROTOCOL.md):** 28-byte canonical header layout, message types, CRC32, HMAC, and DTN state machines.
 - **[Testing Methodology](docs/TESTING.md):** Unit test suite organization, physical device testbed, and test scenarios.
 - **[Model Setup & Management](docs/MODELS.md):** Model quantization details, storage layout, and MMS fallback guidelines.
+- **[Implementation Status](docs/IMPLEMENTATION_STATUS.md):** Complete development phase breakdown and verification summary.
+- **[Feature & Engineering Reports](docs/feature-reports/):** 24 technical reports covering protocol features, benchmarks, and tactical subsystems.
 - **[Third-Party Licenses](THIRD_PARTY_LICENSES.md):** Open-source licensing notices for runtime engines, libraries, and model weights.
 - **[Security Policy](SECURITY.md):** Threat model, HMAC authentication boundaries, and vulnerability disclosure.
 
