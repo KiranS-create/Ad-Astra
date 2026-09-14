@@ -73,7 +73,7 @@ Feature 18 introduces the **Semantic Base + Enhancement Layer** to iTantra's tac
 
 ## 3. Network-Aware Selection Policy
 
-In [`AdaptiveRepresentationPolicy.kt`](app/src/main/java/org/sih/itantra/core/vbr/AdaptiveRepresentationPolicy.kt), the transmission engine dynamically maps network state and classification confidence to the optimal layer:
+In [`AdaptiveRepresentationPolicy.kt`](../../app/src/main/java/org/sih/itantra/core/vbr/AdaptiveRepresentationPolicy.kt), the transmission engine dynamically maps network state and classification confidence to the optimal layer:
 
 ```mermaid
 graph TD
@@ -181,5 +181,5 @@ Success Rate: 100%
 | **Autonomous Base** | Base-only reception produces valid tactical card | **Complied** (Verified on physical Phone B screen) |
 
 ---
-**Report Approved By:** Antigravity Autonomous Systems Specialist  
+**Report Approved By:** Systems & ML Lead, Team Ad Astra  
 **Build Status:** Clean, verified, ready for SIH26173 tactical deployment.

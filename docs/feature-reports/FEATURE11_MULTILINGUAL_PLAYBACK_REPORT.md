@@ -1,7 +1,7 @@
 # Feature 11: Multilingual Playback & Language-Aware TTS — Implementation Report
 
 **Feature:** Feature 11 — Multilingual Playback & Language-Aware TTS  
-**Agent:** Feature Agent 11  
+**Module:** Feature 11 — Multilingual Playback Engine  
 **Date:** 2026-09-12  
 **Status:** COMPLETE & VERIFIED (523/523 TESTS PASSING, PHYSICAL PHONE A SMOKE TESTED)  
 

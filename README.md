@@ -8,6 +8,9 @@
 
 [![Unit Tests](https://img.shields.io/badge/Unit%20Tests-678%2B%20Passing-brightgreen.svg)]()
 [![Platform](https://img.shields.io/badge/Platform-Android%2010%2B%20(API%2029%2B)-blue.svg)]()
+[![Mesh Networking](https://img.shields.io/badge/Mesh-Wi--Fi%20%7C%20Bluetooth%20SPP-blueviolet.svg)]()
+[![Air-Gapped](https://img.shields.io/badge/Zero%20Cloud-100%25%20Air--Gapped-success.svg)]()
+[![Wire Footprint](https://img.shields.io/badge/Wire%20Payload-38--164%20Bytes-informational.svg)]()
 [![Offline STT](https://img.shields.io/badge/STT-Whisper--Tiny%20INT8-orange.svg)]()
 [![Offline TTS](https://img.shields.io/badge/TTS-Piper%20%7C%20Mimic3%20%7C%20MMS-purple.svg)]()
 [![Licensing](https://img.shields.io/badge/Code-MIT%20%2F%20Open%20Models-lightgrey.svg)](THIRD_PARTY_LICENSES.md)
@@ -201,12 +204,31 @@ The project has been physically validated across two ARM64 Android smartphones i
 
 ## 7. Project Documentation
 
-- **[System Architecture](docs/ARCHITECTURE.md):** Deep dive into the 6-layer neural transceiver stack.
+```
+Ad-Astra/
+├── app/                        # Android application (Jetpack Compose, Neural STT/TTS, Mesh & DTN)
+├── docs/
+│   ├── ARCHITECTURE.md         # 6-layer neural transceiver stack & design trade-offs
+│   ├── IMPLEMENTATION_STATUS.md# Phase milestones & technical implementation summary
+│   ├── MODELS.md               # On-device model quantization, asset management & licenses
+│   ├── PROTOCOL.md             # 28-byte canonical header, frame specs & wire layouts
+│   ├── TESTING.md              # Testbed methodology, unit test suite & device validation
+│   ├── assets/
+│   │   ├── screenshots/        # Canonical light & dark UI screenshot archives
+│   │   └── social-preview.png  # Social preview card
+│   └── feature-reports/        # Technical engineering reports & benchmarks
+├── README.md                   # Primary project overview & evaluation guide
+├── CITATION.cff                # Academic & technical citation metadata
+├── SECURITY.md                 # Vulnerability reporting & security boundaries
+└── THIRD_PARTY_LICENSES.md     # Third-party notices & open-source model licenses
+```
+
+- **[System Architecture](docs/ARCHITECTURE.md):** Deep dive into the 6-layer neural transceiver stack and architectural trade-offs.
 - **[Protocol Specification](docs/PROTOCOL.md):** 28-byte canonical header layout, message types, CRC32, HMAC, and DTN state machines.
 - **[Testing Methodology](docs/TESTING.md):** Unit test suite organization, physical device testbed, and test scenarios.
 - **[Model Setup & Management](docs/MODELS.md):** Model quantization details, storage layout, and MMS fallback guidelines.
 - **[Implementation Status](docs/IMPLEMENTATION_STATUS.md):** Complete development phase breakdown and verification summary.
-- **[Feature & Engineering Reports](docs/feature-reports/):** 24 technical reports covering protocol features, benchmarks, and tactical subsystems.
+- **[Feature & Engineering Reports](docs/feature-reports/):** 15 technical reports covering protocol benchmarks, adaptive representation, and tactical mesh subsystems.
 - **[Third-Party Licenses](THIRD_PARTY_LICENSES.md):** Open-source licensing notices for runtime engines, libraries, and model weights.
 - **[Security Policy](SECURITY.md):** Threat model, HMAC authentication boundaries, and vulnerability disclosure.
 

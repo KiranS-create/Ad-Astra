@@ -139,7 +139,7 @@ Shows received bubbles with active tactical headers, retention countdown, and re
 
 ## 5. Automated Unit Test Verification (678 / 678 Passing)
 
-29 new unit tests were implemented in [`TargetedRefinementTest.kt`](app/src/test/java/org/sih/itantra/core/speech/TargetedRefinementTest.kt), bringing total regression coverage to **678 / 678 passing**:
+29 new unit tests were implemented in [`TargetedRefinementTest.kt`](../../app/src/test/java/org/sih/itantra/core/speech/TargetedRefinementTest.kt), bringing total regression coverage to **678 / 678 passing**:
 
 ```text
 BUILD SUCCESSFUL in 38s
@@ -163,15 +163,15 @@ BUILD SUCCESSFUL in 38s
 
 | Component | Path | Responsibility |
 | :--- | :--- | :--- |
-| **`RefinementCandidate`** | [`RefinementCandidate.kt`](app/src/main/java/org/sih/itantra/core/speech/refinement/RefinementCandidate.kt) | Models candidate tokens, refinement reasons, confidence scores, and span offsets. |
-| **`TargetedRefinementPolicy`** | [`TargetedRefinementPolicy.kt`](app/src/main/java/org/sih/itantra/core/speech/refinement/TargetedRefinementPolicy.kt) | Pure deterministic candidate extractor & multi-criteria priority scorer (English, Hindi, Tamil). |
-| **`RefinementBudget`** | [`RefinementBudget.kt`](app/src/main/java/org/sih/itantra/core/speech/refinement/RefinementBudget.kt) | Manages window limits (max 2), utterance limits (max 4), and span de-duplication. |
-| **`TargetedPass2Refiner`** | [`TargetedPass2Refiner.kt`](app/src/main/java/org/sih/itantra/core/speech/refinement/TargetedPass2Refiner.kt) | Targeted acoustic refiner with tactical normalization. |
-| **`TargetedRefinementMetrics`** | [`TargetedRefinementMetrics.kt`](app/src/main/java/org/sih/itantra/core/speech/refinement/TargetedRefinementMetrics.kt) | High-resolution monotonic timing, RTF calculations, and telemetry mappers. |
-| **`TargetedTwoPassSpeechEngine`** | [`TargetedTwoPassSpeechEngine.kt`](app/src/main/java/org/sih/itantra/core/speech/refinement/TargetedTwoPassSpeechEngine.kt) | Full pipeline implementation with silence-interval worker and instant zero-wait finalizer. |
-| **`TargetedRefinementBenchmarkRunner`** | [`TargetedRefinementBenchmarkRunner.kt`](app/src/main/java/org/sih/itantra/core/speech/benchmark/TargetedRefinementBenchmarkRunner.kt) | Automated comparative runner measuring all 4 pipelines across standard test utterances. |
-| **`MainActivity` & `TransceiverViewModel`** | [`MainActivity.kt`](app/src/main/java/org/sih/itantra/presentation/MainActivity.kt) | Integrated benchmark intent triggers (`run_refinement_benchmark`) and diagnostic events. |
-| **`TargetedRefinementTest`** | [`TargetedRefinementTest.kt`](app/src/test/java/org/sih/itantra/core/speech/TargetedRefinementTest.kt) | 29 comprehensive unit tests verifying policies, budgets, refiners, and pipeline behavior. |
+| **`RefinementCandidate`** | [`RefinementCandidate.kt`](../../app/src/main/java/org/sih/itantra/core/speech/refinement/RefinementCandidate.kt) | Models candidate tokens, refinement reasons, confidence scores, and span offsets. |
+| **`TargetedRefinementPolicy`** | [`TargetedRefinementPolicy.kt`](../../app/src/main/java/org/sih/itantra/core/speech/refinement/TargetedRefinementPolicy.kt) | Pure deterministic candidate extractor & multi-criteria priority scorer (English, Hindi, Tamil). |
+| **`RefinementBudget`** | [`RefinementBudget.kt`](../../app/src/main/java/org/sih/itantra/core/speech/refinement/RefinementBudget.kt) | Manages window limits (max 2), utterance limits (max 4), and span de-duplication. |
+| **`TargetedPass2Refiner`** | [`TargetedPass2Refiner.kt`](../../app/src/main/java/org/sih/itantra/core/speech/refinement/TargetedPass2Refiner.kt) | Targeted acoustic refiner with tactical normalization. |
+| **`TargetedRefinementMetrics`** | [`TargetedRefinementMetrics.kt`](../../app/src/main/java/org/sih/itantra/core/speech/refinement/TargetedRefinementMetrics.kt) | High-resolution monotonic timing, RTF calculations, and telemetry mappers. |
+| **`TargetedTwoPassSpeechEngine`** | [`TargetedTwoPassSpeechEngine.kt`](../../app/src/main/java/org/sih/itantra/core/speech/refinement/TargetedTwoPassSpeechEngine.kt) | Full pipeline implementation with silence-interval worker and instant zero-wait finalizer. |
+| **`TargetedRefinementBenchmarkRunner`** | [`TargetedRefinementBenchmarkRunner.kt`](../../app/src/main/java/org/sih/itantra/core/speech/benchmark/TargetedRefinementBenchmarkRunner.kt) | Automated comparative runner measuring all 4 pipelines across standard test utterances. |
+| **`MainActivity` & `TransceiverViewModel`** | [`MainActivity.kt`](../../app/src/main/java/org/sih/itantra/presentation/MainActivity.kt) | Integrated benchmark intent triggers (`run_refinement_benchmark`) and diagnostic events. |
+| **`TargetedRefinementTest`** | [`TargetedRefinementTest.kt`](../../app/src/test/java/org/sih/itantra/core/speech/TargetedRefinementTest.kt) | 29 comprehensive unit tests verifying policies, budgets, refiners, and pipeline behavior. |
 
 ---
 

@@ -180,3 +180,16 @@ Every radio packet adheres to a fixed 28-byte canonical header:
 | Room SQLite Message & Contact Store | **IMPLEMENTED & VERIFIED** | Message history, retention policy, and delivery states |
 | Hardware SDR / External LoRa Modules (SX1262 / ESP32-S3) | **FUTURE EXTENSION** | External transceiver hardware interface planned |
 | Wi-Fi Channel State Sensing | **FUTURE EXTENSION** | Physical RF link sensing planned for future releases |
+
+---
+
+## 5. Architectural Decisions & Trade-Offs
+
+| Decision Area | Chosen Approach | Alternative Considered | Engineering Rationale |
+|---|---|---|---|
+| **Transmission Payload** | **Finalized Text / Semantic Tokens** | Raw PCM Audio / Neural Audio Codecs | 16 kHz 16-bit PCM voice requires ~32,000 B/s (256 kbps). In contrast, compact radio packets require only 38–164 bytes (<500 bps), achieving a **>99.5% bandwidth reduction** resilient to severe link dropouts. |
+| **Inference Placement** | **100% On-Device Offline ML** | Cloud Speech APIs (OpenAI / Google Cloud) | Compliance with air-gapped disaster requirements; guarantees operation when cellular base stations and backhaul internet are destroyed. |
+| **Wi-Fi Transport Protocol** | **UDP Broadcast / Multicast (Port 42888)** | Wi-Fi Direct (P2P Group Negotiation) | Wi-Fi Direct requires 10–25s multi-step negotiation and often fails on heterogeneous chipsets. UDP broadcast provides instant (<10 ms) discovery and seamless 1-to-many team dispatch. |
+| **Bluetooth Profile** | **Bluetooth Classic RFCOMM (SPP)** | Bluetooth Low Energy (BLE GATT) | BLE has strict MTU limits (20–23 B default) and high jitter. RFCOMM SPP provides a streaming byte-socket identical to hardware UART, ensuring future serial LoRa/SDR compatibility. |
+| **VAD Front-End** | **Adaptive Energy + Zero-Crossing Rate** | Resident Neural VAD Models | Operates in <0.05 ms per frame with zero dynamic memory allocation, conserving battery and CPU on low-end hardware during continuous idle listening. |
+

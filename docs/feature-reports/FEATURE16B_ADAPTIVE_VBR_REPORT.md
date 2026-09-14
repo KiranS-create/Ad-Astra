@@ -62,36 +62,36 @@ In alignment with iTantra tactical operational principles:
 
 ## 4. Component Implementation Matrix
 
-1. **[`AdaptiveRepresentationMode.kt`](app/src/main/java/org/sih/itantra/core/vbr/AdaptiveRepresentationMode.kt):**
+1. **[`AdaptiveRepresentationMode.kt`](../../app/src/main/java/org/sih/itantra/core/vbr/AdaptiveRepresentationMode.kt):**
    - Pure enum: `FULL`, `COMPACT`, `SEMANTIC`, `UNKNOWN`.
-2. **[`CompactTextGenerator.kt`](app/src/main/java/org/sih/itantra/core/vbr/CompactTextGenerator.kt):**
+2. **[`CompactTextGenerator.kt`](../../app/src/main/java/org/sih/itantra/core/vbr/CompactTextGenerator.kt):**
    - Deterministic shorthand generator.
    - Script-aware detection (Devanagari, Tamil, ASCII).
    - Preserves coordinates (`LAT`, `LON`), tactical imperatives (`HOLD`, `RETREAT`, `ADVANCE`), callsigns, and counts.
-3. **[`AdaptiveMessageRepresentation.kt`](app/src/main/java/org/sih/itantra/core/vbr/AdaptiveMessageRepresentation.kt):**
+3. **[`AdaptiveMessageRepresentation.kt`](../../app/src/main/java/org/sih/itantra/core/vbr/AdaptiveMessageRepresentation.kt):**
    - Encapsulates representation `mode`, display `text`, `payloadBytes`, `wirePayloadSizeBytes`, `confidence`, `isCompressed`, and `semanticCommand`.
-4. **[`AdaptiveRepresentationPolicy.kt`](app/src/main/java/org/sih/itantra/core/vbr/AdaptiveRepresentationPolicy.kt):**
+4. **[`AdaptiveRepresentationPolicy.kt`](../../app/src/main/java/org/sih/itantra/core/vbr/AdaptiveRepresentationPolicy.kt):**
    - High-performance selector mapping `AdaptiveNetworkMode` and semantic classification to optimal mode.
    - Strict confidence threshold check ($\ge 0.85$).
-5. **[`Packet.kt`](app/src/main/java/org/sih/itantra/core/protocol/Packet.kt):**
+5. **[`Packet.kt`](../../app/src/main/java/org/sih/itantra/core/protocol/Packet.kt):**
    - Added `const val FLAG_COMPACT: Int = 1 shl 7` (0x80) and `val isCompact: Boolean`.
-6. **[`MessageRecord.kt`](app/src/main/java/org/sih/itantra/core/persistence/MessageRecord.kt):**
+6. **[`MessageRecord.kt`](../../app/src/main/java/org/sih/itantra/core/persistence/MessageRecord.kt):**
    - Added `val representationMode: String? = null` for local history persistence.
-7. **[`TransceiverCoordinator.kt`](app/src/main/java/org/sih/itantra/core/session/TransceiverCoordinator.kt):**
+7. **[`TransceiverCoordinator.kt`](../../app/src/main/java/org/sih/itantra/core/session/TransceiverCoordinator.kt):**
    - Integrated `resolveCurrentNetworkMode()` and `AdaptiveRepresentationPolicy`.
    - Encodes `FLAG_COMPACT` and `FLAG_SEMANTIC` during transmission.
    - Decodes wire flags and assigns `representationMode` (`SEMANTIC`, `COMPACT`, `FULL`) on reception.
 8. **UI Presentation:**
-   - **[`IndividualChatScreen.kt`](app/src/main/java/org/sih/itantra/presentation/screens/IndividualChatScreen.kt):** Displays color-coded VBR badges in `ChatMessageBubble` footer.
-   - **[`EmergencyMessageBubble.kt`](app/src/main/java/org/sih/itantra/presentation/components/EmergencyMessageBubble.kt):** Displays color-coded VBR badges in distress bubbles.
-   - **[`RadioTranscriptRow.kt`](app/src/main/java/org/sih/itantra/presentation/components/RadioTranscriptRow.kt):** Displays representation badge in live radio feed.
-   - **[`MessageTechnicalInspectorMapper.kt`](app/src/main/java/org/sih/itantra/core/message/MessageTechnicalInspectorMapper.kt):** Exposes `VBR REPRESENTATION` in Technical Packet Inspector.
+   - **[`IndividualChatScreen.kt`](../../app/src/main/java/org/sih/itantra/presentation/screens/IndividualChatScreen.kt):** Displays color-coded VBR badges in `ChatMessageBubble` footer.
+   - **[`EmergencyMessageBubble.kt`](../../app/src/main/java/org/sih/itantra/presentation/components/EmergencyMessageBubble.kt):** Displays color-coded VBR badges in distress bubbles.
+   - **[`RadioTranscriptRow.kt`](../../app/src/main/java/org/sih/itantra/presentation/components/RadioTranscriptRow.kt):** Displays representation badge in live radio feed.
+   - **[`MessageTechnicalInspectorMapper.kt`](../../app/src/main/java/org/sih/itantra/core/message/MessageTechnicalInspectorMapper.kt):** Exposes `VBR REPRESENTATION` in Technical Packet Inspector.
 
 ---
 
 ## 5. Automated Unit Test Verification (649 / 649 Passing)
 
-32 dedicated unit tests were implemented in [`AdaptiveTwoPassVbrTest.kt`](app/src/test/java/org/sih/itantra/core/vbr/AdaptiveTwoPassVbrTest.kt):
+32 dedicated unit tests were implemented in [`AdaptiveTwoPassVbrTest.kt`](../../app/src/test/java/org/sih/itantra/core/vbr/AdaptiveTwoPassVbrTest.kt):
 
 - `testHighConfidenceEmergencyProducesSemanticMode`
 - `testLowConfidenceEmergencyFallsBackFromSemantic`

@@ -201,7 +201,7 @@ Audio Duration: 3600 ms (12 chunks)
 ---
 
 ### 15. Candidate Model & Runtime Options for Feature 16B
-An investigation of `sherpa-onnx-1.13.7.aar` was conducted in [`ZipformerInvestigation.kt`](app/src/main/java/org/sih/itantra/core/speech/model/ZipformerInvestigation.kt):
+An investigation of `sherpa-onnx-1.13.7.aar` was conducted in [`ZipformerInvestigation.kt`](../../app/src/main/java/org/sih/itantra/core/speech/model/ZipformerInvestigation.kt):
 1. **Runtime Verification:**
    - The native library (`sherpa-onnx-1.13.7.aar`) contains `OnlineRecognizer`, `OnlineStream`, `OnlineZipformer2CtcModelConfig`, and `OnlineTransducerModelConfig`.
    - Native C++ binaries (`libonnxruntime.so`, `libsherpa-onnx-jni.so`) support `arm64-v8a`, `armeabi-v7a`, `x86`, and `x86_64`.
@@ -226,7 +226,7 @@ An investigation of `sherpa-onnx-1.13.7.aar` was conducted in [`ZipformerInvesti
 ---
 
 ### 17. Automated Test Suite Summary (617 / 617 Passing)
-The following 17 tests in [`TwoPassSpeechPipelineTest.kt`](app/src/test/java/org/sih/itantra/core/speech/TwoPassSpeechPipelineTest.kt) were added and verified:
+The following 17 tests in [`TwoPassSpeechPipelineTest.kt`](../../app/src/test/java/org/sih/itantra/core/speech/TwoPassSpeechPipelineTest.kt) were added and verified:
 1. `testChunkOrdering`: Strict sequential chunk processing order.
 2. `testPass1Completion`: Pass 1 incremental hypothesis generation.
 3. `testPass2Scheduling`: Pass 2 triggered on silence chunks.

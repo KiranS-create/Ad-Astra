@@ -169,7 +169,7 @@ sequenceDiagram
 
 ## 5. Specification Verification Matrix (All 35 Tests Passing)
 
-All 35 explicit specifications were implemented and validated via [`SharedContextTest.kt`](app/src/test/java/org/sih/itantra/core/context/SharedContextTest.kt):
+All 35 explicit specifications were implemented and validated via [`SharedContextTest.kt`](../../app/src/test/java/org/sih/itantra/core/context/SharedContextTest.kt):
 
 | Spec # | Specification Name | Status | Verified In |
 | :---: | :--- | :---: | :--- |

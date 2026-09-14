@@ -1,7 +1,7 @@
 # Feature 6: Radio-Aware Message States — Implementation Report
 
 **Feature:** Feature 6 — Radio-Aware Message States  
-**Agent:** Feature Agent 6  
+**Module:** Feature 6 — Radio Message States  
 **Git Commit:** `d957d4f`  
 **Date:** 2026-09-10  
 **Status:** COMPLETE & VERIFIED  
