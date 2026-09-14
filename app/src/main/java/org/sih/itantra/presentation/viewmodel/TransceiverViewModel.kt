@@ -994,6 +994,14 @@ class TransceiverViewModel(application: Application) : AndroidViewModel(applicat
         MessageHistoryStore.clear()
     }
 
+    /**
+     * Feature 15: Prunes messages older than 10 minutes from local device memory.
+     * Operates purely locally and triggers reactive UI updates.
+     */
+    fun pruneExpiredMessages(currentTimeMs: Long = org.sih.itantra.core.chat.MessageRetentionPolicy.currentTime()): Int {
+        return MessageHistoryStore.pruneExpired(currentTimeMs)
+    }
+
     fun refreshBondedBluetoothDevices() {
         _bondedBluetoothDevices.value = coordinator.transportManager.getBondedBluetoothDevices()
     }

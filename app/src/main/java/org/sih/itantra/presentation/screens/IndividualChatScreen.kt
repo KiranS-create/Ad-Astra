@@ -38,6 +38,7 @@ import androidx.compose.material.icons.filled.WarningAmber
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
+import org.sih.itantra.core.chat.MessageRetentionPolicy
 import org.sih.itantra.core.network.AdaptiveComposerState
 import org.sih.itantra.core.network.AdaptiveNetworkUiMapper
 import org.sih.itantra.core.tts.MessagePlaybackState
@@ -119,8 +120,9 @@ fun IndividualChatScreen(
 
     var emergencyUiState by remember { mutableStateOf(EmergencyUiState.IDLE) }
 
-    // Mark as read immediately on opening
+    // Prune expired messages and mark as read immediately on opening
     LaunchedEffect(peerId) {
+        viewModel.pruneExpiredMessages()
         viewModel.markConversationAsRead(peerId)
     }
 
@@ -208,6 +210,33 @@ fun IndividualChatScreen(
         // Feature 12: Emergency Distress Banner (distinguishes active vs historical)
         EmergencyBanner(context = emergencyContext)
 
+        // Feature 15: Local Message Retention Policy Notice
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(radioColors.surface.copy(alpha = 0.6f))
+                .border(0.5.dp, radioColors.border.copy(alpha = 0.3f))
+                .padding(horizontal = 12.dp, vertical = 4.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "⏱ LOCAL RETENTION: 10 MIN",
+                color = radioColors.textSecondary,
+                fontSize = 9.sp,
+                fontWeight = FontWeight.SemiBold,
+                fontFamily = FontFamily.Monospace,
+                letterSpacing = 0.5.sp
+            )
+            Text(
+                text = "THIS DEVICE ONLY",
+                color = radioColors.textTertiary,
+                fontSize = 8.5.sp,
+                fontFamily = FontFamily.Monospace,
+                letterSpacing = 0.5.sp
+            )
+        }
+
         // 2. Chronological Message Timeline (LazyColumn)
         Box(
             modifier = Modifier
@@ -220,13 +249,26 @@ fun IndividualChatScreen(
                     modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text(
-                        text = "NO PRIOR COMMUNICATIONS WITH THIS NODE",
-                        color = radioColors.textTertiary,
-                        fontSize = 11.sp,
-                        fontFamily = FontFamily.Monospace,
-                        letterSpacing = 0.5.sp
-                    )
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        Text(
+                            text = "NO PRIOR COMMUNICATIONS WITH THIS NODE",
+                            color = radioColors.textTertiary,
+                            fontSize = 11.sp,
+                            fontFamily = FontFamily.Monospace,
+                            letterSpacing = 0.5.sp
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = "MESSAGES RETAINED LOCALLY FOR 10 MINUTES",
+                            color = radioColors.textTertiary.copy(alpha = 0.7f),
+                            fontSize = 9.sp,
+                            fontFamily = FontFamily.Monospace,
+                            letterSpacing = 0.3.sp
+                        )
+                    }
                 }
             } else {
                 LazyColumn(
@@ -472,6 +514,24 @@ private fun IndividualChatHeader(
                     modifier = Modifier.size(14.dp)
                 )
             }
+        }
+
+        // Feature 15: Tactical Local Retention Badge
+        Box(
+            modifier = Modifier
+                .clip(RoundedCornerShape(6.dp))
+                .background(radioColors.sage.copy(alpha = 0.12f))
+                .border(1.dp, radioColors.sage.copy(alpha = 0.3f), RoundedCornerShape(6.dp))
+                .padding(horizontal = 6.dp, vertical = 3.dp)
+        ) {
+            Text(
+                text = "10M LOCAL",
+                color = radioColors.sage,
+                fontSize = 9.sp,
+                fontWeight = FontWeight.Bold,
+                fontFamily = FontFamily.Monospace,
+                letterSpacing = 0.5.sp
+            )
         }
     }
 }
@@ -805,6 +865,31 @@ private fun ChatMessageBubble(
                             text = "${record.packetSizeBytes}B",
                             color = radioColors.textTertiary,
                             fontSize = 9.sp,
+                            fontFamily = FontFamily.Monospace
+                        )
+                    }
+
+                    // Feature 15: Retention TTL Badge
+                    val remainingMs = remember(record.timestamp) {
+                        MessageRetentionPolicy.getRemainingTtlMs(record.timestamp)
+                    }
+                    val ttlLabel = remember(remainingMs) {
+                        MessageRetentionPolicy.formatTtl(remainingMs)
+                    }
+                    Box(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(4.dp))
+                            .background(
+                                if (remainingMs < 60_000L) radioColors.warning.copy(alpha = 0.2f)
+                                else radioColors.capsule
+                            )
+                            .padding(horizontal = 5.dp, vertical = 1.dp)
+                    ) {
+                        Text(
+                            text = "TTL: $ttlLabel",
+                            color = if (remainingMs < 60_000L) radioColors.warning else radioColors.textTertiary,
+                            fontSize = 9.sp,
+                            fontWeight = if (remainingMs < 60_000L) FontWeight.Bold else FontWeight.Normal,
                             fontFamily = FontFamily.Monospace
                         )
                     }

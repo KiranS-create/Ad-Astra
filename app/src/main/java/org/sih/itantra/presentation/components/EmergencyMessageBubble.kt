@@ -36,6 +36,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import org.sih.itantra.core.chat.MessageRetentionPolicy
 import org.sih.itantra.core.common.MessagePriority
 import org.sih.itantra.core.emergency.EmergencyUiMapper
 import org.sih.itantra.core.message.MessageTechnicalInspectorMapper
@@ -274,6 +275,31 @@ fun EmergencyMessageBubble(
                             text = "${record.packetSizeBytes}B",
                             color = radioColors.textTertiary,
                             fontSize = 9.sp,
+                            fontFamily = FontFamily.Monospace
+                        )
+                    }
+
+                    // Feature 15: Retention TTL Badge
+                    val remainingMs = remember(record.timestamp) {
+                        MessageRetentionPolicy.getRemainingTtlMs(record.timestamp)
+                    }
+                    val ttlLabel = remember(remainingMs) {
+                        MessageRetentionPolicy.formatTtl(remainingMs)
+                    }
+                    Box(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(4.dp))
+                            .background(
+                                if (remainingMs < 60_000L) radioColors.warning.copy(alpha = 0.2f)
+                                else radioColors.capsule
+                            )
+                            .padding(horizontal = 5.dp, vertical = 1.dp)
+                    ) {
+                        Text(
+                            text = "TTL: $ttlLabel",
+                            color = if (remainingMs < 60_000L) radioColors.warning else radioColors.textTertiary,
+                            fontSize = 9.sp,
+                            fontWeight = if (remainingMs < 60_000L) FontWeight.Bold else FontWeight.Normal,
                             fontFamily = FontFamily.Monospace
                         )
                     }

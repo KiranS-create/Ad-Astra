@@ -53,6 +53,7 @@ import androidx.compose.ui.unit.sp
 import org.sih.itantra.core.chat.ChatDeliveryStatus
 import org.sih.itantra.core.chat.ChatRouteState
 import org.sih.itantra.core.chat.ConversationSummary
+import org.sih.itantra.core.chat.MessageRetentionPolicy
 import org.sih.itantra.core.common.MessagePriority
 import org.sih.itantra.presentation.theme.LocalRadioColors
 import org.sih.itantra.presentation.viewmodel.TransceiverViewModel
@@ -86,6 +87,11 @@ fun ChatsHomeScreen(
 
     var showNewChatDialog by remember { mutableStateOf(false) }
 
+    // Feature 15: Prune locally expired messages when entering or viewing chats
+    androidx.compose.runtime.LaunchedEffect(Unit) {
+        viewModel.pruneExpiredMessages()
+    }
+
     Box(
         modifier = modifier
             .fillMaxSize()
@@ -114,7 +120,37 @@ fun ChatsHomeScreen(
                 onQueryChanged = { viewModel.setChatSearchQuery(it) }
             )
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(10.dp))
+
+            // Feature 15: Tactical Local Retention Notice
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(6.dp))
+                    .background(radioColors.surface.copy(alpha = 0.5f))
+                    .border(0.5.dp, radioColors.border.copy(alpha = 0.3f), RoundedCornerShape(6.dp))
+                    .padding(horizontal = 10.dp, vertical = 4.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "⏱ LOCAL RETENTION: 10 MIN",
+                    color = radioColors.textSecondary,
+                    fontSize = 9.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    fontFamily = FontFamily.Monospace,
+                    letterSpacing = 0.5.sp
+                )
+                Text(
+                    text = "THIS DEVICE ONLY",
+                    color = radioColors.textTertiary,
+                    fontSize = 8.5.sp,
+                    fontFamily = FontFamily.Monospace,
+                    letterSpacing = 0.5.sp
+                )
+            }
+
+            Spacer(modifier = Modifier.height(10.dp))
 
             // 3. Conversation List or Tactical Empty State
             if (conversations.isEmpty() && searchQuery.isBlank()) {
@@ -600,6 +636,19 @@ private fun ConversationCard(
                         text = routeLabel,
                         color = radioColors.textSecondary,
                         bg = radioColors.capsule
+                    )
+
+                    // Feature 15: Remaining Retention TTL
+                    val remainingMs = remember(conversation.lastTimestamp) {
+                        MessageRetentionPolicy.getRemainingTtlMs(conversation.lastTimestamp)
+                    }
+                    val ttlLabel = remember(remainingMs) {
+                        MessageRetentionPolicy.formatTtl(remainingMs)
+                    }
+                    TacticalCapsule(
+                        text = "TTL $ttlLabel",
+                        color = if (remainingMs < 60_000L) radioColors.warning else radioColors.textSecondary,
+                        bg = if (remainingMs < 60_000L) radioColors.warning.copy(alpha = 0.15f) else radioColors.capsule
                     )
 
                     // Radio-Aware Delivery Status

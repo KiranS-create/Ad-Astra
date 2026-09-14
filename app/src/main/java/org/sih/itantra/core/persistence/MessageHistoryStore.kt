@@ -3,12 +3,14 @@ package org.sih.itantra.core.persistence
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import org.sih.itantra.core.chat.MessageRetentionPolicy
 import org.sih.itantra.core.protocol.DeliveryStatus
 import java.util.concurrent.CopyOnWriteArrayList
 
 /**
  * Local communication history store.
  * Operates offline; never synchronizes to cloud storage.
+ * Enforces local 10-minute (600,000 ms) message retention policy.
  */
 object MessageHistoryStore {
 
@@ -28,6 +30,24 @@ object MessageHistoryStore {
 
     private fun notifyListeners() {
         listeners.forEach { it.invoke() }
+    }
+
+    /**
+     * Prunes messages older than 10 minutes (600,000 ms) from local memory.
+     * Guaranteed strictly local operation.
+     *
+     * @param currentTimeMs Reference time for boundary check (defaults to active time provider).
+     * @return Number of records pruned.
+     */
+    fun pruneExpired(currentTimeMs: Long = MessageRetentionPolicy.currentTime()): Int {
+        val toRemove = records.filter { MessageRetentionPolicy.isExpired(it.timestamp, currentTimeMs) }
+        if (toRemove.isNotEmpty()) {
+            records.removeAll(toRemove)
+            _historyFlow.value = records.toList()
+            notifyListeners()
+            return toRemove.size
+        }
+        return 0
     }
 
     fun addRecord(record: MessageRecord) {
