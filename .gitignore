@@ -1,12 +1,31 @@
+# Large models and archives distributed separately
+models_phone_b.tar
+app/src/main/assets/models/tts/vits-mms-kn/model.onnx
+app/src/main/assets/models/tts/vits-mms-ta/model.onnx
+app/src/main/assets/models/tts/vits-mms-or/model.onnx
+
+# Android build & local IDE configuration
 *.iml
-.gradle
+.gradle/
 /local.properties
-/.idea
+/.idea/
 build/
 app/build/
-.gradle/
 .externalNativeBuild
-.cxx
+.cxx/
 *.apk
 *.aab
 .kotlin/
+
+# Keystores & credentials
+*.jks
+*.keystore
+
+# Temporary logs, captures, and test output
+*.log
+captures/
+.navigation/
+
+# OS metadata
+.DS_Store
+Thumbs.db

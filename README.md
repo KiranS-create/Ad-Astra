@@ -1,153 +1,126 @@
-﻿# SIH26173 — iTantra
+# iTantra
 ### Indian Multilingual TTS & STT Aided Neural Transceiver Radio Access for Low Bitrate Links
 
-**Smart India Hackathon 2026 / ISRO Problem Statement SIH26173**  
-*Autonomous Offline Android Application & Neural Transceiver Architecture*
+**SIH 2026**  
+**Problem Statement:** SIH26173  
+**Team:** Ad Astra  
 
 ---
 
-## 1. Executive Summary
+## 1. Project Overview
 
-In disaster management, tactical defense, and remote ISRO telemetry zones, wireless communications links suffer from extreme bandwidth constraints, intermittent packet drop, and high latency. Transmitting raw voice audio requires **256,000 bps (32,000 bytes/second for 16kHz 16-bit PCM)**, quickly saturating narrowband channels.
+In tactical, disaster-relief, and off-grid remote operations, conventional digital voice communications saturate narrow wireless channels (a 3-second 16kHz 16-bit PCM voice transmission requires ~96,000 bytes).
 
-**iTantra** fundamentally re-engineers radio communication:
-> **Never transmit raw voice over the communication channel.**  
-> Transmit compact, error-corrected text packets (<35 bytes framing) over local Wi-Fi or Bluetooth, and reconstruct natural audio at the receiver using on-device neural Text-to-Speech.
-
-### Core Value Proposition:
-- **~99.8% Bandwidth Reduction**: A 3-second spoken sentence takes **96,000 bytes** in raw voice, but only **~170 bytes** with iTantra.
-- **100% Offline Local Intelligence**: Absolutely zero reliance on cloud APIs (No OpenAI, Gemini, Google Cloud Speech, Azure, or AWS).
-- **10 Indian Languages Supported**: Hindi, Gujarati, Marathi, Kannada, Malayalam, Tamil, Telugu, Odia, Bengali, English.
-- **Hardware Agnostic**: Runs smoothly on low/mid-range Android hardware (minSdk 26).
+**iTantra** implements a neural transceiver architecture designed to operate over constrained, low-bitrate radio links:
+1. Spoken voice is captured and transcribed locally on the transmitter using an on-device Speech-to-Text (STT) engine.
+2. The recognized text or tactical command is framed into an ultra-compact binary packet (46 to 170 bytes, including 28-byte canonical header, CRC32, and optional HMAC authentication).
+3. The packet is transmitted over off-grid wireless transports (Wi-Fi UDP broadcast, Bluetooth RFCOMM SPP, or point-to-point mesh).
+4. The receiver decodes the packet and synthesizes intelligible speech locally using on-device neural Text-to-Speech (TTS).
 
 ---
 
-## 2. End-to-End Pipeline Architecture
+## 2. Supported Languages
 
-```
-PHONE A (Transmitter)
-  Microphone Capture (16kHz 16-bit Mono PCM)
-  ↓
-  Adaptive Energy & ZCR Voice Activity Detection (VAD)
-  ↓
-  On-Device Offline Speech-to-Text (STT)
-  ↓
-  Pause-Aware Sentence Finalization (Danda '।', '.', '?', '!')
-  ↓
-  Adaptive Deflate Compression (Avoids expansion on short Indic text)
-  ↓
-  iTantra Compact Binary Radio Protocol Framer (31-byte header + CRC-32)
-  ↓
-  Local Wireless Transport (Wi-Fi UDP Broadcast / Bluetooth SPP / Serial LoRa)
+iTantra supports 10 languages with offline execution:
 
-CHANNEL (Low Bitrate Radio Link: ~450 bps)
-  Compact Packet (~170 Bytes)
+| Language | Code | Script | Offline STT Engine | Offline TTS Engine |
+| :--- | :---: | :--- | :--- | :--- |
+| **Hindi** | `hi` | Devanagari | Whisper-Tiny INT8 / IndicConformer | VITS Piper (Rohan Medium) |
+| **English** | `en` | Latin | Whisper-Tiny INT8 / IndicConformer | VITS Piper (Lessac Medium) |
+| **Gujarati** | `gu` | Gujarati | Whisper-Tiny INT8 / IndicConformer | VITS Mimic3 (CMU Indic Low) |
+| **Marathi** | `mr` | Devanagari | Whisper-Tiny INT8 / IndicConformer | VITS Piper (Google Medium) |
+| **Kannada** | `kn` | Kannada | Whisper-Tiny INT8 / IndicConformer | VITS Meta MMS Kannada* |
+| **Malayalam** | `ml` | Malayalam | Whisper-Tiny INT8 / IndicConformer | VITS Piper (Arjun Medium) |
+| **Tamil** | `ta` | Tamil | Whisper-Tiny INT8 / IndicConformer | VITS Meta MMS Tamil* |
+| **Telugu** | `te` | Telugu | Whisper-Tiny INT8 / IndicConformer | VITS Piper (Maya Medium) |
+| **Odia** | `or` | Odia | Android OS Fallback | VITS Meta MMS Odia* |
+| **Bengali** | `bn` | Bengali | Whisper-Tiny INT8 / IndicConformer | VITS Piper (Google Medium) |
 
-PHONE B (Receiver)
-  Transport Receiver & CRC-32 Integrity Validation
-  ↓
-  Adaptive Decompressor & Sequence Reassembly
-  ↓
-  Priority Gating (DISTRESS / ALERT / IMPORTANT / NORMAL)
-  ↓
-  On-Device Offline Text-to-Speech (TTS)
-  ↓
-  Emergency Acoustic Alarm (for Alerts) & Intelligible Audio Playback
-```
+*\*Note: Kannada, Tamil, and Odia TTS weights exceed GitHub's 100 MB per-file limit and are distributed via GitHub Releases or external download. See [docs/MODELS.md](docs/MODELS.md) for details.*
 
 ---
 
-## 3. Supported Languages (10 Official Languages)
+## 3. Offline Operation & Security
 
-| Language | ISO Code | Script | Offline STT Engine | Offline TTS Engine |
-|---|---|---|---|---|
-| **Hindi** | `hi` | Devanagari | IndicConformer / System Offline ASR | MMS-TTS Hindi / System Offline TTS |
-| **Gujarati** | `gu` | Gujarati | IndicConformer / System Offline ASR | MMS-TTS / System Offline TTS |
-| **Marathi** | `mr` | Devanagari | IndicConformer / System Offline ASR | MMS-TTS / System Offline TTS |
-| **Kannada** | `kn` | Kannada | IndicConformer / System Offline ASR | MMS-TTS / System Offline TTS |
-| **Malayalam** | `ml` | Malayalam | IndicConformer / System Offline ASR | MMS-TTS / System Offline TTS |
-| **Tamil** | `ta` | Tamil | IndicConformer / System Offline ASR | MMS-TTS / System Offline TTS |
-| **Telugu** | `te` | Telugu | IndicConformer / System Offline ASR | MMS-TTS / System Offline TTS |
-| **Odia** | `or` | Odia | IndicConformer / System Offline ASR | MMS-TTS / System Offline TTS |
-| **Bengali** | `bn` | Bengali | IndicConformer / System Offline ASR | MMS-TTS / System Offline TTS |
-| **English** | `en` | Latin | IndicConformer / System Offline ASR | Piper / System Offline TTS |
+- **100% Offline Processing:** All neural inference (ONNX Runtime via Sherpa-ONNX) runs strictly on-device without cloud API dependencies.
+- **Protocol Integrity:** 28-byte fixed framing, CRC-32 wire error detection, and optional HMAC-SHA256 authentication for anti-tamper security.
+- **Adaptive VBR & Shared Context:** Supports full text, compressed text, semantic base emergency commands, and ultra-compact 6–7 byte context deltas for situational updates.
 
 ---
 
-## 4. Binary Protocol Specification (`iTantra v1`)
+## 4. Android System Requirements
 
-| Offset | Field | Type | Size | Description |
-|---|---|---|---|---|
-| 0 | `magic` | bytes | 2 | `0x49 0x54` ('IT' for iTantra) |
-| 2 | `version` | uint8 | 1 | Protocol version (`0x01`) |
-| 3 | `msg_type` | uint8 | 1 | `1`=HELLO, `2`=SESSION, `3`=TEXT, `4`=ACK, `5`=ALERT, `6`=PING, `7`=PONG |
-| 4 | `priority` | uint8 | 1 | `0`=NORMAL, `1`=IMPORTANT, `2`=ALERT, `3`=DISTRESS |
-| 5 | `flags` | uint8 | 1 | Bit 0: Compressed, Bit 1: Fragmented, Bit 2: Requires ACK |
-| 6 | `seq_num` | uint16 | 2 | Sequence counter for deduplication and ordering |
-| 8 | `timestamp` | uint64 | 8 | Monotonic sender timestamp (ms) |
-| 16 | `source_id` | uint32 | 4 | Unique sender device ID |
-| 20 | `dest_id` | uint32 | 4 | Destination ID (`0xFFFFFFFF` = Broadcast) |
-| 24 | `language_id` | uint8 | 1 | Language Enum ID (0=HI, 1=GU, 2=MR, 3=KN, 4=ML, 5=TA, 6=TE, 7=OR, 8=BN, 9=EN) |
-| 25 | `payload_len` | uint16 | 2 | Payload byte length ($N$) |
-| 27 | `payload` | bytes | $N$ | UTF-8 or compressed text bytes |
-| $27+N$ | `crc32` | uint32 | 4 | CRC-32 integrity checksum over entire packet |
-
-**Total Header Overhead**: Strictly **31 bytes** (27 bytes header + 4 bytes CRC-32).
+- **Minimum OS:** Android 8.0 (API level 26)
+- **Target OS:** Android 15 (API level 35)
+- **Architecture:** `arm64-v8a` / `armeabi-v7a`
+- **Permissions Required:** Microphone (Audio recording), Bluetooth (Connect & Scan), Wi-Fi (Multicast lock / Local Hotspot socket)
 
 ---
 
-## 5. Build and Installation Instructions
+## 5. Obtaining and Installing the APK
+
+For evaluators and jury members who want to test iTantra directly without compiling:
+1. Download the pre-built demo APK (`app-debug.apk`) from the **[Releases](https://github.com/KiranS-create/iTantra/releases)** section.
+2. Enable installation from unknown sources on your Android device if prompted.
+3. Install via `adb` or transfer the file to the phone:
+   ```bash
+   adb install -r app-debug.apk
+   ```
+
+---
+
+## 6. Building from Source
 
 ### Prerequisites
-- JDK 17 or JDK 19 (`C:\Program Files\Java\jdk-19`)
-- Android SDK with platform `android-35` and build-tools `35.0.0`
-- Gradle 8.10.2 (included via `gradlew.bat`)
+- JDK 17 or JDK 19
+- Android SDK (Platform `android-35`, Build Tools `35.0.0`)
+- Gradle 8.10.2 (wrapper included)
 
-### 1. Run Automated Test Suite
-```powershell
-$env:JAVA_HOME = "C:\Program Files\Java\jdk-19"
-$env:ANDROID_HOME = "C:\Users\kiran akash\AppData\Local\Android\Sdk"
-.\gradlew.bat test --console=plain
+### 1. Model Asset Setup
+Sub-100 MB models are already included in the repository under `app/src/main/assets/models/`. If building with offline support for Kannada, Tamil, or Odia MMS neural voices, download the corresponding `model.onnx` files as documented in **[docs/MODELS.md](docs/MODELS.md)**. If omitted, the app will automatically fall back to the Android system TTS engine for those three languages.
+
+### 2. Run Test Suite
+```bash
+./gradlew testDebugUnitTest
 ```
 
-### 2. Build Debug APK
-```powershell
-$env:JAVA_HOME = "C:\Program Files\Java\jdk-19"
-$env:ANDROID_HOME = "C:\Users\kiran akash\AppData\Local\Android\Sdk"
-.\gradlew.bat assembleDebug --console=plain
+### 3. Build APK
+```bash
+./gradlew assembleDebug
 ```
-The installable APK will be produced at:
-`app/build/outputs/apk/debug/app-debug.apk` (~16.7 MB).
-
-### 3. Install on Android Device
-```powershell
-adb install -r app/build/outputs/apk/debug/app-debug.apk
-```
+The resulting APK will be located at:
+`app/build/outputs/apk/debug/app-debug.apk`
 
 ---
 
-## 6. Two-Phone Demo Setup
+## 7. Two-Phone Field Demo Setup
 
-### Option A: Local Wi-Fi Mesh (Recommended for Hackathon)
-1. Turn on Wi-Fi Hotspot on **Phone A** (Mobile data / internet is **NOT** needed).
+### Setup Option A: Local Wi-Fi (Recommended)
+1. On **Phone A**, enable Wi-Fi Hotspot (Mobile data / internet access is **not** required).
 2. Connect **Phone B** to Phone A's hotspot.
-3. Open **iTantra** on both phones.
-4. Set Transport to **WI-FI**.
-5. Select **Hindi** (or another Indian language) on Phone A.
-6. Press and hold the **PTT button** on Phone A and speak in Hindi:  
-   *"हम राहत सामग्री के साथ उत्तर दिशा में आगे बढ़ रहे हैं।"*
-7. Release PTT button.
-8. **Observe Phone B**:
-   - The compact text packet (~170 bytes) is received over UDP broadcast on port 42888.
-   - Phone B's offline TTS synthesizer speaks the message in Hindi.
-   - The transcript and measured end-to-end latency (~140ms) appear on Phone B's screen.
+3. Launch **iTantra** on both devices.
+4. Set Transport to **WI-FI** (port 42888 UDP broadcast).
+5. Select a language (e.g., Hindi) on Phone A.
+6. Press and hold **HOLD TO TALK** (or tap **DISTRESS**), speak a tactical message, and release.
+7. **Observation on Phone B:**
+   - The packet is received over the air.
+   - The received message appears in the chat transcript.
+   - Phone B synthesizes and plays the voice message in the selected language.
 
-### Option B: Bluetooth SPP
+### Setup Option B: Bluetooth SPP
 1. Pair Phone A and Phone B in Android Bluetooth settings.
-2. Open iTantra and select **BT SPP** transport.
+2. Launch iTantra, select **BT SPP** transport, and connect to the paired peer.
 3. Transmit messages point-to-point.
 
-### Option C: Single-Device Verification (Loopback Mode)
-1. In iTantra, select **LOOP** transport.
-2. Press PTT or click **DISTRESS**.
-3. The app transcribes the speech, packages the radio packet, loops it back into the receiver pipeline, and speaks it back through the phone speaker.
+### Setup Option C: Single-Device Loopback
+1. In iTantra settings, select **LOOP** transport.
+2. Transmit via PTT or Distress. The app will record, classify, frame, loop back into the receiver pipeline, and speak via the local speaker.
+
+---
+
+## 8. Known Limitations & Constraints
+
+1. **Acoustic Noise:** In heavy background noise, local VAD and acoustic decoding accuracy depend on microphone hardware quality and physical proximity to the speaker.
+2. **Wi-Fi / Bluetooth Range:** Without external SDR or dedicated VHF/UHF hardware, communication range is constrained by standard smartphone Wi-Fi and Bluetooth antennas (~10 to 80 meters unobstructed).
+3. **On-Device Compute:** Neural inference latency varies by processor. On modern mid-range devices (e.g., Exynos 1480, Snapdragon 778G), Pass-1 transcription occurs in under 200ms; entry-level chipsets may experience longer processing times.
+4. **TTS Model Coverage:** High-fidelity VITS voices for Kannada, Tamil, and Odia require downloading external MMS model files (~114 MB each) as outlined in [docs/MODELS.md](docs/MODELS.md).
