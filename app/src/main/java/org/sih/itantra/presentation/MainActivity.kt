@@ -42,6 +42,7 @@ import org.sih.itantra.presentation.screens.NearbyDevicesScreen
 import org.sih.itantra.presentation.screens.SettingsScreen
 import org.sih.itantra.presentation.screens.MessageJourneyScreen
 import org.sih.itantra.presentation.screens.QrPairingScreen
+import org.sih.itantra.presentation.screens.CommunicationHealthScreen
 import org.sih.itantra.core.message.journey.MessageJourneyMapper
 import org.sih.itantra.presentation.navigation.NavigationStateManager
 import org.sih.itantra.presentation.navigation.ScreenDestination
@@ -244,6 +245,17 @@ class MainActivity : ComponentActivity() {
                                     .navigationBarsPadding()
                             )
                         }
+                        is ScreenDestination.CommunicationHealth -> {
+                            CommunicationHealthScreen(
+                                viewModel = viewModel,
+                                onBack = { navManager.navigateBack() },
+                                onOpenMeshTopology = { navManager.navigateTo(ScreenDestination.ManetDemo) },
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .statusBarsPadding()
+                                    .navigationBarsPadding()
+                            )
+                        }
                         null -> {
                             Column(
                                 modifier = Modifier
@@ -274,7 +286,8 @@ class MainActivity : ComponentActivity() {
                                             viewModel = viewModel,
                                             onOpenModelAudit = { navManager.navigateTo(ScreenDestination.ModelAudit) },
                                             onOpenManetDemo = { navManager.navigateTo(ScreenDestination.ManetDemo) },
-                                            onOpenSihDemo = { showSihDemo = true }
+                                            onOpenSihDemo = { showSihDemo = true },
+                                            onOpenCommHealth = { navManager.navigateTo(ScreenDestination.CommunicationHealth) }
                                         )
                                         RadioNavTab.SETTINGS -> SettingsScreen(
                                             viewModel = viewModel,

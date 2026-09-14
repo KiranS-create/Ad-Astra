@@ -19,6 +19,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Sensors
 import androidx.compose.material.icons.filled.Verified
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -42,6 +43,7 @@ fun DiagnosticsScreen(
     onOpenModelAudit: () -> Unit = {},
     onOpenManetDemo: () -> Unit = {},
     onOpenSihDemo: () -> Unit = {},
+    onOpenCommHealth: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val radioColors = LocalRadioColors.current
@@ -69,6 +71,74 @@ fun DiagnosticsScreen(
             fontSize = 12.sp,
             fontFamily = FontFamily.SansSerif
         )
+
+        Spacer(modifier = Modifier.height(14.dp))
+
+        // Feature 13: Communication Health Panel Card
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(12.dp))
+                .background(radioColors.surface)
+                .border(
+                    1.5.dp,
+                    (if (radioColors.isDark) radioColors.sage else radioColors.forest).copy(alpha = 0.8f),
+                    RoundedCornerShape(12.dp)
+                )
+                .clickable { onOpenCommHealth() }
+                .padding(14.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Sensors,
+                        contentDescription = null,
+                        tint = if (radioColors.isDark) radioColors.sage else radioColors.forest,
+                        modifier = Modifier.size(24.dp)
+                    )
+                    Spacer(modifier = Modifier.width(10.dp))
+                    Column {
+                        Text(
+                            text = "COMMUNICATION HEALTH PANEL",
+                            color = radioColors.textPrimary,
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold,
+                            fontFamily = FontFamily.Monospace,
+                            letterSpacing = 0.5.sp
+                        )
+                        Spacer(modifier = Modifier.height(2.dp))
+                        Text(
+                            text = "Transports, MANET routes, QoS & DTN observability",
+                            color = radioColors.textSecondary,
+                            fontSize = 10.5.sp,
+                            fontFamily = FontFamily.SansSerif
+                        )
+                    }
+                }
+                Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(4.dp))
+                        .background(radioColors.success.copy(alpha = 0.15f))
+                        .border(1.dp, radioColors.success.copy(alpha = 0.4f), RoundedCornerShape(4.dp))
+                        .padding(horizontal = 6.dp, vertical = 2.dp)
+                ) {
+                    Text(
+                        text = "LIVE",
+                        color = radioColors.success,
+                        fontSize = 9.sp,
+                        fontWeight = FontWeight.Bold,
+                        fontFamily = FontFamily.Monospace
+                    )
+                }
+            }
+        }
 
         Spacer(modifier = Modifier.height(14.dp))
 

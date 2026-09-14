@@ -66,6 +66,8 @@ import org.sih.itantra.core.tts.TtsPlaybackStatus
 import org.sih.itantra.core.tts.TtsResolutionResult
 import org.sih.itantra.core.tts.TtsVoiceRegistry
 import org.sih.itantra.core.tts.TtsVoiceResolver
+import org.sih.itantra.core.health.CommunicationHealthMapper
+import org.sih.itantra.core.health.CommunicationHealthState
 import kotlinx.coroutines.Job
 
 enum class VoiceEngineStatus(val label: String) {
@@ -506,6 +508,57 @@ class TransceiverViewModel(application: Application) : AndroidViewModel(applicat
         )
     )
     val meshTopologySnapshot: StateFlow<MeshTopologySnapshot> = _meshTopologySnapshot.asStateFlow()
+
+    // -------------------------------------------------------------------------
+    // Communication Health Panel (Feature 13)
+    // -------------------------------------------------------------------------
+
+    val communicationHealthState: StateFlow<CommunicationHealthState> = kotlinx.coroutines.flow.combine(
+        diagnosticsState,
+        meshTopologySnapshot,
+        messageHistory,
+        coordinator.transportManager.wifiTransport.state,
+        bluetoothTransportState
+    ) { diag, topo, history, wifiState, btState ->
+        CommunicationHealthMapper.map(
+            localNodeId = coordinator.manetRouter.localNodeId,
+            diagnostics = diag,
+            topology = topo,
+            messageHistory = history,
+            wifiState = wifiState,
+            wifiPeers = coordinator.transportManager.wifiTransport.connectedPeers.value,
+            bluetoothState = btState,
+            bluetoothPeers = coordinator.transportManager.bluetoothTransport.connectedPeers.value,
+            preferredTransport = _activeTransportType.value,
+            isRelayEnabled = coordinator.relayRouter.isRelayEnabled.value,
+            dtnQueueSize = coordinator.manetRouter.dtnStore.size(),
+            qosQueuedPackets = diag.queuedPackets,
+            qosCongestion = when (diag.congestionState) {
+                "CONGESTED" -> org.sih.itantra.core.qos.CongestionState.CONGESTED
+                "BUSY"      -> org.sih.itantra.core.qos.CongestionState.BUSY
+                else        -> org.sih.itantra.core.qos.CongestionState.NORMAL
+            },
+            qosDistress = diag.queuedDistress,
+            qosAlert = diag.queuedAlert,
+            qosImportant = diag.queuedImportant,
+            qosNormal = diag.queuedNormal
+        )
+    }.stateIn(
+        viewModelScope,
+        SharingStarted.Eagerly,
+        CommunicationHealthMapper.map(
+            localNodeId = coordinator.manetRouter.localNodeId,
+            diagnostics = diagnosticsState.value,
+            topology = _meshTopologySnapshot.value,
+            messageHistory = messageHistory.value,
+            wifiState = coordinator.transportManager.wifiTransport.state.value,
+            bluetoothState = coordinator.transportManager.bluetoothTransport.state.value
+        )
+    )
+
+    fun refreshCommunicationHealth() {
+        refreshTopologySnapshot()
+    }
 
     // -------------------------------------------------------------------------
     // Nearby Device Discovery Layer (Feature 4)

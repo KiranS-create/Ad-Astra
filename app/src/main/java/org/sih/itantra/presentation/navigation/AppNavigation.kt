@@ -39,6 +39,9 @@ sealed interface ScreenDestination {
 
     /** SIH Mission Demo Dashboard. */
     data object SihDemo : ScreenDestination
+
+    /** Feature 13: Truthful Communication Health Panel. */
+    data object CommunicationHealth : ScreenDestination
 }
 
 /**
