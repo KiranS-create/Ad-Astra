@@ -21,9 +21,22 @@
 
 <br/>
 
-**[Architecture](docs/ARCHITECTURE.md)** • **[Protocol Spec](docs/PROTOCOL.md)** • **[Testing Guide](docs/TESTING.md)** • **[Model Setup](docs/MODELS.md)** • **[Feature Reports](docs/feature-reports/)** • **[Third-Party Licenses](THIRD_PARTY_LICENSES.md)** • **[Latest Release](https://github.com/KiranS-create/Ad-Astra/releases/tag/v1.0.0-sih26173)**
+**[Demo Video](docs/assets/demo/ad-astra-sih-2026-demo.mp4)** • **[Architecture](docs/ARCHITECTURE.md)** • **[Protocol Spec](docs/PROTOCOL.md)** • **[Testing Guide](docs/TESTING.md)** • **[Model Setup](docs/MODELS.md)** • **[Feature Reports](docs/feature-reports/)** • **[Third-Party Licenses](THIRD_PARTY_LICENSES.md)** • **[Latest Release](https://github.com/KiranS-create/Ad-Astra/releases/tag/v1.0.0-sih26173)**
 
 </div>
+
+---
+
+## Demo Video
+
+> **[Watch the Demonstration Video (MP4)](docs/assets/demo/ad-astra-sih-2026-demo.mp4)**
+
+A live physical two-phone demonstration of the Ad Astra / iTantra offline transceiver:
+- **Dual-Device Communication:** Real-time push-to-talk (PTT) voice exchange between physical Android devices.
+- **Speech-First Neural Workflow:** On-device quantized Whisper INT8 speech-to-text and local acoustic voice reconstruction with zero cloud dependency.
+- **Compact Binary Radio Framing:** Adaptive packet transmission (`COMPACT P0 47B–77B`) with sub-second airtime latency.
+- **Emergency Distress Protocol:** High-priority distress broadcast with attached GPS coordinates and automated audible alert.
+- **Diagnostics & Radio Telemetry:** Real-time channel activity, authentication markers, and packet inspect telemetry.
 
 ---
 
@@ -214,6 +227,7 @@ Ad-Astra/
 │   ├── PROTOCOL.md             # 28-byte canonical header, frame specs & wire layouts
 │   ├── TESTING.md              # Testbed methodology, unit test suite & device validation
 │   ├── assets/
+│   │   ├── demo/               # SIH 2026 two-device demonstration video
 │   │   ├── screenshots/        # Canonical light & dark UI screenshot archives
 │   │   └── social-preview.png  # Social preview card
 │   └── feature-reports/        # Technical engineering reports & benchmarks
