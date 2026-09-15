@@ -3,6 +3,7 @@ package org.sih.itantra.presentation
 import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
+import org.sih.itantra.BuildConfig
 import android.os.Build
 import android.os.Bundle
 import android.view.WindowManager
@@ -344,22 +345,30 @@ class MainActivity : ComponentActivity() {
                 viewModel.connectBluetooth(btAddr)
             }
             "send_test_packet" -> {
-                viewModel.testNeuralLoopback()
+                if (BuildConfig.DEBUG) {
+                    viewModel.testNeuralLoopback()
+                }
             }
             "send_vbr_test" -> {
-                val modeStr = intent?.getStringExtra("mode") ?: "FULL"
-                val text = intent?.getStringExtra("text")
-                val mode = org.sih.itantra.core.vbr.AdaptiveRepresentationMode.fromString(modeStr)
-                viewModel.sendVbrTestMessage(mode, text)
+                if (BuildConfig.DEBUG) {
+                    val modeStr = intent?.getStringExtra("mode") ?: "FULL"
+                    val text = intent?.getStringExtra("text")
+                    val mode = org.sih.itantra.core.vbr.AdaptiveRepresentationMode.fromString(modeStr)
+                    viewModel.sendVbrTestMessage(mode, text)
+                }
             }
             "run_refinement_benchmark" -> {
-                viewModel.runRefinementBenchmark()
+                if (BuildConfig.DEBUG) {
+                    viewModel.runRefinementBenchmark()
+                }
             }
             "send_targeted_test" -> {
-                val modeStr = intent?.getStringExtra("mode") ?: "SEMANTIC_ENHANCED"
-                val text = intent?.getStringExtra("text")
-                val mode = org.sih.itantra.core.vbr.AdaptiveRepresentationMode.fromString(modeStr)
-                viewModel.sendTargetedTestMessage(mode, text)
+                if (BuildConfig.DEBUG) {
+                    val modeStr = intent?.getStringExtra("mode") ?: "SEMANTIC_ENHANCED"
+                    val text = intent?.getStringExtra("text")
+                    val mode = org.sih.itantra.core.vbr.AdaptiveRepresentationMode.fromString(modeStr)
+                    viewModel.sendTargetedTestMessage(mode, text)
+                }
             }
             "start_node_mode" -> {
                 viewModel.startNodeMode()

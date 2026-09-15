@@ -193,7 +193,7 @@ class BluetoothTransport(
 
         val device = socket.remoteDevice
         val devName = try { device.name ?: "BT-Device" } catch (e: SecurityException) { "BT-Device" }
-        Log.i(tag, "Connected to remote device: $devName (${device.address})")
+        Log.i(tag, "BT_CONNECTED: transport=BLUETOOTH, device='$devName', address='${device.address}'")
 
         val peer = PeerDevice(
             id = device.address,
@@ -206,27 +206,72 @@ class BluetoothTransport(
 
         readJob?.cancel()
         readJob = CoroutineScope(dispatcher).launch {
-            val buffer = ByteArray(2048)
+            val buffer = ByteArray(4096)
+            val streamBuffer = java.io.ByteArrayOutputStream()
             while (isActive && isRunning.get()) {
                 try {
                     val bytesRead = inputStream?.read(buffer) ?: -1
                     if (bytesRead > 0) {
-                        val raw = buffer.copyOf(bytesRead)
-                        Log.i(tag, "Bluetooth packet RX: $bytesRead bytes from ${device.address}")
-                        val packet = PacketSerializer.deserialize(raw)
-                        _receivedPackets.emit(packet)
+                        streamBuffer.write(buffer, 0, bytesRead)
+
+                        var buf = streamBuffer.toByteArray()
+                        var offset = 0
+                        while (buf.size - offset >= Packet.MIN_PACKET_SIZE) {
+                            val magic = ((buf[offset].toInt() and 0xFF) shl 8) or (buf[offset + 1].toInt() and 0xFF)
+                            if (magic != (Packet.MAGIC.toInt() and 0xFFFF)) {
+                                offset++
+                                continue
+                            }
+
+                            if (buf.size - offset < Packet.HEADER_SIZE_BYTES) {
+                                break
+                            }
+
+                            val flags = buf[offset + 6].toInt()
+                            val hasLocation = (flags and Packet.FLAG_HAS_LOCATION) != 0
+                            val locBytes = if (hasLocation) Packet.LOCATION_SIZE_BYTES else 0
+                            val hasAuth = (flags and Packet.FLAG_AUTHENTICATED) != 0
+                            val authBytes = if (hasAuth) Packet.AUTH_TAG_SIZE_BYTES else 0
+                            val payloadLen = ((buf[offset + 26].toInt() and 0xFF) shl 8) or (buf[offset + 27].toInt() and 0xFF)
+                            val totalExpected = Packet.HEADER_SIZE_BYTES + locBytes + payloadLen + authBytes + Packet.CRC_SIZE_BYTES
+
+                            if (buf.size - offset < totalExpected) {
+                                break
+                            }
+
+                            val packetBytes = buf.copyOfRange(offset, offset + totalExpected)
+                            offset += totalExpected
+
+                            try {
+                                val packet = PacketSerializer.deserialize(packetBytes)
+                                Log.i(tag, "BT_RECEIVE: transport=BLUETOOTH, seq=${packet.sequenceNumber}, type=${packet.msgType}, bytes=${packetBytes.size}, from=${device.address}")
+                                _receivedPackets.emit(packet)
+                            } catch (e: Exception) {
+                                Log.w(tag, "BT_ERROR: Malformed packet in stream from ${device.address}: ${e.message}")
+                            }
+                        }
+
+                        val remaining = buf.size - offset
+                        streamBuffer.reset()
+                        if (remaining > 0) {
+                            streamBuffer.write(buf, offset, remaining)
+                        }
                     } else if (bytesRead < 0) {
-                        Log.w(tag, "Bluetooth stream reached EOF from ${device.address}")
+                        Log.w(tag, "BT_DISCONNECTED: Bluetooth stream reached EOF from ${device.address}")
                         break
                     }
-                } catch (e: Exception) {
+                } catch (e: java.io.IOException) {
                     if (isRunning.get()) {
-                        Log.w(tag, "Bluetooth read error / disconnect from ${device.address}: ${e.message}")
+                        Log.w(tag, "BT_DISCONNECTED: Bluetooth socket IO exception from ${device.address}: ${e.message}")
                     }
                     break
+                } catch (e: Exception) {
+                    if (isRunning.get()) {
+                        Log.e(tag, "BT_ERROR: Unexpected error in read loop: ${e.message}", e)
+                    }
                 }
             }
-            Log.i(tag, "Bluetooth session disconnected from ${device.address}")
+            Log.i(tag, "BT_DISCONNECTED: Bluetooth session ended for ${device.address}")
             activeSocket = null
             outputStream = null
             inputStream = null
@@ -246,7 +291,7 @@ class BluetoothTransport(
                 outputStream?.close()
                 inputStream?.close()
             } catch (e: Exception) {
-                Log.e(tag, "Error closing Bluetooth sockets: ${e.message}", e)
+                Log.e(tag, "BT_ERROR: Error closing Bluetooth sockets: ${e.message}", e)
             } finally {
                 serverSocket = null
                 activeSocket = null
@@ -254,7 +299,7 @@ class BluetoothTransport(
                 inputStream = null
                 _state.value = TransportState.DISCONNECTED
                 _connectedPeers.value = emptyList()
-                Log.i(tag, "BluetoothTransport stopped")
+                Log.i(tag, "BT_DISCONNECTED: BluetoothTransport stopped")
             }
         }
     }
@@ -262,7 +307,7 @@ class BluetoothTransport(
     override suspend fun send(packet: Packet): Boolean = withContext(dispatcher) {
         val out = outputStream
         if (out == null) {
-            Log.w(tag, "Bluetooth send failed: outputStream is null (no connected RFCOMM socket)")
+            Log.w(tag, "BT_ERROR: Bluetooth send failed: outputStream is null (no connected RFCOMM socket)")
             return@withContext false
         }
         return@withContext try {
@@ -270,10 +315,10 @@ class BluetoothTransport(
             out.write(bytes)
             out.flush()
             val remoteAddr = try { activeSocket?.remoteDevice?.address ?: "unknown" } catch (e: SecurityException) { "unknown" }
-            Log.i(tag, "Bluetooth packet TX: ${bytes.size} bytes sent to $remoteAddr")
+            Log.i(tag, "BT_SEND: transport=BLUETOOTH, seq=${packet.sequenceNumber}, type=${packet.msgType}, bytes=${bytes.size}, to=$remoteAddr")
             true
         } catch (e: Exception) {
-            Log.e(tag, "Bluetooth send failed: ${e.message}", e)
+            Log.e(tag, "BT_ERROR: Bluetooth send failed: ${e.message}", e)
             false
         }
     }

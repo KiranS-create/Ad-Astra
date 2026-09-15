@@ -1,6 +1,7 @@
 package org.sih.itantra.core.transport
 
 import android.content.Context
+import android.util.Log
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -106,6 +107,9 @@ class TransportManager(
         next.start()
     }
 
+    private var lastUsedTransport: String? = null
+    private val tag = "TransportManager"
+
     suspend fun send(packet: Packet): Boolean {
         if (!_isAutoFailoverEnabled.value) {
             val success = _activeTransport.value.send(packet)
@@ -136,6 +140,10 @@ class TransportManager(
         }
 
         if (primarySent) {
+            if (lastUsedTransport != null && lastUsedTransport != primaryLabel) {
+                Log.i(tag, "BT_RECOVERY: recovered to primary transport '$primaryLabel' from '$lastUsedTransport', seq=${packet.sequenceNumber}, bytes=${packet.payload.size}")
+            }
+            lastUsedTransport = primaryLabel
             org.sih.itantra.core.diagnostics.DiagnosticsRepository.recordTransportSent(primaryLabel)
             return true
         }
@@ -149,6 +157,8 @@ class TransportManager(
         }
 
         if (secondarySent) {
+            Log.i(tag, "BT_FAILOVER: failed over from primary '$primaryLabel' to secondary '$secondaryLabel', seq=${packet.sequenceNumber}, bytes=${packet.payload.size}")
+            lastUsedTransport = secondaryLabel
             org.sih.itantra.core.diagnostics.DiagnosticsRepository.recordTransportFailover(from = primaryLabel, to = secondaryLabel)
             org.sih.itantra.core.diagnostics.DiagnosticsRepository.recordTransportSent(secondaryLabel)
             return true

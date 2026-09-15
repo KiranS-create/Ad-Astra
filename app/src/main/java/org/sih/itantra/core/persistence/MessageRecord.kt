@@ -45,5 +45,8 @@ data class MessageRecord(
     val isContextDelta: Boolean = false,
     val contextConfidence: Int? = null,
     val contextFallback: Boolean = false,
-    val deltaSummary: String? = null
+    val deltaSummary: String? = null,
+    val forwardingAction: String? = null,
+    val contextReconstructionStatus: String? = null,
+    val relayNodeId: Int? = null
 )

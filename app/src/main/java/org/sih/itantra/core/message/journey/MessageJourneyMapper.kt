@@ -198,10 +198,15 @@ object MessageJourneyMapper {
                     node = "UNKNOWN",   // Intermediate relay identity not captured locally
                     transport = if (record.isRelayed) "MANET Relay" else telemetry.transport,
                     hop = hopCount,
-                    detail = if (hopCount != null && hopCount > 1) {
-                        "Forwarded through mesh ($hopCount hops)"
-                    } else {
-                        "Forwarded through mesh (≥2 hops)"
+                    detail = when {
+                        record.isContextDelta && hopCount != null && hopCount > 1 ->
+                            "Context delta v${record.contextVersion ?: 1} forwarded through mesh ($hopCount hops)"
+                        record.isContextDelta ->
+                            "Context delta forwarded through mesh (≥2 hops)"
+                        hopCount != null && hopCount > 1 ->
+                            "Forwarded through mesh ($hopCount hops)"
+                        else ->
+                            "Forwarded through mesh (≥2 hops)"
                     },
                     status = JourneyEventStatus.INFO
                 )
@@ -295,10 +300,15 @@ object MessageJourneyMapper {
                     node = "UNKNOWN",   // Intermediate relay identity not captured locally
                     transport = "MANET Relay",
                     hop = hopCount,
-                    detail = if (hopCount != null && hopCount > 1) {
-                        "Traversed mesh relay ($hopCount hops)"
-                    } else {
-                        "Traversed mesh relay (≥2 hops)"
+                    detail = when {
+                        record.isContextDelta && hopCount != null && hopCount > 1 ->
+                            "Context delta v${record.contextVersion ?: 1} forwarded unchanged ($hopCount hops)"
+                        record.isContextDelta ->
+                            "Context delta forwarded unchanged (≥2 hops)"
+                        hopCount != null && hopCount > 1 ->
+                            "Traversed mesh relay ($hopCount hops)"
+                        else ->
+                            "Traversed mesh relay (≥2 hops)"
                     },
                     status = JourneyEventStatus.INFO
                 )
@@ -325,7 +335,20 @@ object MessageJourneyMapper {
                 timestampMs = baseTimestamp,
                 node = "Local Node (Self)",
                 transport = telemetry.transport,
-                detail = "Delivered to local transceiver application",
+                detail = when {
+                    record.contextReconstructionStatus == "RECONSTRUCTED" ->
+                        "Reconstructed from Context #${record.contextId} v${record.contextVersion}"
+                    record.contextReconstructionStatus == "FALLBACK" ->
+                        "Delivered as standalone fallback (context missing/expired)"
+                    record.contextReconstructionStatus == "REJECTED STALE" ->
+                        "Stale delta update rejected"
+                    record.contextReconstructionStatus == "REJECTED CONFLICT" ->
+                        "Conflicting delta update rejected"
+                    record.contextReconstructionStatus == "DUPLICATE SUPPRESSED" ->
+                        "Duplicate delta update suppressed"
+                    else ->
+                        "Delivered to local transceiver application"
+                },
                 status = JourneyEventStatus.SUCCESS
             )
         )

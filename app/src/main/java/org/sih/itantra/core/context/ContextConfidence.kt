@@ -19,6 +19,8 @@ object ContextConfidence {
 
     const val HIGH_THRESHOLD = 80
     const val MEDIUM_THRESHOLD = 50
+    const val AUTHORITATIVE_THRESHOLD = HIGH_THRESHOLD
+    const val LOW_THRESHOLD = 40
     const val DEFAULT_HIGH_CONFIDENCE = 90
     const val DEFAULT_BASELINE_CONFIDENCE = 85
 

@@ -57,6 +57,7 @@ import org.sih.itantra.ml.model.ModelAssetManager
 import org.sih.itantra.ml.stt.NeuralSpeechRouter
 import org.sih.itantra.ml.tts.NeuralTtsRouter
 import org.sih.itantra.core.mesh.PacketRelayRouter
+import org.sih.itantra.core.mesh.ContextAwareRelayRouter
 import org.sih.itantra.core.mesh.RelayAction
 import org.sih.itantra.core.mesh.ManetRouter
 import org.sih.itantra.core.protocol.DeliveryReceipt
@@ -140,6 +141,7 @@ class TransceiverCoordinator(
     }
 
     val relayRouter = PacketRelayRouter(localDeviceId)
+    val contextAwareRelayRouter = ContextAwareRelayRouter(localDeviceId)
     val manetRouter = ManetRouter(
         context          = context,
         localNodeId      = localDeviceId,
@@ -903,7 +905,12 @@ class TransceiverCoordinator(
                         Log.e(tag, "Failed to relay forwarded packet: ${e.message}", e)
                     }
                 }
-                // Proceed to local playback and transcript
+                // If this packet is unicast for another node, relay without delivering to local user
+                if (packet.destinationDeviceId != localDeviceId && packet.destinationDeviceId != Packet.BROADCAST_ID) {
+                    Log.i(tag, "Unicast packet for Node #${packet.destinationDeviceId} forwarded via relay — suppressed local delivery")
+                    return
+                }
+                // Proceed to local playback and transcript for broadcast packets
             }
             is RelayAction.DeliverLocalOnly -> {
                 if (packet.ttl <= 1) {
@@ -1038,53 +1045,31 @@ class TransceiverCoordinator(
         var rxContextConfidence: Int? = null
         var rxContextFallback = false
         var rxDeltaSummary: String? = null
+        var rxForwardingAction: String? = null
+        var rxContextReconstructionStatus: String? = null
 
         if (hasSemantic) {
             if (ContextDelta.isContextDeltaPayload(effectivePayload)) {
-                val decodedDelta = ContextDelta.deserialize(effectivePayload)
-                if (decodedDelta != null) {
-                    val delta = decodedDelta.delta
-                    val enh = decodedDelta.enhancement
+                val recon = contextAwareRelayRouter.processDestinationDelta(packet, effectivePayload)
+                if (recon != null) {
                     rxIsContextDelta = true
-                    rxContextId = delta.contextId
-                    rxContextVersion = delta.version
-                    rxEnhReceived = (enh != null)
-                    rxEnhPayloadBytes = if (enh != null) enh.serialize().size else 0
-                    rxBasePayloadBytes = effectivePayload.size - (rxEnhPayloadBytes ?: 0)
-                    rxSchemaVersion = delta.schemaVersion.toInt()
+                    rxContextId = recon.contextId
+                    rxContextVersion = recon.contextVersion
+                    rxEnhReceived = recon.enhancementReceived
+                    rxEnhPayloadBytes = recon.enhPayloadBytes
+                    rxBasePayloadBytes = recon.basePayloadBytes
+                    rxSchemaVersion = recon.schemaVersion
+                    rxDeltaSummary = recon.deltaSummary
+                    rxContextConfidence = recon.confidence
+                    rxContextFallback = recon.isFallback
+                    rxForwardingAction = recon.forwardingAction
+                    rxContextReconstructionStatus = recon.status
 
-                    val activeContext = SharedContextStore.get(delta.contextId)
-                    if (activeContext != null) {
-                        val updatedContext = delta.applyTo(activeContext)
-                        val res = SharedContextStore.put(updatedContext)
-                        rxDeltaSummary = delta.toSummaryString(activeContext)
-                        rxContextConfidence = updatedContext.confidence
-                        rxContextFallback = (res == ConflictResolutionResult.REJECTED_STALE || res == ConflictResolutionResult.REJECTED_CONFLICT)
-
-                        val baseCmd = updatedContext.toSemanticCommand()
-                        isSemantic = true
-                        val baseDisplay = baseCmd.toDisplayString()
-                        displayText = if (enh?.text != null) "$baseDisplay • \"${enh.text}\"" else baseDisplay
-                        ttsSpeechText = baseCmd.toTtsText(packet.language)
-                        semanticSummary = baseCmd.toBadgeString()
-                        repMode = if (rxContextFallback) "STANDALONE" else "CONTEXT_DELTA"
-                    } else {
-                        // Missing or expired context: safe standalone fallback without crash
-                        rxContextFallback = true
-                        isSemantic = true
-                        rxDeltaSummary = delta.toSummaryString(null)
-                        val fallbackText = buildString {
-                            append("[DELTA v${delta.version} CTX #${delta.contextId}] ")
-                            append(delta.toSummaryString(null))
-                            if (enh?.text != null) {
-                                append(" • \"${enh.text}\"")
-                            }
-                        }
-                        displayText = fallbackText
-                        ttsSpeechText = "Update for context ${delta.contextId}: " + delta.toSummaryString(null)
-                        semanticSummary = "DELTA #${delta.contextId} v${delta.version}"
-                        repMode = "STANDALONE"
-                    }
+                    isSemantic = true
+                    displayText = recon.displayText
+                    ttsSpeechText = recon.ttsSpeechText
+                    semanticSummary = recon.semanticSummary
+                    repMode = if (recon.isFallback) "STANDALONE" else "CONTEXT_DELTA"
                 } else {
                     val decompressedBytes = AdaptiveCompressor.decompress(effectivePayload, isCompressed)
                     displayText = String(decompressedBytes, Charsets.UTF_8)
@@ -1235,7 +1220,10 @@ class TransceiverCoordinator(
                 isContextDelta = rxIsContextDelta,
                 contextConfidence = rxContextConfidence,
                 contextFallback = rxContextFallback,
-                deltaSummary = rxDeltaSummary
+                deltaSummary = rxDeltaSummary,
+                forwardingAction = rxForwardingAction ?: (if (packet.isForwarded || hopCount > 0) "FORWARDED UNCHANGED" else "DIRECT"),
+                contextReconstructionStatus = rxContextReconstructionStatus,
+                relayNodeId = if (packet.isForwarded && hopCount > 0) packet.sourceDeviceId else null
             )
         )
 

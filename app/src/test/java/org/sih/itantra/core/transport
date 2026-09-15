@@ -1,0 +1,359 @@
+package org.sih.itantra.core.transport
+
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertTrue
+import org.junit.Before
+import org.junit.Test
+import org.sih.itantra.core.common.IndicLanguage
+import org.sih.itantra.core.common.MessagePriority
+import org.sih.itantra.core.crypto.NetworkKeyManager
+import org.sih.itantra.core.crypto.PacketAuthenticator
+import org.sih.itantra.core.protocol.CorruptPacketException
+import org.sih.itantra.core.protocol.EmergencyCategory
+import org.sih.itantra.core.protocol.EmergencySeverity
+import org.sih.itantra.core.protocol.EmergencySubtype
+import org.sih.itantra.core.protocol.GeoLocation
+import org.sih.itantra.core.protocol.Packet
+import org.sih.itantra.core.protocol.PacketFragment
+import org.sih.itantra.core.protocol.PacketFragmenter
+import org.sih.itantra.core.protocol.PacketSerializer
+import org.sih.itantra.core.protocol.ReassemblyBuffer
+import org.sih.itantra.core.protocol.ReassemblyResult
+import org.sih.itantra.core.protocol.SemanticCommand
+import java.io.ByteArrayOutputStream
+import java.security.MessageDigest
+
+class BluetoothTransportValidationTest {
+
+    private val testKey = MessageDigest.getInstance("SHA-256")
+        .digest("iTantra-BT-Test-Key-2026".toByteArray(Charsets.UTF_8))
+
+    @Before
+    fun setUp() {
+        NetworkKeyManager.setTestKey(testKey)
+    }
+
+    // 1. Bluetooth state mapping
+    @Test
+    fun testBluetoothStateMapping() {
+        assertEquals("DISCONNECTED", TransportState.DISCONNECTED.name)
+        assertEquals("CONNECTING", TransportState.CONNECTING.name)
+        assertEquals("CONNECTED", TransportState.CONNECTED.name)
+        assertEquals("LISTENING", TransportState.LISTENING.name)
+        assertEquals("ERROR", TransportState.ERROR.name)
+        assertEquals("Bluetooth RFCOMM SPP", TransportType.BLUETOOTH.displayName)
+    }
+
+    // 2. Stream framing with single packet
+    @Test
+    fun testStreamFramingSinglePacket() {
+        val original = Packet(
+            sequenceNumber = 42,
+            timestamp = 1772000000000L,
+            sourceDeviceId = 100001,
+            destinationDeviceId = 200002,
+            language = IndicLanguage.HINDI,
+            payload = "नमस्ते भारत - परीक्षण".toByteArray(Charsets.UTF_8)
+        )
+        val wireBytes = PacketSerializer.serialize(original)
+
+        val extracted = extractPacketsFromStream(wireBytes)
+        assertEquals(1, extracted.size)
+        assertEquals(original.sequenceNumber, extracted[0].sequenceNumber)
+        assertEquals(original.sourceDeviceId, extracted[0].sourceDeviceId)
+        assertEquals("नमस्ते भारत - परीक्षण", String(extracted[0].payload, Charsets.UTF_8))
+    }
+
+    // 3. Stream framing with fragmented chunks (chunk size = 7 bytes)
+    @Test
+    fun testStreamFramingChunkedArrival() {
+        val original = Packet(
+            sequenceNumber = 43,
+            timestamp = 1772000000000L,
+            sourceDeviceId = 100001,
+            destinationDeviceId = 200002,
+            language = IndicLanguage.TAMIL,
+            payload = "வணக்கம் iTantra RFCOMM SPP test".toByteArray(Charsets.UTF_8)
+        )
+        val wireBytes = PacketSerializer.serialize(original)
+
+        val streamBuffer = ByteArrayOutputStream()
+        val extractedPackets = mutableListOf<Packet>()
+        val chunkSize = 7
+
+        for (i in wireBytes.indices step chunkSize) {
+            val end = minOf(i + chunkSize, wireBytes.size)
+            val chunk = wireBytes.copyOfRange(i, end)
+            streamBuffer.write(chunk)
+
+            // Run extractor on current accumulated buffer
+            val packets = processAccumulatedStream(streamBuffer)
+            extractedPackets.addAll(packets)
+        }
+
+        assertEquals(1, extractedPackets.size)
+        assertEquals(43.toShort(), extractedPackets[0].sequenceNumber)
+        assertEquals("வணக்கம் iTantra RFCOMM SPP test", String(extractedPackets[0].payload, Charsets.UTF_8))
+    }
+
+    // 4. Stream framing with multiple back-to-back packets in a single read buffer
+    @Test
+    fun testStreamFramingConcatenatedPackets() {
+        val p1 = Packet(
+            sequenceNumber = 1,
+            timestamp = 1772000000000L,
+            sourceDeviceId = 1001,
+            destinationDeviceId = 1002,
+            language = IndicLanguage.ENGLISH,
+            payload = "First Packet".toByteArray(Charsets.UTF_8)
+        )
+        val p2 = Packet(
+            sequenceNumber = 2,
+            timestamp = 1772000001000L,
+            sourceDeviceId = 1001,
+            destinationDeviceId = 1002,
+            language = IndicLanguage.MALAYALAM,
+            payload = "രണ്ടാമത്തെ പാക്കറ്റ്".toByteArray(Charsets.UTF_8)
+        )
+        val p3 = Packet(
+            sequenceNumber = 3,
+            timestamp = 1772000002000L,
+            sourceDeviceId = 1001,
+            destinationDeviceId = 1002,
+            language = IndicLanguage.BENGALI,
+            payload = "তৃতীয় প্যাকেট".toByteArray(Charsets.UTF_8)
+        )
+
+        val combined = ByteArrayOutputStream()
+        combined.write(PacketSerializer.serialize(p1))
+        combined.write(PacketSerializer.serialize(p2))
+        combined.write(PacketSerializer.serialize(p3))
+
+        val extracted = extractPacketsFromStream(combined.toByteArray())
+        assertEquals(3, extracted.size)
+        assertEquals("First Packet", String(extracted[0].payload, Charsets.UTF_8))
+        assertEquals("രണ്ടാമത്തെ പാക്കറ്റ്", String(extracted[1].payload, Charsets.UTF_8))
+        assertEquals("তৃতীয় প্যাকেট", String(extracted[2].payload, Charsets.UTF_8))
+    }
+
+    // 5. Stream framing with noise/corrupt preamble recovery
+    @Test
+    fun testStreamFramingNoiseRecovery() {
+        val validPacket = Packet(
+            sequenceNumber = 99,
+            timestamp = 1772000000000L,
+            sourceDeviceId = 5001,
+            destinationDeviceId = 5002,
+            language = IndicLanguage.ENGLISH,
+            payload = "Valid After Noise".toByteArray(Charsets.UTF_8)
+        )
+        val validBytes = PacketSerializer.serialize(validPacket)
+
+        // Prepend 15 bytes of random garbage / noise
+        val garbage = byteArrayOf(0x00, 0x12, 0x55, 0x7F, 0x33, 0x11, 0x48, 0x00, 0x49, 0x00, 0x22, 0x33, 0x44, 0x55, 0x66)
+        val noisyStream = ByteArray(garbage.size + validBytes.size)
+        System.arraycopy(garbage, 0, noisyStream, 0, garbage.size)
+        System.arraycopy(validBytes, 0, noisyStream, garbage.size, validBytes.size)
+
+        val extracted = extractPacketsFromStream(noisyStream)
+        assertEquals(1, extracted.size)
+        assertEquals(99.toShort(), extracted[0].sequenceNumber)
+        assertEquals("Valid After Noise", String(extracted[0].payload, Charsets.UTF_8))
+    }
+
+    // 6. HMAC authentication preservation over wire
+    @Test
+    fun testHmacPreservationOverWire() {
+        val unsigned = Packet(
+            sequenceNumber = 10,
+            timestamp = 1772000000000L,
+            sourceDeviceId = 777,
+            destinationDeviceId = 888,
+            language = IndicLanguage.ENGLISH,
+            payload = "Authenticated tactical payload".toByteArray(Charsets.UTF_8)
+        )
+        val signed = PacketAuthenticator.sign(unsigned, testKey)
+        assertTrue(signed.isAuthenticated)
+        assertNotNull(signed.authTag)
+
+        val wire = PacketSerializer.serialize(signed)
+        val deserialized = PacketSerializer.deserialize(wire)
+
+        assertTrue(deserialized.isAuthenticated)
+        val authResult = PacketAuthenticator.verify(deserialized, testKey)
+        assertTrue(authResult.isValid)
+    }
+
+    // 7. CRC32 corruption detection over Bluetooth wire
+    @Test(expected = CorruptPacketException::class)
+    fun testCrcCorruptionDetection() {
+        val packet = Packet(
+            sequenceNumber = 20,
+            timestamp = 1772000000000L,
+            sourceDeviceId = 123,
+            destinationDeviceId = 456,
+            language = IndicLanguage.HINDI,
+            payload = "CRC Test".toByteArray(Charsets.UTF_8)
+        )
+        val wire = PacketSerializer.serialize(packet)
+        // Corrupt a byte in the payload
+        wire[30] = (wire[30] + 1).toByte()
+        PacketSerializer.deserialize(wire)
+    }
+
+    // 8. Emergency DISTRESS message over wire
+    @Test
+    fun testEmergencyDistressSerialization() {
+        val distressCmd = SemanticCommand(
+            category = EmergencyCategory.EVACUATION,
+            subtype = EmergencySubtype.COLLAPSE,
+            count = 1,
+            severity = EmergencySeverity.CRITICAL,
+            parameter = 4
+        )
+        val loc = GeoLocation(12.9716, 77.5946, 5.0f, 1772000000000L, 920.0)
+        val packet = Packet(
+            msgType = Packet.TYPE_DISTRESS,
+            priority = MessagePriority.DISTRESS,
+            sequenceNumber = 911,
+            timestamp = 1772000000000L,
+            sourceDeviceId = 9999,
+            destinationDeviceId = Packet.BROADCAST_ID,
+            language = IndicLanguage.ENGLISH,
+            flags = (Packet.FLAG_HAS_LOCATION or Packet.FLAG_SEMANTIC).toByte(),
+            location = loc,
+            semanticCommand = distressCmd,
+            payload = distressCmd.serialize()
+        )
+        val wire = PacketSerializer.serialize(packet)
+        val deserialized = PacketSerializer.deserialize(wire)
+
+        assertEquals(Packet.TYPE_DISTRESS, deserialized.msgType)
+        assertEquals(MessagePriority.DISTRESS, deserialized.priority)
+        assertTrue(deserialized.hasLocation)
+        assertEquals(12.9716, deserialized.location!!.latitude, 0.0001)
+        assertTrue(deserialized.isSemantic)
+        assertEquals(EmergencyCategory.EVACUATION, deserialized.semanticCommand!!.category)
+    }
+
+    // 9. Fragmentation and Reassembly over stream
+    @Test
+    fun testFragmentationAndReassemblyOverStream() {
+        val largePayload = ByteArray(350) { (it % 256).toByte() }
+        val largePacket = Packet(
+            sequenceNumber = 50,
+            timestamp = 1772000000000L,
+            sourceDeviceId = 100,
+            destinationDeviceId = 200,
+            language = IndicLanguage.ENGLISH,
+            payload = largePayload
+        )
+
+        val fragmenter = PacketFragmenter(maxPayloadBytes = 128)
+        val fragments = fragmenter.fragment(payload = largePacket.payload, transferId = 7)
+        assertEquals(3, fragments.size)
+
+        val reassemblyBuffer = ReassemblyBuffer()
+        var finalResult: ReassemblyResult? = null
+
+        for (frag in fragments) {
+            val fragPkt = Packet(
+                sequenceNumber = (100 + frag.metadata.fragmentIndex).toShort(),
+                timestamp = 1772000000000L,
+                sourceDeviceId = 100,
+                destinationDeviceId = 200,
+                language = IndicLanguage.ENGLISH,
+                flags = Packet.FLAG_FRAGMENTED.toByte(),
+                payload = frag.toPayload()
+            )
+            val wire = PacketSerializer.serialize(fragPkt)
+            val rxPkt = PacketSerializer.deserialize(wire)
+
+            val parsedFrag = PacketFragment.fromPayload(rxPkt.payload)
+            assertNotNull(parsedFrag)
+            val res = reassemblyBuffer.addFragment(rxPkt.sourceDeviceId, parsedFrag!!)
+            if (res != null) {
+                finalResult = res
+            }
+        }
+
+        assertNotNull(finalResult)
+        assertEquals(350, finalResult!!.payload.size)
+        assertTrue(largePayload.contentEquals(finalResult!!.payload))
+    }
+
+    // 10. Benchmark metrics calculation verification (Mean, Median, P95, Min, Max)
+    @Test
+    fun testBenchmarkMetricsCalculation() {
+        val latencies = listOf(25L, 30L, 28L, 35L, 22L, 40L, 29L, 31L, 27L, 55L)
+        val sorted = latencies.sorted()
+
+        val mean = latencies.average()
+        val median = sorted[sorted.size / 2]
+        val p95Index = Math.ceil(0.95 * sorted.size).toInt() - 1
+        val p95 = sorted[p95Index]
+        val min = sorted.first()
+        val max = sorted.last()
+
+        assertEquals(32.2, mean, 0.01)
+        assertEquals(30L, median)
+        assertEquals(55L, p95)
+        assertEquals(22L, min)
+        assertEquals(55L, max)
+    }
+
+    // Helper functions implementing the stream framing logic from BluetoothTransport
+    private fun extractPacketsFromStream(data: ByteArray): List<Packet> {
+        val stream = ByteArrayOutputStream()
+        stream.write(data)
+        return processAccumulatedStream(stream)
+    }
+
+    private fun processAccumulatedStream(streamBuffer: ByteArrayOutputStream): List<Packet> {
+        val packets = mutableListOf<Packet>()
+        var buf = streamBuffer.toByteArray()
+        var offset = 0
+
+        while (buf.size - offset >= Packet.MIN_PACKET_SIZE) {
+            val magic = ((buf[offset].toInt() and 0xFF) shl 8) or (buf[offset + 1].toInt() and 0xFF)
+            if (magic != (Packet.MAGIC.toInt() and 0xFFFF)) {
+                offset++
+                continue
+            }
+
+            if (buf.size - offset < Packet.HEADER_SIZE_BYTES) {
+                break
+            }
+
+            val flags = buf[offset + 6].toInt()
+            val hasLocation = (flags and Packet.FLAG_HAS_LOCATION) != 0
+            val locBytes = if (hasLocation) Packet.LOCATION_SIZE_BYTES else 0
+            val hasAuth = (flags and Packet.FLAG_AUTHENTICATED) != 0
+            val authBytes = if (hasAuth) Packet.AUTH_TAG_SIZE_BYTES else 0
+            val payloadLen = ((buf[offset + 26].toInt() and 0xFF) shl 8) or (buf[offset + 27].toInt() and 0xFF)
+            val totalExpected = Packet.HEADER_SIZE_BYTES + locBytes + payloadLen + authBytes + Packet.CRC_SIZE_BYTES
+
+            if (buf.size - offset < totalExpected) {
+                break
+            }
+
+            val packetBytes = buf.copyOfRange(offset, offset + totalExpected)
+            offset += totalExpected
+
+            try {
+                val packet = PacketSerializer.deserialize(packetBytes)
+                packets.add(packet)
+            } catch (_: Exception) {
+            }
+        }
+
+        val remaining = buf.size - offset
+        streamBuffer.reset()
+        if (remaining > 0) {
+            streamBuffer.write(buf, offset, remaining)
+        }
+        return packets
+    }
+}

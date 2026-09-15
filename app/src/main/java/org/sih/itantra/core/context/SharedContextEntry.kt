@@ -36,9 +36,9 @@ data class SharedContextEntry(
     val sector: Short,
     val confidence: Int,
     val sourceDeviceId: Int,
-    val createdAt: Long,
-    val lastUpdatedAt: Long,
-    val expiresAt: Long,
+    val createdAt: Long = System.currentTimeMillis(),
+    val lastUpdatedAt: Long = createdAt,
+    val expiresAt: Long = createdAt + DEFAULT_TTL_MS,
     val schemaVersion: Byte = SCHEMA_VERSION
 ) {
     val isExpired: Boolean get() = System.currentTimeMillis() >= expiresAt

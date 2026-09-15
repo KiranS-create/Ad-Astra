@@ -147,15 +147,32 @@ object MessageTechnicalInspectorMapper {
             record.deltaSummary?.let { summary ->
                 fields.add(TechnicalInspectorField("DELTA FIELDS", summary, style = TechnicalFieldStyle.NORMAL))
             }
-            val reconText = if (record.contextFallback) {
-                "STANDALONE FALLBACK"
-            } else {
-                "VALID (Reconstructed from Context #$cid v${record.contextVersion ?: 1})"
+            val reconText = when {
+                record.contextReconstructionStatus == "RECONSTRUCTED" ->
+                    "VALID (Reconstructed from Context #$cid v${record.contextVersion ?: 1})"
+                record.contextReconstructionStatus == "DUPLICATE SUPPRESSED" ->
+                    "DUPLICATE SUPPRESSED (Idempotent)"
+                record.contextReconstructionStatus == "REJECTED STALE" ->
+                    "REJECTED STALE (Older than Active Context)"
+                record.contextReconstructionStatus == "REJECTED CONFLICT" ->
+                    "REJECTED CONFLICT (Version Collision)"
+                record.contextFallback ->
+                    "STANDALONE FALLBACK"
+                else ->
+                    "VALID (Reconstructed from Context #$cid v${record.contextVersion ?: 1})"
+            }
+            val reconStyle = when {
+                record.contextReconstructionStatus == "RECONSTRUCTED" || (!record.contextFallback && record.contextReconstructionStatus == null) ->
+                    TechnicalFieldStyle.SUCCESS
+                record.contextReconstructionStatus == "DUPLICATE SUPPRESSED" ->
+                    TechnicalFieldStyle.NORMAL
+                else ->
+                    TechnicalFieldStyle.WARNING
             }
             fields.add(TechnicalInspectorField(
                 "RECONSTRUCTED STATUS",
                 reconText,
-                style = if (record.contextFallback) TechnicalFieldStyle.WARNING else TechnicalFieldStyle.SUCCESS
+                style = reconStyle
             ))
         }
 
@@ -274,6 +291,23 @@ object MessageTechnicalInspectorMapper {
             telemetry.transport ?: "UNKNOWN",
             style = if (telemetry.transport != null) TechnicalFieldStyle.NORMAL else TechnicalFieldStyle.MUTED
         ))
+
+        record.forwardingAction?.let { action ->
+            fields.add(TechnicalInspectorField(
+                "FORWARDING ACTION",
+                action,
+                style = when (action) {
+                    "FORWARDED UNCHANGED", "RECONSTRUCTED" -> TechnicalFieldStyle.SUCCESS
+                    "DUPLICATE SUPPRESSED" -> TechnicalFieldStyle.NORMAL
+                    "FALLBACK", "REJECTED STALE", "REJECTED CONFLICT" -> TechnicalFieldStyle.WARNING
+                    else -> TechnicalFieldStyle.NORMAL
+                }
+            ))
+        }
+
+        if (record.relayNodeId != null) {
+            fields.add(TechnicalInspectorField("RELAY NODE", "Node #${record.relayNodeId}", style = TechnicalFieldStyle.HIGHLIGHT))
+        }
 
         return TechnicalInspectorSection("ROUTE", fields)
     }

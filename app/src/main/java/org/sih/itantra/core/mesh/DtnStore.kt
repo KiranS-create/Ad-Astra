@@ -228,6 +228,7 @@ class DtnStore(
     }
 
     fun size(): Int = synchronized(lock) { entries.size }
+    fun count(): Int = size()
 
     fun totalByteCount(): Int = synchronized(lock) { entries.sumOf { it.packetBytes.size } }
 
