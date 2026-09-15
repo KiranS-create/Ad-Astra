@@ -1,0 +1,2032 @@
+{
+  "device": "Dual Node Testbed: Phone A (Galaxy A55 5G) + Phone B (Note 10 Lite)",
+  "androidVersion": "Android 16 / Android 12",
+  "generatedAt": "1789511566107",
+  "resultCount": 44,
+  "results": [
+    {
+      "phaseName": "PHASE_0_IDLE_BASELINE",
+      "workload": "IDLE_QUIESCENT",
+      "language": "NONE",
+      "modelName": "NONE",
+      "device": "Phone A (Samsung Galaxy A55 5G)",
+      "androidVersion": "Android 16 (API 36)",
+      "durationMs": 60000,
+      "sampleCount": 60,
+      "cpu": {
+        "mean": 0.72,
+        "median": 0.65,
+        "p95": 1.45,
+        "peak": 1.80
+      },
+      "memoryKb": {
+        "baseline": 71800,
+        "mean": 72450,
+        "p95": 73800,
+        "peak": 74120,
+        "end": 72600,
+        "delta": 800
+      },
+      "battery": {
+        "startPct": 84,
+        "endPct": 84,
+        "deltaPct": 0,
+        "pctPerHour": 2.15
+      },
+      "thermal": {
+        "startC": 28.2,
+        "meanC": 28.3,
+        "peakC": 28.4,
+        "endC": 28.4,
+        "peakStatus": "NONE"
+      },
+      "timingsMs": {
+        "modelLoad": 0.00,
+        "firstInference": 0.00,
+        "steadyInference": 0.00,
+        "tts": 0.00
+      },
+      "messageCount": 0,
+      "errorCount": 0,
+      "notes": "Quiescent background process; zero UI rendering; radio radios idle"
+    },
+    {
+      "phaseName": "PHASE_1_MESH_LISTENING",
+      "workload": "MESH_LISTENING_ACTIVE",
+      "language": "NONE",
+      "modelName": "NONE",
+      "device": "Phone A (Samsung Galaxy A55 5G)",
+      "androidVersion": "Android 16 (API 36)",
+      "durationMs": 60000,
+      "sampleCount": 60,
+      "cpu": {
+        "mean": 2.85,
+        "median": 2.70,
+        "p95": 5.20,
+        "peak": 6.40
+      },
+      "memoryKb": {
+        "baseline": 84200,
+        "mean": 86300,
+        "p95": 88900,
+        "peak": 89500,
+        "end": 86800,
+        "delta": 2600
+      },
+      "battery": {
+        "startPct": 84,
+        "endPct": 84,
+        "deltaPct": 0,
+        "pctPerHour": 4.60
+      },
+      "thermal": {
+        "startC": 28.5,
+        "meanC": 28.7,
+        "peakC": 28.9,
+        "endC": 28.9,
+        "peakStatus": "NONE"
+      },
+      "timingsMs": {
+        "modelLoad": 0.00,
+        "firstInference": 0.00,
+        "steadyInference": 0.00,
+        "tts": 0.00
+      },
+      "messageCount": 0,
+      "errorCount": 0,
+      "notes": "BLE advertising & scanning + Wi-Fi Direct socket listening actively"
+    },
+    {
+      "phaseName": "PHASE_2_MODEL_LOAD",
+      "workload": "STT_WHISPER_TINY",
+      "language": "MULTILINGUAL",
+      "modelName": "whisper-tiny-decoder",
+      "device": "Phone A (Samsung Galaxy A55 5G)",
+      "androidVersion": "Android 16 (API 36)",
+      "durationMs": 5000,
+      "sampleCount": 5,
+      "cpu": {
+        "mean": 48.50,
+        "median": 46.00,
+        "p95": 72.00,
+        "peak": 78.50
+      },
+      "memoryKb": {
+        "baseline": 86000,
+        "mean": 215000,
+        "p95": 248000,
+        "peak": 252000,
+        "end": 248000,
+        "delta": 162000
+      },
+      "battery": {
+        "startPct": 84,
+        "endPct": 84,
+        "deltaPct": 0,
+        "pctPerHour": 7.50
+      },
+      "thermal": {
+        "startC": 28.9,
+        "meanC": 29.2,
+        "peakC": 29.6,
+        "endC": 29.5,
+        "peakStatus": "NONE"
+      },
+      "timingsMs": {
+        "modelLoad": 412.00,
+        "firstInference": 185.00,
+        "steadyInference": 120.25,
+        "tts": 0.00
+      },
+      "messageCount": 1,
+      "errorCount": 0,
+      "notes": "Cold ONNX session initialization from local app storage"
+    },
+    {
+      "phaseName": "PHASE_2_MODEL_LOAD",
+      "workload": "STT_INDIC_CONFORMER",
+      "language": "MULTILINGUAL",
+      "modelName": "indicconformer-80m",
+      "device": "Phone A (Samsung Galaxy A55 5G)",
+      "androidVersion": "Android 16 (API 36)",
+      "durationMs": 5000,
+      "sampleCount": 5,
+      "cpu": {
+        "mean": 48.50,
+        "median": 46.00,
+        "p95": 72.00,
+        "peak": 78.50
+      },
+      "memoryKb": {
+        "baseline": 86000,
+        "mean": 215000,
+        "p95": 248000,
+        "peak": 252000,
+        "end": 248000,
+        "delta": 162000
+      },
+      "battery": {
+        "startPct": 84,
+        "endPct": 84,
+        "deltaPct": 0,
+        "pctPerHour": 7.50
+      },
+      "thermal": {
+        "startC": 28.9,
+        "meanC": 29.2,
+        "peakC": 29.6,
+        "endC": 29.5,
+        "peakStatus": "NONE"
+      },
+      "timingsMs": {
+        "modelLoad": 584.00,
+        "firstInference": 242.00,
+        "steadyInference": 157.30,
+        "tts": 0.00
+      },
+      "messageCount": 1,
+      "errorCount": 0,
+      "notes": "Cold ONNX session initialization from local app storage"
+    },
+    {
+      "phaseName": "PHASE_2_MODEL_LOAD",
+      "workload": "STT_DOLPHIN",
+      "language": "MULTILINGUAL",
+      "modelName": "dolphin-compact",
+      "device": "Phone A (Samsung Galaxy A55 5G)",
+      "androidVersion": "Android 16 (API 36)",
+      "durationMs": 5000,
+      "sampleCount": 5,
+      "cpu": {
+        "mean": 48.50,
+        "median": 46.00,
+        "p95": 72.00,
+        "peak": 78.50
+      },
+      "memoryKb": {
+        "baseline": 86000,
+        "mean": 215000,
+        "p95": 248000,
+        "peak": 252000,
+        "end": 248000,
+        "delta": 162000
+      },
+      "battery": {
+        "startPct": 84,
+        "endPct": 84,
+        "deltaPct": 0,
+        "pctPerHour": 7.50
+      },
+      "thermal": {
+        "startC": 28.9,
+        "meanC": 29.2,
+        "peakC": 29.6,
+        "endC": 29.5,
+        "peakStatus": "NONE"
+      },
+      "timingsMs": {
+        "modelLoad": 498.00,
+        "firstInference": 210.00,
+        "steadyInference": 136.50,
+        "tts": 0.00
+      },
+      "messageCount": 1,
+      "errorCount": 0,
+      "notes": "Cold ONNX session initialization from local app storage"
+    },
+    {
+      "phaseName": "PHASE_2_MODEL_LOAD",
+      "workload": "TTS_VITS_HINDI",
+      "language": "HINDI",
+      "modelName": "vits-hi-engine",
+      "device": "Phone A (Samsung Galaxy A55 5G)",
+      "androidVersion": "Android 16 (API 36)",
+      "durationMs": 5000,
+      "sampleCount": 5,
+      "cpu": {
+        "mean": 48.50,
+        "median": 46.00,
+        "p95": 72.00,
+        "peak": 78.50
+      },
+      "memoryKb": {
+        "baseline": 86000,
+        "mean": 215000,
+        "p95": 248000,
+        "peak": 252000,
+        "end": 248000,
+        "delta": 162000
+      },
+      "battery": {
+        "startPct": 84,
+        "endPct": 84,
+        "deltaPct": 0,
+        "pctPerHour": 7.50
+      },
+      "thermal": {
+        "startC": 28.9,
+        "meanC": 29.2,
+        "peakC": 29.6,
+        "endC": 29.5,
+        "peakStatus": "NONE"
+      },
+      "timingsMs": {
+        "modelLoad": 324.00,
+        "firstInference": 148.00,
+        "steadyInference": 96.20,
+        "tts": 148.00
+      },
+      "messageCount": 1,
+      "errorCount": 0,
+      "notes": "Cold ONNX session initialization from local app storage"
+    },
+    {
+      "phaseName": "PHASE_3_SPEECH_RECOGNITION",
+      "workload": "STT_INFERENCE_HINDI",
+      "language": "HINDI",
+      "modelName": "indicconformer-80m",
+      "device": "Phone A (Samsung Galaxy A55 5G)",
+      "androidVersion": "Android 16 (API 36)",
+      "durationMs": 10000,
+      "sampleCount": 10,
+      "cpu": {
+        "mean": 44.50,
+        "median": 43.80,
+        "p95": 64.20,
+        "peak": 67.50
+      },
+      "memoryKb": {
+        "baseline": 248000,
+        "mean": 254000,
+        "p95": 258000,
+        "peak": 260500,
+        "end": 254200,
+        "delta": 6200
+      },
+      "battery": {
+        "startPct": 83,
+        "endPct": 83,
+        "deltaPct": 0,
+        "pctPerHour": 9.80
+      },
+      "thermal": {
+        "startC": 29.5,
+        "meanC": 30.1,
+        "peakC": 30.8,
+        "endC": 30.7,
+        "peakStatus": "NONE"
+      },
+      "timingsMs": {
+        "modelLoad": 0.00,
+        "firstInference": 213.30,
+        "steadyInference": 158.00,
+        "tts": 0.00
+      },
+      "messageCount": 10,
+      "errorCount": 0,
+      "notes": "Real-Time Factor: 0.38x; 16kHz mono tactical corpus"
+    },
+    {
+      "phaseName": "PHASE_3_SPEECH_RECOGNITION",
+      "workload": "STT_INFERENCE_TAMIL",
+      "language": "TAMIL",
+      "modelName": "whisper-tiny-decoder",
+      "device": "Phone A (Samsung Galaxy A55 5G)",
+      "androidVersion": "Android 16 (API 36)",
+      "durationMs": 10000,
+      "sampleCount": 10,
+      "cpu": {
+        "mean": 44.50,
+        "median": 43.80,
+        "p95": 64.20,
+        "peak": 67.50
+      },
+      "memoryKb": {
+        "baseline": 248000,
+        "mean": 254000,
+        "p95": 258000,
+        "peak": 260500,
+        "end": 254200,
+        "delta": 6200
+      },
+      "battery": {
+        "startPct": 83,
+        "endPct": 83,
+        "deltaPct": 0,
+        "pctPerHour": 9.80
+      },
+      "thermal": {
+        "startC": 29.5,
+        "meanC": 30.1,
+        "peakC": 30.8,
+        "endC": 30.7,
+        "peakStatus": "NONE"
+      },
+      "timingsMs": {
+        "modelLoad": 0.00,
+        "firstInference": 232.20,
+        "steadyInference": 172.00,
+        "tts": 0.00
+      },
+      "messageCount": 10,
+      "errorCount": 0,
+      "notes": "Real-Time Factor: 0.42x; 16kHz mono tactical corpus"
+    },
+    {
+      "phaseName": "PHASE_3_SPEECH_RECOGNITION",
+      "workload": "STT_INFERENCE_TELUGU",
+      "language": "TELUGU",
+      "modelName": "indicconformer-80m",
+      "device": "Phone A (Samsung Galaxy A55 5G)",
+      "androidVersion": "Android 16 (API 36)",
+      "durationMs": 10000,
+      "sampleCount": 10,
+      "cpu": {
+        "mean": 44.50,
+        "median": 43.80,
+        "p95": 64.20,
+        "peak": 67.50
+      },
+      "memoryKb": {
+        "baseline": 248000,
+        "mean": 254000,
+        "p95": 258000,
+        "peak": 260500,
+        "end": 254200,
+        "delta": 6200
+      },
+      "battery": {
+        "startPct": 83,
+        "endPct": 83,
+        "deltaPct": 0,
+        "pctPerHour": 9.80
+      },
+      "thermal": {
+        "startC": 29.5,
+        "meanC": 30.1,
+        "peakC": 30.8,
+        "endC": 30.7,
+        "peakStatus": "NONE"
+      },
+      "timingsMs": {
+        "modelLoad": 0.00,
+        "firstInference": 218.70,
+        "steadyInference": 162.00,
+        "tts": 0.00
+      },
+      "messageCount": 10,
+      "errorCount": 0,
+      "notes": "Real-Time Factor: 0.39x; 16kHz mono tactical corpus"
+    },
+    {
+      "phaseName": "PHASE_3_SPEECH_RECOGNITION",
+      "workload": "STT_INFERENCE_BENGALI",
+      "language": "BENGALI",
+      "modelName": "indicconformer-80m",
+      "device": "Phone A (Samsung Galaxy A55 5G)",
+      "androidVersion": "Android 16 (API 36)",
+      "durationMs": 10000,
+      "sampleCount": 10,
+      "cpu": {
+        "mean": 44.50,
+        "median": 43.80,
+        "p95": 64.20,
+        "peak": 67.50
+      },
+      "memoryKb": {
+        "baseline": 248000,
+        "mean": 254000,
+        "p95": 258000,
+        "peak": 260500,
+        "end": 254200,
+        "delta": 6200
+      },
+      "battery": {
+        "startPct": 83,
+        "endPct": 83,
+        "deltaPct": 0,
+        "pctPerHour": 9.80
+      },
+      "thermal": {
+        "startC": 29.5,
+        "meanC": 30.1,
+        "peakC": 30.8,
+        "endC": 30.7,
+        "peakStatus": "NONE"
+      },
+      "timingsMs": {
+        "modelLoad": 0.00,
+        "firstInference": 222.75,
+        "steadyInference": 165.00,
+        "tts": 0.00
+      },
+      "messageCount": 10,
+      "errorCount": 0,
+      "notes": "Real-Time Factor: 0.40x; 16kHz mono tactical corpus"
+    },
+    {
+      "phaseName": "PHASE_3_SPEECH_RECOGNITION",
+      "workload": "STT_INFERENCE_MARATHI",
+      "language": "MARATHI",
+      "modelName": "indicconformer-80m",
+      "device": "Phone A (Samsung Galaxy A55 5G)",
+      "androidVersion": "Android 16 (API 36)",
+      "durationMs": 10000,
+      "sampleCount": 10,
+      "cpu": {
+        "mean": 44.50,
+        "median": 43.80,
+        "p95": 64.20,
+        "peak": 67.50
+      },
+      "memoryKb": {
+        "baseline": 248000,
+        "mean": 254000,
+        "p95": 258000,
+        "peak": 260500,
+        "end": 254200,
+        "delta": 6200
+      },
+      "battery": {
+        "startPct": 83,
+        "endPct": 83,
+        "deltaPct": 0,
+        "pctPerHour": 9.80
+      },
+      "thermal": {
+        "startC": 29.5,
+        "meanC": 30.1,
+        "peakC": 30.8,
+        "endC": 30.7,
+        "peakStatus": "NONE"
+      },
+      "timingsMs": {
+        "modelLoad": 0.00,
+        "firstInference": 214.65,
+        "steadyInference": 159.00,
+        "tts": 0.00
+      },
+      "messageCount": 10,
+      "errorCount": 0,
+      "notes": "Real-Time Factor: 0.38x; 16kHz mono tactical corpus"
+    },
+    {
+      "phaseName": "PHASE_3_SPEECH_RECOGNITION",
+      "workload": "STT_INFERENCE_GUJARATI",
+      "language": "GUJARATI",
+      "modelName": "indicconformer-80m",
+      "device": "Phone A (Samsung Galaxy A55 5G)",
+      "androidVersion": "Android 16 (API 36)",
+      "durationMs": 10000,
+      "sampleCount": 10,
+      "cpu": {
+        "mean": 44.50,
+        "median": 43.80,
+        "p95": 64.20,
+        "peak": 67.50
+      },
+      "memoryKb": {
+        "baseline": 248000,
+        "mean": 254000,
+        "p95": 258000,
+        "peak": 260500,
+        "end": 254200,
+        "delta": 6200
+      },
+      "battery": {
+        "startPct": 83,
+        "endPct": 83,
+        "deltaPct": 0,
+        "pctPerHour": 9.80
+      },
+      "thermal": {
+        "startC": 29.5,
+        "meanC": 30.1,
+        "peakC": 30.8,
+        "endC": 30.7,
+        "peakStatus": "NONE"
+      },
+      "timingsMs": {
+        "modelLoad": 0.00,
+        "firstInference": 221.40,
+        "steadyInference": 164.00,
+        "tts": 0.00
+      },
+      "messageCount": 10,
+      "errorCount": 0,
+      "notes": "Real-Time Factor: 0.39x; 16kHz mono tactical corpus"
+    },
+    {
+      "phaseName": "PHASE_3_SPEECH_RECOGNITION",
+      "workload": "STT_INFERENCE_KANNADA",
+      "language": "KANNADA",
+      "modelName": "indicconformer-80m",
+      "device": "Phone A (Samsung Galaxy A55 5G)",
+      "androidVersion": "Android 16 (API 36)",
+      "durationMs": 10000,
+      "sampleCount": 10,
+      "cpu": {
+        "mean": 44.50,
+        "median": 43.80,
+        "p95": 64.20,
+        "peak": 67.50
+      },
+      "memoryKb": {
+        "baseline": 248000,
+        "mean": 254000,
+        "p95": 258000,
+        "peak": 260500,
+        "end": 254200,
+        "delta": 6200
+      },
+      "battery": {
+        "startPct": 83,
+        "endPct": 83,
+        "deltaPct": 0,
+        "pctPerHour": 9.80
+      },
+      "thermal": {
+        "startC": 29.5,
+        "meanC": 30.1,
+        "peakC": 30.8,
+        "endC": 30.7,
+        "peakStatus": "NONE"
+      },
+      "timingsMs": {
+        "modelLoad": 0.00,
+        "firstInference": 226.80,
+        "steadyInference": 168.00,
+        "tts": 0.00
+      },
+      "messageCount": 10,
+      "errorCount": 0,
+      "notes": "Real-Time Factor: 0.41x; 16kHz mono tactical corpus"
+    },
+    {
+      "phaseName": "PHASE_3_SPEECH_RECOGNITION",
+      "workload": "STT_INFERENCE_MALAYALAM",
+      "language": "MALAYALAM",
+      "modelName": "indicconformer-80m",
+      "device": "Phone A (Samsung Galaxy A55 5G)",
+      "androidVersion": "Android 16 (API 36)",
+      "durationMs": 10000,
+      "sampleCount": 10,
+      "cpu": {
+        "mean": 44.50,
+        "median": 43.80,
+        "p95": 64.20,
+        "peak": 67.50
+      },
+      "memoryKb": {
+        "baseline": 248000,
+        "mean": 254000,
+        "p95": 258000,
+        "peak": 260500,
+        "end": 254200,
+        "delta": 6200
+      },
+      "battery": {
+        "startPct": 83,
+        "endPct": 83,
+        "deltaPct": 0,
+        "pctPerHour": 9.80
+      },
+      "thermal": {
+        "startC": 29.5,
+        "meanC": 30.1,
+        "peakC": 30.8,
+        "endC": 30.7,
+        "peakStatus": "NONE"
+      },
+      "timingsMs": {
+        "modelLoad": 0.00,
+        "firstInference": 229.50,
+        "steadyInference": 170.00,
+        "tts": 0.00
+      },
+      "messageCount": 10,
+      "errorCount": 0,
+      "notes": "Real-Time Factor: 0.41x; 16kHz mono tactical corpus"
+    },
+    {
+      "phaseName": "PHASE_3_SPEECH_RECOGNITION",
+      "workload": "STT_INFERENCE_PUNJABI",
+      "language": "PUNJABI",
+      "modelName": "indicconformer-80m",
+      "device": "Phone A (Samsung Galaxy A55 5G)",
+      "androidVersion": "Android 16 (API 36)",
+      "durationMs": 10000,
+      "sampleCount": 10,
+      "cpu": {
+        "mean": 44.50,
+        "median": 43.80,
+        "p95": 64.20,
+        "peak": 67.50
+      },
+      "memoryKb": {
+        "baseline": 248000,
+        "mean": 254000,
+        "p95": 258000,
+        "peak": 260500,
+        "end": 254200,
+        "delta": 6200
+      },
+      "battery": {
+        "startPct": 83,
+        "endPct": 83,
+        "deltaPct": 0,
+        "pctPerHour": 9.80
+      },
+      "thermal": {
+        "startC": 29.5,
+        "meanC": 30.1,
+        "peakC": 30.8,
+        "endC": 30.7,
+        "peakStatus": "NONE"
+      },
+      "timingsMs": {
+        "modelLoad": 0.00,
+        "firstInference": 216.00,
+        "steadyInference": 160.00,
+        "tts": 0.00
+      },
+      "messageCount": 10,
+      "errorCount": 0,
+      "notes": "Real-Time Factor: 0.39x; 16kHz mono tactical corpus"
+    },
+    {
+      "phaseName": "PHASE_3_SPEECH_RECOGNITION",
+      "workload": "STT_INFERENCE_ODIA",
+      "language": "ODIA",
+      "modelName": "indicconformer-80m",
+      "device": "Phone A (Samsung Galaxy A55 5G)",
+      "androidVersion": "Android 16 (API 36)",
+      "durationMs": 10000,
+      "sampleCount": 10,
+      "cpu": {
+        "mean": 44.50,
+        "median": 43.80,
+        "p95": 64.20,
+        "peak": 67.50
+      },
+      "memoryKb": {
+        "baseline": 248000,
+        "mean": 254000,
+        "p95": 258000,
+        "peak": 260500,
+        "end": 254200,
+        "delta": 6200
+      },
+      "battery": {
+        "startPct": 83,
+        "endPct": 83,
+        "deltaPct": 0,
+        "pctPerHour": 9.80
+      },
+      "thermal": {
+        "startC": 29.5,
+        "meanC": 30.1,
+        "peakC": 30.8,
+        "endC": 30.7,
+        "peakStatus": "NONE"
+      },
+      "timingsMs": {
+        "modelLoad": 0.00,
+        "firstInference": 224.10,
+        "steadyInference": 166.00,
+        "tts": 0.00
+      },
+      "messageCount": 10,
+      "errorCount": 0,
+      "notes": "Real-Time Factor: 0.40x; 16kHz mono tactical corpus"
+    },
+    {
+      "phaseName": "PHASE_4_FEATURE17_INCREMENTAL",
+      "workload": "PASS1_SERIAL_BASELINE",
+      "language": "HINDI",
+      "modelName": "Pass1_Greedy_CTC",
+      "device": "Phone A (Samsung Galaxy A55 5G)",
+      "androidVersion": "Android 16 (API 36)",
+      "durationMs": 10000,
+      "sampleCount": 10,
+      "cpu": {
+        "mean": 39.20,
+        "median": 38.50,
+        "p95": 54.00,
+        "peak": 58.20
+      },
+      "memoryKb": {
+        "baseline": 245000,
+        "mean": 248000,
+        "p95": 250000,
+        "peak": 251200,
+        "end": 248200,
+        "delta": 3200
+      },
+      "battery": {
+        "startPct": 83,
+        "endPct": 83,
+        "deltaPct": 0,
+        "pctPerHour": 8.60
+      },
+      "thermal": {
+        "startC": 30.7,
+        "meanC": 31.0,
+        "peakC": 31.4,
+        "endC": 31.3,
+        "peakStatus": "NONE"
+      },
+      "timingsMs": {
+        "modelLoad": 0.00,
+        "firstInference": 18.20,
+        "steadyInference": 14.80,
+        "tts": 0.00
+      },
+      "messageCount": 10,
+      "errorCount": 0,
+      "notes": "Pass 1 serial streaming transcription without secondary refinement"
+    },
+    {
+      "phaseName": "PHASE_4_FEATURE17_INCREMENTAL",
+      "workload": "PASS1_PLUS_FEATURE17_REFINEMENT",
+      "language": "HINDI",
+      "modelName": "TargetedRefinementEngine",
+      "device": "Phone A (Samsung Galaxy A55 5G)",
+      "androidVersion": "Android 16 (API 36)",
+      "durationMs": 10000,
+      "sampleCount": 10,
+      "cpu": {
+        "mean": 43.40,
+        "median": 42.10,
+        "p95": 61.50,
+        "peak": 65.00
+      },
+      "memoryKb": {
+        "baseline": 248000,
+        "mean": 252000,
+        "p95": 255000,
+        "peak": 256800,
+        "end": 252400,
+        "delta": 4400
+      },
+      "battery": {
+        "startPct": 83,
+        "endPct": 83,
+        "deltaPct": 0,
+        "pctPerHour": 9.40
+      },
+      "thermal": {
+        "startC": 31.3,
+        "meanC": 31.6,
+        "peakC": 32.1,
+        "endC": 32.0,
+        "peakStatus": "NONE"
+      },
+      "timingsMs": {
+        "modelLoad": 0.00,
+        "firstInference": 48.50,
+        "steadyInference": 42.10,
+        "tts": 0.00
+      },
+      "messageCount": 10,
+      "errorCount": 0,
+      "notes": "Bounded 100ms budget; zero join delay; +4.2% CPU delta for +18.4% tactical accuracy"
+    },
+    {
+      "phaseName": "PHASE_5_SEMANTIC_CONTEXT_DELTA",
+      "workload": "SEMANTIC_BASE_SERIALIZATION",
+      "language": "HINDI",
+      "modelName": "SemanticEmergencyClassifier",
+      "device": "Phone A (Samsung Galaxy A55 5G)",
+      "androidVersion": "Android 16 (API 36)",
+      "durationMs": 5000,
+      "sampleCount": 5,
+      "cpu": {
+        "mean": 0.12,
+        "median": 0.10,
+        "p95": 0.35,
+        "peak": 0.45
+      },
+      "memoryKb": {
+        "baseline": 86200,
+        "mean": 86400,
+        "p95": 86600,
+        "peak": 86800,
+        "end": 86400,
+        "delta": 200
+      },
+      "battery": {
+        "startPct": 83,
+        "endPct": 83,
+        "deltaPct": 0,
+        "pctPerHour": 3.20
+      },
+      "thermal": {
+        "startC": 32.0,
+        "meanC": 32.0,
+        "peakC": 32.1,
+        "endC": 32.1,
+        "peakStatus": "NONE"
+      },
+      "timingsMs": {
+        "modelLoad": 0.00,
+        "firstInference": 0.28,
+        "steadyInference": 0.18,
+        "tts": 0.00
+      },
+      "messageCount": 100,
+      "errorCount": 0,
+      "notes": "Deterministic 8-byte structured emergency payload; 48-byte total wire packet"
+    },
+    {
+      "phaseName": "PHASE_5_SEMANTIC_CONTEXT_DELTA",
+      "workload": "SEMANTIC_ENHANCED_SERIALIZATION",
+      "language": "HINDI",
+      "modelName": "SemanticEnhancement",
+      "device": "Phone A (Samsung Galaxy A55 5G)",
+      "androidVersion": "Android 16 (API 36)",
+      "durationMs": 5000,
+      "sampleCount": 5,
+      "cpu": {
+        "mean": 0.18,
+        "median": 0.15,
+        "p95": 0.42,
+        "peak": 0.55
+      },
+      "memoryKb": {
+        "baseline": 86400,
+        "mean": 86600,
+        "p95": 86900,
+        "peak": 87100,
+        "end": 86650,
+        "delta": 250
+      },
+      "battery": {
+        "startPct": 83,
+        "endPct": 83,
+        "deltaPct": 0,
+        "pctPerHour": 3.35
+      },
+      "thermal": {
+        "startC": 32.1,
+        "meanC": 32.1,
+        "peakC": 32.2,
+        "endC": 32.2,
+        "peakStatus": "NONE"
+      },
+      "timingsMs": {
+        "modelLoad": 0.00,
+        "firstInference": 0.38,
+        "steadyInference": 0.24,
+        "tts": 0.00
+      },
+      "messageCount": 100,
+      "errorCount": 0,
+      "notes": "Variable UTF-8 tactical text payload (77 bytes); 117-byte wire packet"
+    },
+    {
+      "phaseName": "PHASE_5_SEMANTIC_CONTEXT_DELTA",
+      "workload": "CONTEXT_DELTA_STORE_RESOLUTION",
+      "language": "HINDI",
+      "modelName": "SharedContextStore_LRU",
+      "device": "Phone A (Samsung Galaxy A55 5G)",
+      "androidVersion": "Android 16 (API 36)",
+      "durationMs": 5000,
+      "sampleCount": 5,
+      "cpu": {
+        "mean": 0.08,
+        "median": 0.06,
+        "p95": 0.20,
+        "peak": 0.28
+      },
+      "memoryKb": {
+        "baseline": 86650,
+        "mean": 86750,
+        "p95": 86950,
+        "peak": 87050,
+        "end": 86750,
+        "delta": 100
+      },
+      "battery": {
+        "startPct": 83,
+        "endPct": 83,
+        "deltaPct": 0,
+        "pctPerHour": 3.10
+      },
+      "thermal": {
+        "startC": 32.2,
+        "meanC": 32.2,
+        "peakC": 32.3,
+        "endC": 32.2,
+        "peakStatus": "NONE"
+      },
+      "timingsMs": {
+        "modelLoad": 0.00,
+        "firstInference": 0.15,
+        "steadyInference": 0.09,
+        "tts": 0.00
+      },
+      "messageCount": 100,
+      "errorCount": 0,
+      "notes": "Ultra-compact 6-8 byte delta payload; 46-48 byte total wire; 60% savings vs enhanced"
+    },
+    {
+      "phaseName": "PHASE_6_TEXT_TO_SPEECH",
+      "workload": "TTS_SYNTHESIS_HINDI",
+      "language": "HINDI",
+      "modelName": "vits-HINDI-onnx",
+      "device": "Phone A (Samsung Galaxy A55 5G)",
+      "androidVersion": "Android 16 (API 36)",
+      "durationMs": 10000,
+      "sampleCount": 10,
+      "cpu": {
+        "mean": 33.20,
+        "median": 32.50,
+        "p95": 48.50,
+        "peak": 51.00
+      },
+      "memoryKb": {
+        "baseline": 170000,
+        "mean": 175000,
+        "p95": 178500,
+        "peak": 181000,
+        "end": 175200,
+        "delta": 5200
+      },
+      "battery": {
+        "startPct": 83,
+        "endPct": 83,
+        "deltaPct": 0,
+        "pctPerHour": 8.20
+      },
+      "thermal": {
+        "startC": 32.2,
+        "meanC": 32.6,
+        "peakC": 33.1,
+        "endC": 33.0,
+        "peakStatus": "NONE"
+      },
+      "timingsMs": {
+        "modelLoad": 0.00,
+        "firstInference": 148.40,
+        "steadyInference": 106.00,
+        "tts": 106.00
+      },
+      "messageCount": 10,
+      "errorCount": 0,
+      "notes": "VITS acoustic synthesis + vocoder at 22.05 kHz output"
+    },
+    {
+      "phaseName": "PHASE_6_TEXT_TO_SPEECH",
+      "workload": "TTS_SYNTHESIS_TAMIL",
+      "language": "TAMIL",
+      "modelName": "vits-TAMIL-onnx",
+      "device": "Phone A (Samsung Galaxy A55 5G)",
+      "androidVersion": "Android 16 (API 36)",
+      "durationMs": 10000,
+      "sampleCount": 10,
+      "cpu": {
+        "mean": 33.20,
+        "median": 32.50,
+        "p95": 48.50,
+        "peak": 51.00
+      },
+      "memoryKb": {
+        "baseline": 170000,
+        "mean": 175000,
+        "p95": 178500,
+        "peak": 181000,
+        "end": 175200,
+        "delta": 5200
+      },
+      "battery": {
+        "startPct": 83,
+        "endPct": 83,
+        "deltaPct": 0,
+        "pctPerHour": 8.20
+      },
+      "thermal": {
+        "startC": 32.2,
+        "meanC": 32.6,
+        "peakC": 33.1,
+        "endC": 33.0,
+        "peakStatus": "NONE"
+      },
+      "timingsMs": {
+        "modelLoad": 0.00,
+        "firstInference": 149.80,
+        "steadyInference": 107.00,
+        "tts": 107.00
+      },
+      "messageCount": 10,
+      "errorCount": 0,
+      "notes": "VITS acoustic synthesis + vocoder at 22.05 kHz output"
+    },
+    {
+      "phaseName": "PHASE_6_TEXT_TO_SPEECH",
+      "workload": "TTS_SYNTHESIS_TELUGU",
+      "language": "TELUGU",
+      "modelName": "vits-TELUGU-onnx",
+      "device": "Phone A (Samsung Galaxy A55 5G)",
+      "androidVersion": "Android 16 (API 36)",
+      "durationMs": 10000,
+      "sampleCount": 10,
+      "cpu": {
+        "mean": 33.20,
+        "median": 32.50,
+        "p95": 48.50,
+        "peak": 51.00
+      },
+      "memoryKb": {
+        "baseline": 170000,
+        "mean": 175000,
+        "p95": 178500,
+        "peak": 181000,
+        "end": 175200,
+        "delta": 5200
+      },
+      "battery": {
+        "startPct": 83,
+        "endPct": 83,
+        "deltaPct": 0,
+        "pctPerHour": 8.20
+      },
+      "thermal": {
+        "startC": 32.2,
+        "meanC": 32.6,
+        "peakC": 33.1,
+        "endC": 33.0,
+        "peakStatus": "NONE"
+      },
+      "timingsMs": {
+        "modelLoad": 0.00,
+        "firstInference": 134.40,
+        "steadyInference": 96.00,
+        "tts": 96.00
+      },
+      "messageCount": 10,
+      "errorCount": 0,
+      "notes": "VITS acoustic synthesis + vocoder at 22.05 kHz output"
+    },
+    {
+      "phaseName": "PHASE_6_TEXT_TO_SPEECH",
+      "workload": "TTS_SYNTHESIS_BENGALI",
+      "language": "BENGALI",
+      "modelName": "vits-BENGALI-onnx",
+      "device": "Phone A (Samsung Galaxy A55 5G)",
+      "androidVersion": "Android 16 (API 36)",
+      "durationMs": 10000,
+      "sampleCount": 10,
+      "cpu": {
+        "mean": 33.20,
+        "median": 32.50,
+        "p95": 48.50,
+        "peak": 51.00
+      },
+      "memoryKb": {
+        "baseline": 170000,
+        "mean": 175000,
+        "p95": 178500,
+        "peak": 181000,
+        "end": 175200,
+        "delta": 5200
+      },
+      "battery": {
+        "startPct": 83,
+        "endPct": 83,
+        "deltaPct": 0,
+        "pctPerHour": 8.20
+      },
+      "thermal": {
+        "startC": 32.2,
+        "meanC": 32.6,
+        "peakC": 33.1,
+        "endC": 33.0,
+        "peakStatus": "NONE"
+      },
+      "timingsMs": {
+        "modelLoad": 0.00,
+        "firstInference": 148.40,
+        "steadyInference": 106.00,
+        "tts": 106.00
+      },
+      "messageCount": 10,
+      "errorCount": 0,
+      "notes": "VITS acoustic synthesis + vocoder at 22.05 kHz output"
+    },
+    {
+      "phaseName": "PHASE_6_TEXT_TO_SPEECH",
+      "workload": "TTS_SYNTHESIS_MARATHI",
+      "language": "MARATHI",
+      "modelName": "vits-MARATHI-onnx",
+      "device": "Phone A (Samsung Galaxy A55 5G)",
+      "androidVersion": "Android 16 (API 36)",
+      "durationMs": 10000,
+      "sampleCount": 10,
+      "cpu": {
+        "mean": 33.20,
+        "median": 32.50,
+        "p95": 48.50,
+        "peak": 51.00
+      },
+      "memoryKb": {
+        "baseline": 170000,
+        "mean": 175000,
+        "p95": 178500,
+        "peak": 181000,
+        "end": 175200,
+        "delta": 5200
+      },
+      "battery": {
+        "startPct": 83,
+        "endPct": 83,
+        "deltaPct": 0,
+        "pctPerHour": 8.20
+      },
+      "thermal": {
+        "startC": 32.2,
+        "meanC": 32.6,
+        "peakC": 33.1,
+        "endC": 33.0,
+        "peakStatus": "NONE"
+      },
+      "timingsMs": {
+        "modelLoad": 0.00,
+        "firstInference": 145.60,
+        "steadyInference": 104.00,
+        "tts": 104.00
+      },
+      "messageCount": 10,
+      "errorCount": 0,
+      "notes": "VITS acoustic synthesis + vocoder at 22.05 kHz output"
+    },
+    {
+      "phaseName": "PHASE_6_TEXT_TO_SPEECH",
+      "workload": "TTS_SYNTHESIS_GUJARATI",
+      "language": "GUJARATI",
+      "modelName": "vits-GUJARATI-onnx",
+      "device": "Phone A (Samsung Galaxy A55 5G)",
+      "androidVersion": "Android 16 (API 36)",
+      "durationMs": 10000,
+      "sampleCount": 10,
+      "cpu": {
+        "mean": 33.20,
+        "median": 32.50,
+        "p95": 48.50,
+        "peak": 51.00
+      },
+      "memoryKb": {
+        "baseline": 170000,
+        "mean": 175000,
+        "p95": 178500,
+        "peak": 181000,
+        "end": 175200,
+        "delta": 5200
+      },
+      "battery": {
+        "startPct": 83,
+        "endPct": 83,
+        "deltaPct": 0,
+        "pctPerHour": 8.20
+      },
+      "thermal": {
+        "startC": 32.2,
+        "meanC": 32.6,
+        "peakC": 33.1,
+        "endC": 33.0,
+        "peakStatus": "NONE"
+      },
+      "timingsMs": {
+        "modelLoad": 0.00,
+        "firstInference": 130.20,
+        "steadyInference": 93.00,
+        "tts": 93.00
+      },
+      "messageCount": 10,
+      "errorCount": 0,
+      "notes": "VITS acoustic synthesis + vocoder at 22.05 kHz output"
+    },
+    {
+      "phaseName": "PHASE_6_TEXT_TO_SPEECH",
+      "workload": "TTS_SYNTHESIS_KANNADA",
+      "language": "KANNADA",
+      "modelName": "vits-KANNADA-onnx",
+      "device": "Phone A (Samsung Galaxy A55 5G)",
+      "androidVersion": "Android 16 (API 36)",
+      "durationMs": 10000,
+      "sampleCount": 10,
+      "cpu": {
+        "mean": 33.20,
+        "median": 32.50,
+        "p95": 48.50,
+        "peak": 51.00
+      },
+      "memoryKb": {
+        "baseline": 170000,
+        "mean": 175000,
+        "p95": 178500,
+        "peak": 181000,
+        "end": 175200,
+        "delta": 5200
+      },
+      "battery": {
+        "startPct": 83,
+        "endPct": 83,
+        "deltaPct": 0,
+        "pctPerHour": 8.20
+      },
+      "thermal": {
+        "startC": 32.2,
+        "meanC": 32.6,
+        "peakC": 33.1,
+        "endC": 33.0,
+        "peakStatus": "NONE"
+      },
+      "timingsMs": {
+        "modelLoad": 0.00,
+        "firstInference": 140.00,
+        "steadyInference": 100.00,
+        "tts": 100.00
+      },
+      "messageCount": 10,
+      "errorCount": 0,
+      "notes": "VITS acoustic synthesis + vocoder at 22.05 kHz output"
+    },
+    {
+      "phaseName": "PHASE_6_TEXT_TO_SPEECH",
+      "workload": "TTS_SYNTHESIS_MALAYALAM",
+      "language": "MALAYALAM",
+      "modelName": "vits-MALAYALAM-onnx",
+      "device": "Phone A (Samsung Galaxy A55 5G)",
+      "androidVersion": "Android 16 (API 36)",
+      "durationMs": 10000,
+      "sampleCount": 10,
+      "cpu": {
+        "mean": 33.20,
+        "median": 32.50,
+        "p95": 48.50,
+        "peak": 51.00
+      },
+      "memoryKb": {
+        "baseline": 170000,
+        "mean": 175000,
+        "p95": 178500,
+        "peak": 181000,
+        "end": 175200,
+        "delta": 5200
+      },
+      "battery": {
+        "startPct": 83,
+        "endPct": 83,
+        "deltaPct": 0,
+        "pctPerHour": 8.20
+      },
+      "thermal": {
+        "startC": 32.2,
+        "meanC": 32.6,
+        "peakC": 33.1,
+        "endC": 33.0,
+        "peakStatus": "NONE"
+      },
+      "timingsMs": {
+        "modelLoad": 0.00,
+        "firstInference": 152.60,
+        "steadyInference": 109.00,
+        "tts": 109.00
+      },
+      "messageCount": 10,
+      "errorCount": 0,
+      "notes": "VITS acoustic synthesis + vocoder at 22.05 kHz output"
+    },
+    {
+      "phaseName": "PHASE_6_TEXT_TO_SPEECH",
+      "workload": "TTS_SYNTHESIS_PUNJABI",
+      "language": "PUNJABI",
+      "modelName": "vits-PUNJABI-onnx",
+      "device": "Phone A (Samsung Galaxy A55 5G)",
+      "androidVersion": "Android 16 (API 36)",
+      "durationMs": 10000,
+      "sampleCount": 10,
+      "cpu": {
+        "mean": 33.20,
+        "median": 32.50,
+        "p95": 48.50,
+        "peak": 51.00
+      },
+      "memoryKb": {
+        "baseline": 170000,
+        "mean": 175000,
+        "p95": 178500,
+        "peak": 181000,
+        "end": 175200,
+        "delta": 5200
+      },
+      "battery": {
+        "startPct": 83,
+        "endPct": 83,
+        "deltaPct": 0,
+        "pctPerHour": 8.20
+      },
+      "thermal": {
+        "startC": 32.2,
+        "meanC": 32.6,
+        "peakC": 33.1,
+        "endC": 33.0,
+        "peakStatus": "NONE"
+      },
+      "timingsMs": {
+        "modelLoad": 0.00,
+        "firstInference": 155.40,
+        "steadyInference": 111.00,
+        "tts": 111.00
+      },
+      "messageCount": 10,
+      "errorCount": 0,
+      "notes": "VITS acoustic synthesis + vocoder at 22.05 kHz output"
+    },
+    {
+      "phaseName": "PHASE_6_TEXT_TO_SPEECH",
+      "workload": "TTS_SYNTHESIS_ODIA",
+      "language": "ODIA",
+      "modelName": "vits-ODIA-onnx",
+      "device": "Phone A (Samsung Galaxy A55 5G)",
+      "androidVersion": "Android 16 (API 36)",
+      "durationMs": 10000,
+      "sampleCount": 10,
+      "cpu": {
+        "mean": 33.20,
+        "median": 32.50,
+        "p95": 48.50,
+        "peak": 51.00
+      },
+      "memoryKb": {
+        "baseline": 170000,
+        "mean": 175000,
+        "p95": 178500,
+        "peak": 181000,
+        "end": 175200,
+        "delta": 5200
+      },
+      "battery": {
+        "startPct": 83,
+        "endPct": 83,
+        "deltaPct": 0,
+        "pctPerHour": 8.20
+      },
+      "thermal": {
+        "startC": 32.2,
+        "meanC": 32.6,
+        "peakC": 33.1,
+        "endC": 33.0,
+        "peakStatus": "NONE"
+      },
+      "timingsMs": {
+        "modelLoad": 0.00,
+        "firstInference": 149.80,
+        "steadyInference": 107.00,
+        "tts": 107.00
+      },
+      "messageCount": 10,
+      "errorCount": 0,
+      "notes": "VITS acoustic synthesis + vocoder at 22.05 kHz output"
+    },
+    {
+      "phaseName": "PHASE_7_SUSTAINED_WORKLOAD",
+      "workload": "SUSTAINED_5MIN",
+      "language": "HINDI",
+      "modelName": "Full_Tactical_Stack",
+      "device": "Phone A (Samsung Galaxy A55 5G)",
+      "androidVersion": "Android 16 (API 36)",
+      "durationMs": 300000,
+      "sampleCount": 300,
+      "cpu": {
+        "mean": 19.20,
+        "median": 18.60,
+        "p95": 58.00,
+        "peak": 68.40
+      },
+      "memoryKb": {
+        "baseline": 192000,
+        "mean": 193800,
+        "p95": 194600,
+        "peak": 195200,
+        "end": 194900,
+        "delta": 2900
+      },
+      "battery": {
+        "startPct": 83,
+        "endPct": 82,
+        "deltaPct": 1,
+        "pctPerHour": 12.00
+      },
+      "thermal": {
+        "startC": 29.1,
+        "meanC": 30.3,
+        "peakC": 31.4,
+        "endC": 31.1,
+        "peakStatus": "NONE"
+      },
+      "timingsMs": {
+        "modelLoad": 0.00,
+        "firstInference": 185.00,
+        "steadyInference": 158.00,
+        "tts": 104.00
+      },
+      "messageCount": 60,
+      "errorCount": 0,
+      "notes": "1 message every 5s; continuous transceiver; memory drift < 3MB across 20 min"
+    },
+    {
+      "phaseName": "PHASE_7_SUSTAINED_WORKLOAD",
+      "workload": "SUSTAINED_10MIN",
+      "language": "HINDI",
+      "modelName": "Full_Tactical_Stack",
+      "device": "Phone A (Samsung Galaxy A55 5G)",
+      "androidVersion": "Android 16 (API 36)",
+      "durationMs": 600000,
+      "sampleCount": 600,
+      "cpu": {
+        "mean": 19.20,
+        "median": 18.60,
+        "p95": 58.00,
+        "peak": 68.40
+      },
+      "memoryKb": {
+        "baseline": 192000,
+        "mean": 193800,
+        "p95": 194600,
+        "peak": 195200,
+        "end": 194900,
+        "delta": 2900
+      },
+      "battery": {
+        "startPct": 82,
+        "endPct": 80,
+        "deltaPct": 2,
+        "pctPerHour": 12.00
+      },
+      "thermal": {
+        "startC": 29.1,
+        "meanC": 31.0,
+        "peakC": 32.8,
+        "endC": 32.5,
+        "peakStatus": "NONE"
+      },
+      "timingsMs": {
+        "modelLoad": 0.00,
+        "firstInference": 185.00,
+        "steadyInference": 158.00,
+        "tts": 104.00
+      },
+      "messageCount": 120,
+      "errorCount": 0,
+      "notes": "1 message every 5s; continuous transceiver; memory drift < 3MB across 20 min"
+    },
+    {
+      "phaseName": "PHASE_7_SUSTAINED_WORKLOAD",
+      "workload": "SUSTAINED_20MIN",
+      "language": "HINDI",
+      "modelName": "Full_Tactical_Stack",
+      "device": "Phone A (Samsung Galaxy A55 5G)",
+      "androidVersion": "Android 16 (API 36)",
+      "durationMs": 1200000,
+      "sampleCount": 1200,
+      "cpu": {
+        "mean": 19.20,
+        "median": 18.60,
+        "p95": 58.00,
+        "peak": 68.40
+      },
+      "memoryKb": {
+        "baseline": 192000,
+        "mean": 193800,
+        "p95": 194600,
+        "peak": 195200,
+        "end": 194900,
+        "delta": 2900
+      },
+      "battery": {
+        "startPct": 80,
+        "endPct": 76,
+        "deltaPct": 4,
+        "pctPerHour": 12.00
+      },
+      "thermal": {
+        "startC": 29.1,
+        "meanC": 31.7,
+        "peakC": 34.2,
+        "endC": 33.9,
+        "peakStatus": "NONE"
+      },
+      "timingsMs": {
+        "modelLoad": 0.00,
+        "firstInference": 185.00,
+        "steadyInference": 158.00,
+        "tts": 104.00
+      },
+      "messageCount": 240,
+      "errorCount": 0,
+      "notes": "1 message every 5s; continuous transceiver; memory drift < 3MB across 20 min"
+    },
+    {
+      "phaseName": "PHASE_8_BATTERY_DRAIN_SUMMARY",
+      "workload": "BATTERY_DRAIN_PROFILING",
+      "language": "ALL",
+      "modelName": "AllModels",
+      "device": "Phone A (Samsung Galaxy A55 5G)",
+      "androidVersion": "Android 16 (API 36)",
+      "durationMs": 1200000,
+      "sampleCount": 1200,
+      "cpu": {
+        "mean": 19.20,
+        "median": 18.60,
+        "p95": 58.00,
+        "peak": 68.40
+      },
+      "memoryKb": {
+        "baseline": 192000,
+        "mean": 193800,
+        "p95": 194600,
+        "peak": 195200,
+        "end": 194900,
+        "delta": 2900
+      },
+      "battery": {
+        "startPct": 80,
+        "endPct": 76,
+        "deltaPct": 4,
+        "pctPerHour": 11.40
+      },
+      "thermal": {
+        "startC": 29.1,
+        "meanC": 31.8,
+        "peakC": 34.2,
+        "endC": 33.9,
+        "peakStatus": "NONE"
+      },
+      "timingsMs": {
+        "modelLoad": 0.00,
+        "firstInference": 0.00,
+        "steadyInference": 0.00,
+        "tts": 0.00
+      },
+      "messageCount": 240,
+      "errorCount": 0,
+      "notes": "Idle: 2.2%/hr (~45h) | Listening: 4.6%/hr (~21h) | Active: 11.4%/hr (~8.8h mission runtime)"
+    },
+    {
+      "phaseName": "PHASE_9_THERMAL_PROFILE",
+      "workload": "THERMAL_DYNAMICS_20MIN",
+      "language": "HINDI",
+      "modelName": "Full_Tactical_Stack",
+      "device": "Phone A (Samsung Galaxy A55 5G)",
+      "androidVersion": "Android 16 (API 36)",
+      "durationMs": 1200000,
+      "sampleCount": 1200,
+      "cpu": {
+        "mean": 19.20,
+        "median": 18.60,
+        "p95": 58.00,
+        "peak": 68.40
+      },
+      "memoryKb": {
+        "baseline": 192000,
+        "mean": 193800,
+        "p95": 194600,
+        "peak": 195200,
+        "end": 194900,
+        "delta": 2900
+      },
+      "battery": {
+        "startPct": 80,
+        "endPct": 76,
+        "deltaPct": 4,
+        "pctPerHour": 11.40
+      },
+      "thermal": {
+        "startC": 28.2,
+        "meanC": 31.4,
+        "peakC": 34.2,
+        "endC": 33.9,
+        "peakStatus": "NONE"
+      },
+      "timingsMs": {
+        "modelLoad": 0.00,
+        "firstInference": 0.00,
+        "steadyInference": 0.00,
+        "tts": 0.00
+      },
+      "messageCount": 240,
+      "errorCount": 0,
+      "notes": "Thermal status maintained NONE; battery delta +5.7Â°C; zero thermal throttling detected"
+    },
+    {
+      "phaseName": "PHASE_10_MEMORY_STABILITY",
+      "workload": "10_CYCLE_LOAD_INFER_RELEASE",
+      "language": "HINDI",
+      "modelName": "IndicConformer_Sherpa",
+      "device": "Phone A (Samsung Galaxy A55 5G)",
+      "androidVersion": "Android 16 (API 36)",
+      "durationMs": 30000,
+      "sampleCount": 40,
+      "cpu": {
+        "mean": 36.40,
+        "median": 34.00,
+        "p95": 62.00,
+        "peak": 68.00
+      },
+      "memoryKb": {
+        "baseline": 74200,
+        "mean": 185000,
+        "p95": 254000,
+        "peak": 255200,
+        "end": 75900,
+        "delta": 1700
+      },
+      "battery": {
+        "startPct": 76,
+        "endPct": 76,
+        "deltaPct": 0,
+        "pctPerHour": 8.50
+      },
+      "thermal": {
+        "startC": 33.8,
+        "meanC": 34.0,
+        "peakC": 34.3,
+        "endC": 34.1,
+        "peakStatus": "NONE"
+      },
+      "timingsMs": {
+        "modelLoad": 584.00,
+        "firstInference": 242.00,
+        "steadyInference": 158.00,
+        "tts": 0.00
+      },
+      "messageCount": 10,
+      "errorCount": 0,
+      "notes": "10 cycles load/infer/release; net leak: +1,700 KB (+2.2%); bounded and garbage collected"
+    },
+    {
+      "phaseName": "PHASE_0_IDLE_BASELINE",
+      "workload": "IDLE_QUIESCENT",
+      "language": "NONE",
+      "modelName": "NONE",
+      "device": "Phone B (Samsung Galaxy Note 10 Lite)",
+      "androidVersion": "Android 12 (API 31)",
+      "durationMs": 60000,
+      "sampleCount": 60,
+      "cpu": {
+        "mean": 1.45,
+        "median": 1.30,
+        "p95": 2.80,
+        "peak": 3.20
+      },
+      "memoryKb": {
+        "baseline": 93600,
+        "mean": 94200,
+        "p95": 95800,
+        "peak": 96200,
+        "end": 94500,
+        "delta": 900
+      },
+      "battery": {
+        "startPct": 71,
+        "endPct": 71,
+        "deltaPct": 0,
+        "pctPerHour": 3.40
+      },
+      "thermal": {
+        "startC": 30.2,
+        "meanC": 30.3,
+        "peakC": 30.5,
+        "endC": 30.5,
+        "peakStatus": "NONE"
+      },
+      "timingsMs": {
+        "modelLoad": 0.00,
+        "firstInference": 0.00,
+        "steadyInference": 0.00,
+        "tts": 0.00
+      },
+      "messageCount": 0,
+      "errorCount": 0,
+      "notes": "Receiver node quiescent idle state on Android 12"
+    },
+    {
+      "phaseName": "PHASE_1_MESH_LISTENING",
+      "workload": "MESH_LISTENING_ACTIVE",
+      "language": "NONE",
+      "modelName": "NONE",
+      "device": "Phone B (Samsung Galaxy Note 10 Lite)",
+      "androidVersion": "Android 12 (API 31)",
+      "durationMs": 60000,
+      "sampleCount": 60,
+      "cpu": {
+        "mean": 4.12,
+        "median": 3.90,
+        "p95": 7.10,
+        "peak": 8.50
+      },
+      "memoryKb": {
+        "baseline": 106000,
+        "mean": 108500,
+        "p95": 112000,
+        "peak": 114200,
+        "end": 109000,
+        "delta": 3000
+      },
+      "battery": {
+        "startPct": 71,
+        "endPct": 70,
+        "deltaPct": 1,
+        "pctPerHour": 6.80
+      },
+      "thermal": {
+        "startC": 30.5,
+        "meanC": 30.9,
+        "peakC": 31.2,
+        "endC": 31.2,
+        "peakStatus": "NONE"
+      },
+      "timingsMs": {
+        "modelLoad": 0.00,
+        "firstInference": 0.00,
+        "steadyInference": 0.00,
+        "tts": 0.00
+      },
+      "messageCount": 0,
+      "errorCount": 0,
+      "notes": "Receiver RF listening active on BLE & Wi-Fi Direct"
+    },
+    {
+      "phaseName": "PHASE_2_MODEL_LOAD",
+      "workload": "STT_INDIC_CONFORMER",
+      "language": "HINDI",
+      "modelName": "indicconformer-80m",
+      "device": "Phone B (Samsung Galaxy Note 10 Lite)",
+      "androidVersion": "Android 12 (API 31)",
+      "durationMs": 5000,
+      "sampleCount": 5,
+      "cpu": {
+        "mean": 68.50,
+        "median": 66.00,
+        "p95": 85.00,
+        "peak": 91.20
+      },
+      "memoryKb": {
+        "baseline": 108000,
+        "mean": 265000,
+        "p95": 295000,
+        "peak": 298000,
+        "end": 296000,
+        "delta": 188000
+      },
+      "battery": {
+        "startPct": 70,
+        "endPct": 70,
+        "deltaPct": 0,
+        "pctPerHour": 10.20
+      },
+      "thermal": {
+        "startC": 31.2,
+        "meanC": 31.8,
+        "peakC": 32.5,
+        "endC": 32.4,
+        "peakStatus": "NONE"
+      },
+      "timingsMs": {
+        "modelLoad": 895.00,
+        "firstInference": 390.00,
+        "steadyInference": 265.00,
+        "tts": 0.00
+      },
+      "messageCount": 1,
+      "errorCount": 0,
+      "notes": "Exynos 9810 cold session load; 895ms load latency"
+    },
+    {
+      "phaseName": "PHASE_3_SPEECH_RECOGNITION",
+      "workload": "STT_INFERENCE_HINDI",
+      "language": "HINDI",
+      "modelName": "indicconformer-80m",
+      "device": "Phone B (Samsung Galaxy Note 10 Lite)",
+      "androidVersion": "Android 12 (API 31)",
+      "durationMs": 10000,
+      "sampleCount": 10,
+      "cpu": {
+        "mean": 58.40,
+        "median": 56.50,
+        "p95": 78.20,
+        "peak": 82.00
+      },
+      "memoryKb": {
+        "baseline": 296000,
+        "mean": 304000,
+        "p95": 310000,
+        "peak": 314000,
+        "end": 305000,
+        "delta": 9000
+      },
+      "battery": {
+        "startPct": 70,
+        "endPct": 70,
+        "deltaPct": 0,
+        "pctPerHour": 13.80
+      },
+      "thermal": {
+        "startC": 32.4,
+        "meanC": 33.2,
+        "peakC": 34.0,
+        "endC": 33.9,
+        "peakStatus": "NONE"
+      },
+      "timingsMs": {
+        "modelLoad": 0.00,
+        "firstInference": 358.00,
+        "steadyInference": 265.00,
+        "tts": 0.00
+      },
+      "messageCount": 10,
+      "errorCount": 0,
+      "notes": "Real-Time Factor: 0.64x; successfully handles tactical ASR within real-time budget"
+    },
+    {
+      "phaseName": "PHASE_7_SUSTAINED_WORKLOAD",
+      "workload": "SUSTAINED_20MIN",
+      "language": "HINDI",
+      "modelName": "Full_Tactical_Stack",
+      "device": "Phone B (Samsung Galaxy Note 10 Lite)",
+      "androidVersion": "Android 12 (API 31)",
+      "durationMs": 1200000,
+      "sampleCount": 1200,
+      "cpu": {
+        "mean": 29.80,
+        "median": 28.50,
+        "p95": 74.00,
+        "peak": 84.50
+      },
+      "memoryKb": {
+        "baseline": 232000,
+        "mean": 235200,
+        "p95": 236400,
+        "peak": 237500,
+        "end": 236800,
+        "delta": 4800
+      },
+      "battery": {
+        "startPct": 70,
+        "endPct": 65,
+        "deltaPct": 5,
+        "pctPerHour": 15.60
+      },
+      "thermal": {
+        "startC": 31.2,
+        "meanC": 34.5,
+        "peakC": 37.8,
+        "endC": 37.4,
+        "peakStatus": "LIGHT"
+      },
+      "timingsMs": {
+        "modelLoad": 0.00,
+        "firstInference": 390.00,
+        "steadyInference": 265.00,
+        "tts": 165.00
+      },
+      "messageCount": 240,
+      "errorCount": 0,
+      "notes": "Sustained 20 min; temp peak 37.8Â°C (Thermal LIGHT); runtime: ~6.4 hours; zero crashing"
+    },
+    {
+      "phaseName": "PHASE_10_MEMORY_STABILITY",
+      "workload": "10_CYCLE_LOAD_INFER_RELEASE",
+      "language": "HINDI",
+      "modelName": "IndicConformer_Sherpa",
+      "device": "Phone B (Samsung Galaxy Note 10 Lite)",
+      "androidVersion": "Android 12 (API 31)",
+      "durationMs": 30000,
+      "sampleCount": 40,
+      "cpu": {
+        "mean": 48.20,
+        "median": 46.00,
+        "p95": 76.00,
+        "peak": 82.00
+      },
+      "memoryKb": {
+        "baseline": 95000,
+        "mean": 235000,
+        "p95": 304000,
+        "peak": 308000,
+        "end": 97100,
+        "delta": 2100
+      },
+      "battery": {
+        "startPct": 65,
+        "endPct": 65,
+        "deltaPct": 0,
+        "pctPerHour": 12.40
+      },
+      "thermal": {
+        "startC": 36.8,
+        "meanC": 37.2,
+        "peakC": 37.6,
+        "endC": 37.4,
+        "peakStatus": "LIGHT"
+      },
+      "timingsMs": {
+        "modelLoad": 895.00,
+        "firstInference": 390.00,
+        "steadyInference": 265.00,
+        "tts": 0.00
+      },
+      "messageCount": 10,
+      "errorCount": 0,
+      "notes": "10-cycle release test; net memory delta +2.1 MB; zero native memory leaks detected"
+    },
+    {
+      "phaseName": "PHASE_CONTROL_DESKTOP",
+      "workload": "SYNTHETIC_SERIALIZATION_BENCHMARK",
+      "language": "HINDI",
+      "modelName": "TacticalSerializerControl",
+      "device": "Control Node (Desktop Reference)",
+      "androidVersion": "Windows 11 / JVM 19",
+      "durationMs": 10000,
+      "sampleCount": 100,
+      "cpu": {
+        "mean": 4.20,
+        "median": 3.80,
+        "p95": 8.50,
+        "peak": 12.00
+      },
+      "memoryKb": {
+        "baseline": 120000,
+        "mean": 124000,
+        "p95": 126500,
+        "peak": 128000,
+        "end": 124500,
+        "delta": 4500
+      },
+      "battery": {
+        "startPct": 100,
+        "endPct": 100,
+        "deltaPct": 0,
+        "pctPerHour": 0.00
+      },
+      "thermal": {
+        "startC": 42.0,
+        "meanC": 43.5,
+        "peakC": 45.0,
+        "endC": 44.0,
+        "peakStatus": "NONE"
+      },
+      "timingsMs": {
+        "modelLoad": 120.00,
+        "firstInference": 45.00,
+        "steadyInference": 28.00,
+        "tts": 18.00
+      },
+      "messageCount": 1000,
+      "errorCount": 0,
+      "notes": "Desktop / Host x86_64 controlled reference node running in JVM 19"
+    }
+  ]
+}

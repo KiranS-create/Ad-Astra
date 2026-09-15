@@ -1,5 +1,6 @@
 package org.sih.itantra.core.resourcebenchmark
 
+import java.io.File
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
@@ -370,5 +371,27 @@ class ResourceBenchmarkTest {
         assertTrue(chart.contains("Test CPU:"))
         assertTrue(chart.contains("Idle"))
         assertTrue(chart.contains("STT"))
+    }
+
+    // 17. Artifact Generation and Schema Validation
+    @Test
+    fun test_17_generateFeature24Artifacts() {
+        val targetDir = if (File("gradlew.bat").exists()) File(".") else File("..")
+        ResourceBenchmarkSuiteGenerator.writeArtifacts(targetDir)
+
+        val csvFile = File(targetDir, "feature24_resource_results.csv")
+        val jsonFile = File(targetDir, "feature24_resource_results.json")
+
+        assertTrue("CSV artifact must exist in root", csvFile.exists())
+        assertTrue("JSON artifact must exist in root", jsonFile.exists())
+
+        val csvLines = csvFile.readLines()
+        assertTrue("CSV must contain header + data rows", csvLines.size >= 25)
+        assertTrue("CSV header must conform to Section 19 schema", csvLines.first().startsWith("device,android_version,phase"))
+
+        val jsonText = jsonFile.readText()
+        assertTrue("JSON must contain Phone A", jsonText.contains("Phone A (Samsung Galaxy A55 5G)"))
+        assertTrue("JSON must contain Phone B", jsonText.contains("Phone B (Samsung Galaxy Note 10 Lite)"))
+        assertTrue("JSON must contain Control Node", jsonText.contains("Control Node"))
     }
 }
