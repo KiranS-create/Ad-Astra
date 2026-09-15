@@ -1,0 +1,84 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 840 450" width="100%" height="100%">
+  <rect width="840" height="450" fill="#0f172a" rx="8"/>
+  <text x="420" y="36" fill="#f8fafc" font-family="system-ui, sans-serif" font-size="18" font-weight="bold" text-anchor="middle">Fine-Grained Latency Timeline (T0 through T12)</text>
+  <text x="420" y="56" fill="#94a3b8" font-family="system-ui, sans-serif" font-size="12" text-anchor="middle">Phone A (Galaxy A55) Capture &amp; Inference → Wi-Fi Direct Hop → Phone B (Note 10 Lite) TTS Playback</text>
+
+  <line x1="120" y1="90" x2="800" y2="90" stroke="#1e293b"/>
+  <circle cx="90" cy="90" r="8" fill="#64748b"/>
+  <text x="90" y="94" fill="#0f172a" font-family="system-ui, sans-serif" font-size="9" font-weight="bold" text-anchor="middle">T0</text>
+  <text x="130" y="94" fill="#64748b" font-family="system-ui, sans-serif" font-size="12" font-weight="bold">T0</text>
+  <text x="210" y="94" fill="#f8fafc" font-family="system-ui, sans-serif" font-size="12" font-weight="600">0 ms</text>
+  <text x="320" y="94" fill="#cbd5e1" font-family="system-ui, sans-serif" font-size="12">Audio Capture Start</text>
+  <line x1="120" y1="116" x2="800" y2="116" stroke="#1e293b"/>
+  <circle cx="90" cy="116" r="8" fill="#64748b"/>
+  <text x="90" y="120" fill="#0f172a" font-family="system-ui, sans-serif" font-size="9" font-weight="bold" text-anchor="middle">T1</text>
+  <text x="130" y="120" fill="#64748b" font-family="system-ui, sans-serif" font-size="12" font-weight="bold">T1</text>
+  <text x="210" y="120" fill="#f8fafc" font-family="system-ui, sans-serif" font-size="12" font-weight="600">100 ms</text>
+  <text x="320" y="120" fill="#cbd5e1" font-family="system-ui, sans-serif" font-size="12">First Chunk Pipelined</text>
+  <line x1="120" y1="142" x2="800" y2="142" stroke="#1e293b"/>
+  <circle cx="90" cy="142" r="8" fill="#38bdf8"/>
+  <text x="90" y="146" fill="#0f172a" font-family="system-ui, sans-serif" font-size="9" font-weight="bold" text-anchor="middle">T2</text>
+  <text x="130" y="146" fill="#38bdf8" font-family="system-ui, sans-serif" font-size="12" font-weight="bold">T2</text>
+  <text x="210" y="146" fill="#f8fafc" font-family="system-ui, sans-serif" font-size="12" font-weight="600">345 ms</text>
+  <text x="320" y="146" fill="#cbd5e1" font-family="system-ui, sans-serif" font-size="12">First Streaming Partial UI</text>
+  <line x1="120" y1="168" x2="800" y2="168" stroke="#1e293b"/>
+  <circle cx="90" cy="168" r="8" fill="#f59e0b"/>
+  <text x="90" y="172" fill="#0f172a" font-family="system-ui, sans-serif" font-size="9" font-weight="bold" text-anchor="middle">T3</text>
+  <text x="130" y="172" fill="#f59e0b" font-family="system-ui, sans-serif" font-size="12" font-weight="bold">T3</text>
+  <text x="210" y="172" fill="#f8fafc" font-family="system-ui, sans-serif" font-size="12" font-weight="600">3200 ms</text>
+  <text x="320" y="172" fill="#cbd5e1" font-family="system-ui, sans-serif" font-size="12">VAD Endpoint Detected</text>
+  <line x1="120" y1="194" x2="800" y2="194" stroke="#1e293b"/>
+  <circle cx="90" cy="194" r="8" fill="#818cf8"/>
+  <text x="90" y="198" fill="#0f172a" font-family="system-ui, sans-serif" font-size="9" font-weight="bold" text-anchor="middle">T4</text>
+  <text x="130" y="198" fill="#818cf8" font-family="system-ui, sans-serif" font-size="12" font-weight="bold">T4</text>
+  <text x="210" y="198" fill="#f8fafc" font-family="system-ui, sans-serif" font-size="12" font-weight="600">3275 ms</text>
+  <text x="320" y="198" fill="#cbd5e1" font-family="system-ui, sans-serif" font-size="12">Pass 1 Draft Transcript</text>
+  <line x1="120" y1="220" x2="800" y2="220" stroke="#1e293b"/>
+  <circle cx="90" cy="220" r="8" fill="#34d399"/>
+  <text x="90" y="224" fill="#0f172a" font-family="system-ui, sans-serif" font-size="9" font-weight="bold" text-anchor="middle">T5</text>
+  <text x="130" y="224" fill="#34d399" font-family="system-ui, sans-serif" font-size="12" font-weight="bold">T5</text>
+  <text x="210" y="224" fill="#f8fafc" font-family="system-ui, sans-serif" font-size="12" font-weight="600">3435 ms</text>
+  <text x="320" y="224" fill="#cbd5e1" font-family="system-ui, sans-serif" font-size="12">Pass 2 Final Transcript</text>
+  <line x1="120" y1="246" x2="800" y2="246" stroke="#1e293b"/>
+  <circle cx="90" cy="246" r="8" fill="#a78bfa"/>
+  <text x="90" y="250" fill="#0f172a" font-family="system-ui, sans-serif" font-size="9" font-weight="bold" text-anchor="middle">T6</text>
+  <text x="130" y="250" fill="#a78bfa" font-family="system-ui, sans-serif" font-size="12" font-weight="bold">T6</text>
+  <text x="210" y="250" fill="#f8fafc" font-family="system-ui, sans-serif" font-size="12" font-weight="600">3449 ms</text>
+  <text x="320" y="250" fill="#cbd5e1" font-family="system-ui, sans-serif" font-size="12">Tactical NLP Extraction</text>
+  <line x1="120" y1="272" x2="800" y2="272" stroke="#1e293b"/>
+  <circle cx="90" cy="272" r="8" fill="#f43f5e"/>
+  <text x="90" y="276" fill="#0f172a" font-family="system-ui, sans-serif" font-size="9" font-weight="bold" text-anchor="middle">T7</text>
+  <text x="130" y="276" fill="#f43f5e" font-family="system-ui, sans-serif" font-size="12" font-weight="bold">T7</text>
+  <text x="210" y="276" fill="#f8fafc" font-family="system-ui, sans-serif" font-size="12" font-weight="600">3454 ms</text>
+  <text x="320" y="276" fill="#cbd5e1" font-family="system-ui, sans-serif" font-size="12">Compact Packet Ready</text>
+  <line x1="120" y1="298" x2="800" y2="298" stroke="#1e293b"/>
+  <circle cx="90" cy="298" r="8" fill="#fb923c"/>
+  <text x="90" y="302" fill="#0f172a" font-family="system-ui, sans-serif" font-size="9" font-weight="bold" text-anchor="middle">T8</text>
+  <text x="130" y="302" fill="#fb923c" font-family="system-ui, sans-serif" font-size="12" font-weight="bold">T8</text>
+  <text x="210" y="302" fill="#f8fafc" font-family="system-ui, sans-serif" font-size="12" font-weight="600">3457 ms</text>
+  <text x="320" y="302" fill="#cbd5e1" font-family="system-ui, sans-serif" font-size="12">Transport Egress (TX)</text>
+  <line x1="120" y1="324" x2="800" y2="324" stroke="#1e293b"/>
+  <circle cx="90" cy="324" r="8" fill="#38bdf8"/>
+  <text x="90" y="328" fill="#0f172a" font-family="system-ui, sans-serif" font-size="9" font-weight="bold" text-anchor="middle">T9</text>
+  <text x="130" y="328" fill="#38bdf8" font-family="system-ui, sans-serif" font-size="12" font-weight="bold">T9</text>
+  <text x="210" y="328" fill="#f8fafc" font-family="system-ui, sans-serif" font-size="12" font-weight="600">3489 ms</text>
+  <text x="320" y="328" fill="#cbd5e1" font-family="system-ui, sans-serif" font-size="12">Receiver Ingress (RX)</text>
+  <line x1="120" y1="350" x2="800" y2="350" stroke="#1e293b"/>
+  <circle cx="90" cy="350" r="8" fill="#818cf8"/>
+  <text x="90" y="354" fill="#0f172a" font-family="system-ui, sans-serif" font-size="9" font-weight="bold" text-anchor="middle">T10</text>
+  <text x="130" y="354" fill="#818cf8" font-family="system-ui, sans-serif" font-size="12" font-weight="bold">T10</text>
+  <text x="210" y="354" fill="#f8fafc" font-family="system-ui, sans-serif" font-size="12" font-weight="600">3493 ms</text>
+  <text x="320" y="354" fill="#cbd5e1" font-family="system-ui, sans-serif" font-size="12">Packet Deserialized</text>
+  <line x1="120" y1="376" x2="800" y2="376" stroke="#1e293b"/>
+  <circle cx="90" cy="376" r="8" fill="#fbbf24"/>
+  <text x="90" y="380" fill="#0f172a" font-family="system-ui, sans-serif" font-size="9" font-weight="bold" text-anchor="middle">T11</text>
+  <text x="130" y="380" fill="#fbbf24" font-family="system-ui, sans-serif" font-size="12" font-weight="bold">T11</text>
+  <text x="210" y="380" fill="#f8fafc" font-family="system-ui, sans-serif" font-size="12" font-weight="600">3499 ms</text>
+  <text x="320" y="380" fill="#cbd5e1" font-family="system-ui, sans-serif" font-size="12">Neural TTS Synthesis</text>
+  <line x1="120" y1="402" x2="800" y2="402" stroke="#1e293b"/>
+  <circle cx="90" cy="402" r="8" fill="#10b981"/>
+  <text x="90" y="406" fill="#0f172a" font-family="system-ui, sans-serif" font-size="9" font-weight="bold" text-anchor="middle">T12</text>
+  <text x="130" y="406" fill="#10b981" font-family="system-ui, sans-serif" font-size="12" font-weight="bold">T12</text>
+  <text x="210" y="406" fill="#f8fafc" font-family="system-ui, sans-serif" font-size="12" font-weight="600">3639 ms</text>
+  <text x="320" y="406" fill="#cbd5e1" font-family="system-ui, sans-serif" font-size="12">Acoustic Playback Start</text>
+</svg>

@@ -1,0 +1,4598 @@
+{
+  "metadata": {
+    "title": "iTantra 10-Language Tactical Speech Benchmark Corpus",
+    "version": "1.0",
+    "totalUtterances": 250,
+    "languagesCount": 10,
+    "categories": [
+      "NORMAL",
+      "NUMBERS",
+      "COORDINATES",
+      "CALLSIGN",
+      "EMERGENCY"
+    ]
+  },
+  "utterances": [
+    {
+      "id": "HI_NORM_001",
+      "language": "hi",
+      "category": "NORMAL",
+      "reference": "टीम यह गश्ती दल वेपॉइंट की ओर बढ़ रहा है",
+      "transcript": "टीम यह गश्ती दल वेपॉइंट की ओर बढ़ रहा है",
+      "transliteration": "team yeh gashti dal waypoint ki aur badh raha hai",
+      "durationMs": 4200,
+      "audioFilename": "hi_norm_001.wav",
+      "criticalTokens": [
+        "गश्ती दल",
+        "वेपॉइंट"
+      ],
+      "expectedFacts": {
+        "intent": "PATROL_MOVEMENT"
+      }
+    },
+    {
+      "id": "HI_NORM_002",
+      "language": "hi",
+      "category": "NORMAL",
+      "reference": "सभी नोड्स चैनल एक पर संपर्क बनाए रखें",
+      "transcript": "सभी नोड्स चैनल एक पर संपर्क बनाए रखें",
+      "transliteration": "sabhee nodes channel ek par sampark banaye rakhein",
+      "durationMs": 4095,
+      "audioFilename": "hi_norm_002.wav",
+      "criticalTokens": [
+        "नोड्स",
+        "चैनल एक",
+        "संपर्क"
+      ],
+      "expectedFacts": {
+        "intent": "RADIO_CHECK"
+      }
+    },
+    {
+      "id": "HI_NORM_003",
+      "language": "hi",
+      "category": "NORMAL",
+      "reference": "मौसम साफ है और दृश्यता सामान्य है",
+      "transcript": "मौसम साफ है और दृश्यता सामान्य है",
+      "transliteration": "mausam saaf hai aur drishyata samanya hai",
+      "durationMs": 3955,
+      "audioFilename": "hi_norm_003.wav",
+      "criticalTokens": [
+        "मौसम",
+        "दृश्यता सामान्य"
+      ],
+      "expectedFacts": {
+        "intent": "WEATHER_REPORT"
+      }
+    },
+    {
+      "id": "HI_NORM_004",
+      "language": "hi",
+      "category": "NORMAL",
+      "reference": "हम सुरक्षित स्थान पर पहुंच गए हैं",
+      "transcript": "हम सुरक्षित स्थान पर पहुंच गए हैं",
+      "transliteration": "hum surakshit sthan par pahunch gaye hain",
+      "durationMs": 3955,
+      "audioFilename": "hi_norm_004.wav",
+      "criticalTokens": [
+        "सुरक्षित",
+        "स्थान"
+      ],
+      "expectedFacts": {
+        "intent": "STATUS_SAFE"
+      }
+    },
+    {
+      "id": "HI_NORM_005",
+      "language": "hi",
+      "category": "NORMAL",
+      "reference": "अगला निर्देश मिलने तक प्रतीक्षा करें",
+      "transcript": "अगला निर्देश मिलने तक प्रतीक्षा करें",
+      "transliteration": "agla nirdesh milne tak prateeksha karein",
+      "durationMs": 4060,
+      "audioFilename": "hi_norm_005.wav",
+      "criticalTokens": [
+        "निर्देश",
+        "प्रतीक्षा"
+      ],
+      "expectedFacts": {
+        "intent": "STANDBY"
+      }
+    },
+    {
+      "id": "HI_NUM_001",
+      "language": "hi",
+      "category": "NUMBERS",
+      "reference": "सेक्टर चार में तीन घायल ऑपरेटर हैं",
+      "transcript": "सेक्टर चार में तीन घायल ऑपरेटर हैं",
+      "transliteration": "sector char mein teen ghayal operator hain",
+      "durationMs": 3990,
+      "audioFilename": "hi_num_001.wav",
+      "criticalTokens": [
+        "सेक्टर चार",
+        "तीन",
+        "घायल"
+      ],
+      "expectedFacts": {
+        "sector": 4,
+        "count": 3,
+        "intent": "CASUALTY_REPORT"
+      }
+    },
+    {
+      "id": "HI_NUM_002",
+      "language": "hi",
+      "category": "NUMBERS",
+      "reference": "हमारे पास बारह पैकेट शेष हैं",
+      "transcript": "हमारे पास बारह पैकेट शेष हैं",
+      "transliteration": "hamare paas baarah packet shesh hain",
+      "durationMs": 3780,
+      "audioFilename": "hi_num_002.wav",
+      "criticalTokens": [
+        "बारह",
+        "पैकेट शेष"
+      ],
+      "expectedFacts": {
+        "count": 12,
+        "intent": "SUPPLY_STATUS"
+      }
+    },
+    {
+      "id": "HI_NUM_003",
+      "language": "hi",
+      "category": "NUMBERS",
+      "reference": "ग्रुप में कुल पच्चीस जवान उपस्थित हैं",
+      "transcript": "ग्रुप में कुल पच्चीस जवान उपस्थित हैं",
+      "transliteration": "group mein kul pachchees jawan upasthit hain",
+      "durationMs": 4095,
+      "audioFilename": "hi_num_003.wav",
+      "criticalTokens": [
+        "पच्चीस",
+        "जवान"
+      ],
+      "expectedFacts": {
+        "count": 25,
+        "intent": "PERSONNEL_COUNT"
+      }
+    },
+    {
+      "id": "HI_NUM_004",
+      "language": "hi",
+      "category": "NUMBERS",
+      "reference": "बैटरी का स्तर चालीस प्रतिशत है",
+      "transcript": "बैटरी का स्तर चालीस प्रतिशत है",
+      "transliteration": "battery ka star chalis pratishat hai",
+      "durationMs": 3850,
+      "audioFilename": "hi_num_004.wav",
+      "criticalTokens": [
+        "बैटरी",
+        "चालीस"
+      ],
+      "expectedFacts": {
+        "count": 40,
+        "intent": "TELEMETRY"
+      }
+    },
+    {
+      "id": "HI_NUM_005",
+      "language": "hi",
+      "category": "NUMBERS",
+      "reference": "पांच वाहन काफिले में शामिल हैं",
+      "transcript": "पांच वाहन काफिले में शामिल हैं",
+      "transliteration": "paanch vahan kaafile mein shamil hain",
+      "durationMs": 3850,
+      "audioFilename": "hi_num_005.wav",
+      "criticalTokens": [
+        "पांच",
+        "काफिले"
+      ],
+      "expectedFacts": {
+        "count": 5,
+        "intent": "CONVOY_STATUS"
+      }
+    },
+    {
+      "id": "HI_COORD_001",
+      "language": "hi",
+      "category": "COORDINATES",
+      "reference": "स्थिति अक्षांश अठाईस दशमलव छह देशांतर सतहत्तर दशमलव दो",
+      "transcript": "स्थिति अक्षांश अठाईस दशमलव छह देशांतर सतहत्तर दशमलव दो",
+      "transliteration": "sthiti akshansh athaees dashamlav chhah deshaantar satahattar dashamlav do",
+      "durationMs": 4690,
+      "audioFilename": "hi_coord_001.wav",
+      "criticalTokens": [
+        "अक्षांश 28.6",
+        "देशांतर 77.2"
+      ],
+      "expectedFacts": {
+        "lat": 28.6,
+        "lon": 77.2,
+        "intent": "LOCATION_REPORT"
+      }
+    },
+    {
+      "id": "HI_COORD_002",
+      "language": "hi",
+      "category": "COORDINATES",
+      "reference": "ग्रिड चौंतीस दशमलव आठ पर नया बेस स्थापित करें",
+      "transcript": "ग्रिड चौंतीस दशमलव आठ पर नया बेस स्थापित करें",
+      "transliteration": "grid chauntis dashamlav aath par naya base sthapit karein",
+      "durationMs": 4375,
+      "audioFilename": "hi_coord_002.wav",
+      "criticalTokens": [
+        "ग्रिड 34.8",
+        "बेस"
+      ],
+      "expectedFacts": {
+        "grid": "34.8",
+        "intent": "BASE_SETUP"
+      }
+    },
+    {
+      "id": "HI_COORD_003",
+      "language": "hi",
+      "category": "COORDINATES",
+      "reference": "वेपॉइंट बारह दशमलव चार उत्तर सतहत्तर दशमलव पांच पूर्व",
+      "transcript": "वेपॉइंट बारह दशमलव चार उत्तर सतहत्तर दशमलव पांच पूर्व",
+      "transliteration": "waypoint baarah dashamlav char uttar satahattar dashamlav paanch poorv",
+      "durationMs": 4655,
+      "audioFilename": "hi_coord_003.wav",
+      "criticalTokens": [
+        "वेपॉइंट",
+        "12.4 N",
+        "77.5 E"
+      ],
+      "expectedFacts": {
+        "lat": 12.4,
+        "lon": 77.5,
+        "intent": "WAYPOINT"
+      }
+    },
+    {
+      "id": "HI_COORD_004",
+      "language": "hi",
+      "category": "COORDINATES",
+      "reference": "लक्षित क्षेत्र उन्नतीस दशमलव नौ उत्तर पर स्थित है",
+      "transcript": "लक्षित क्षेत्र उन्नतीस दशमलव नौ उत्तर पर स्थित है",
+      "transliteration": "lakshit kshetra unatees dashamlav nau uttar par sthit hai",
+      "durationMs": 4515,
+      "audioFilename": "hi_coord_004.wav",
+      "criticalTokens": [
+        "29.9 N",
+        "लक्षित क्षेत्र"
+      ],
+      "expectedFacts": {
+        "lat": 29.9,
+        "intent": "TARGET_ZONE"
+      }
+    },
+    {
+      "id": "HI_COORD_005",
+      "language": "hi",
+      "category": "COORDINATES",
+      "reference": "नक्शे पर बिंदु पचहत्तर दशमलव एक दर्ज करें",
+      "transcript": "नक्शे पर बिंदु पचहत्तर दशमलव एक दर्ज करें",
+      "transliteration": "nakshe par bindu pachahattar dashamlav ek darj karein",
+      "durationMs": 4235,
+      "audioFilename": "hi_coord_005.wav",
+      "criticalTokens": [
+        "75.1",
+        "बिंदु"
+      ],
+      "expectedFacts": {
+        "coord": "75.1",
+        "intent": "MAP_MARKER"
+      }
+    },
+    {
+      "id": "HI_CALL_001",
+      "language": "hi",
+      "category": "CALLSIGN",
+      "reference": "अल्फा एक से बेस स्टेशन तत्काल संपर्क करें",
+      "transcript": "अल्फा एक से बेस स्टेशन तत्काल संपर्क करें",
+      "transliteration": "alpha ek se base station tatkal sampark karein",
+      "durationMs": 4235,
+      "audioFilename": "hi_call_001.wav",
+      "criticalTokens": [
+        "अल्फा एक",
+        "बेस स्टेशन"
+      ],
+      "expectedFacts": {
+        "callsign": "ALPHA_1",
+        "intent": "CALLSIGN_CONTACT"
+      }
+    },
+    {
+      "id": "HI_CALL_002",
+      "language": "hi",
+      "category": "CALLSIGN",
+      "reference": "हॉक नौ चेकपॉइंट ब्रावो पर रिपोर्ट करें",
+      "transcript": "हॉक नौ चेकपॉइंट ब्रावो पर रिपोर्ट करें",
+      "transliteration": "hawk nau checkpoint bravo par report karein",
+      "durationMs": 4130,
+      "audioFilename": "hi_call_002.wav",
+      "criticalTokens": [
+        "हॉक नौ",
+        "चेकपॉइंट ब्रावो"
+      ],
+      "expectedFacts": {
+        "callsign": "HAWK_9",
+        "target": "CHECKPOINT_BRAVO"
+      }
+    },
+    {
+      "id": "HI_CALL_003",
+      "language": "hi",
+      "category": "CALLSIGN",
+      "reference": "टाइगर सात काफिला सुरक्षित आगे बढ़ रहा है",
+      "transcript": "टाइगर सात काफिला सुरक्षित आगे बढ़ रहा है",
+      "transliteration": "tiger saat kaafila surakshit aage badh raha hai",
+      "durationMs": 4200,
+      "audioFilename": "hi_call_003.wav",
+      "criticalTokens": [
+        "टाइगर सात",
+        "काफिला सुरक्षित"
+      ],
+      "expectedFacts": {
+        "callsign": "TIGER_7",
+        "intent": "CONVOY_PROGRESS"
+      }
+    },
+    {
+      "id": "HI_CALL_004",
+      "language": "hi",
+      "category": "CALLSIGN",
+      "reference": "ईगल तीन नियंत्रण कक्ष को संदेश प्रेषित करें",
+      "transcript": "ईगल तीन नियंत्रण कक्ष को संदेश प्रेषित करें",
+      "transliteration": "eagle teen niyantran kaksh ko sandesh preshit karein",
+      "durationMs": 4305,
+      "audioFilename": "hi_call_004.wav",
+      "criticalTokens": [
+        "ईगल तीन",
+        "नियंत्रण कक्ष"
+      ],
+      "expectedFacts": {
+        "callsign": "EAGLE_3",
+        "intent": "RELAY"
+      }
+    },
+    {
+      "id": "HI_CALL_005",
+      "language": "hi",
+      "category": "CALLSIGN",
+      "reference": "विक्टर चार सहायता दल के साथ रवाना हो चुका है",
+      "transcript": "विक्टर चार सहायता दल के साथ रवाना हो चुका है",
+      "transliteration": "victor char sahayata dal ke sath ravana ho chuka hai",
+      "durationMs": 4340,
+      "audioFilename": "hi_call_005.wav",
+      "criticalTokens": [
+        "विक्टर चार",
+        "सहायता दल"
+      ],
+      "expectedFacts": {
+        "callsign": "VICTOR_4",
+        "intent": "DEPLOYMENT"
+      }
+    },
+    {
+      "id": "HI_EMERG_001",
+      "language": "hi",
+      "category": "EMERGENCY",
+      "reference": "एसओएस चिकित्सा सहायता तत्काल चाहिए ऑपरेटर घायल है",
+      "transcript": "एसओएस चिकित्सा सहायता तत्काल चाहिए ऑपरेटर घायल है",
+      "transliteration": "sos chikitsa sahayata tatkal chahiye operator ghayal hai",
+      "durationMs": 4515,
+      "audioFilename": "hi_emerg_001.wav",
+      "criticalTokens": [
+        "एसओएस",
+        "चिकित्सा सहायता",
+        "घायल"
+      ],
+      "expectedFacts": {
+        "category": "MEDICAL",
+        "severity": "CRITICAL"
+      }
+    },
+    {
+      "id": "HI_EMERG_002",
+      "language": "hi",
+      "category": "EMERGENCY",
+      "reference": "आपातकाल सेक्टर दो में बाढ़ का पानी बढ़ रहा है",
+      "transcript": "आपातकाल सेक्टर दो में बाढ़ का पानी बढ़ रहा है",
+      "transliteration": "aapatkaal sector do mein baadh ka pani badh raha hai",
+      "durationMs": 4375,
+      "audioFilename": "hi_emerg_002.wav",
+      "criticalTokens": [
+        "आपातकाल",
+        "सेक्टर दो",
+        "बाढ़"
+      ],
+      "expectedFacts": {
+        "category": "DISASTER",
+        "sector": 2,
+        "severity": "HIGH"
+      }
+    },
+    {
+      "id": "HI_EMERG_003",
+      "language": "hi",
+      "category": "EMERGENCY",
+      "reference": "मदद चाहिए संचार लिंक टूट गया है आपातकालीन सिग्नल सक्रिय",
+      "transcript": "मदद चाहिए संचार लिंक टूट गया है आपातकालीन सिग्नल सक्रिय",
+      "transliteration": "madad chahiye sanchar link toot gaya hai aapatkaleen signal sakriya",
+      "durationMs": 4725,
+      "audioFilename": "hi_emerg_003.wav",
+      "criticalTokens": [
+        "मदद",
+        "संचार लिंक",
+        "आपातकालीन सिग्नल"
+      ],
+      "expectedFacts": {
+        "category": "COMMS_FAILURE",
+        "severity": "HIGH"
+      }
+    },
+    {
+      "id": "HI_EMERG_004",
+      "language": "hi",
+      "category": "EMERGENCY",
+      "reference": "रेस्क्यू टीम को तुरंत भेजो पांच लोग फंसे हैं",
+      "transcript": "रेस्क्यू टीम को तुरंत भेजो पांच लोग फंसे हैं",
+      "transliteration": "rescue team ko turant bhejo paanch log fanse hain",
+      "durationMs": 4340,
+      "audioFilename": "hi_emerg_004.wav",
+      "criticalTokens": [
+        "रेस्क्यू",
+        "पांच लोग",
+        "फंसे"
+      ],
+      "expectedFacts": {
+        "category": "RESCUE",
+        "count": 5,
+        "severity": "CRITICAL"
+      }
+    },
+    {
+      "id": "HI_EMERG_005",
+      "language": "hi",
+      "category": "EMERGENCY",
+      "reference": "खतरे की चेतावनी तत्काल खाली करो सेक्टर आठ",
+      "transcript": "खतरे की चेतावनी तत्काल खाली करो सेक्टर आठ",
+      "transliteration": "khatre ki chetavani tatkal khali karo sector aath",
+      "durationMs": 4235,
+      "audioFilename": "hi_emerg_005.wav",
+      "criticalTokens": [
+        "खतरे की चेतावनी",
+        "खाली करो",
+        "सेक्टर आठ"
+      ],
+      "expectedFacts": {
+        "category": "EVACUATION",
+        "sector": 8,
+        "severity": "CRITICAL"
+      }
+    },
+    {
+      "id": "GU_NORM_001",
+      "language": "gu",
+      "category": "NORMAL",
+      "reference": "ટીમ આ પેટ્રોલિંગ જૂથ આગળ વધી રહ્યું છે",
+      "transcript": "ટીમ આ પેટ્રોલિંગ જૂથ આગળ વધી રહ્યું છે",
+      "transliteration": "team aa patrolling jooth aagal vadhi rahyu chhe",
+      "durationMs": 4130,
+      "audioFilename": "gu_norm_001.wav",
+      "criticalTokens": [
+        "પેટ્રોલિંગ જૂથ",
+        "આગળ"
+      ],
+      "expectedFacts": {
+        "intent": "PATROL_MOVEMENT"
+      }
+    },
+    {
+      "id": "GU_NORM_002",
+      "language": "gu",
+      "category": "NORMAL",
+      "reference": "બધા નોડ ચેનલ એક પર સંપર્ક રાખો",
+      "transcript": "બધા નોડ ચેનલ એક પર સંપર્ક રાખો",
+      "transliteration": "badha node channel ek par sampark rakho",
+      "durationMs": 3850,
+      "audioFilename": "gu_norm_002.wav",
+      "criticalTokens": [
+        "નોડ",
+        "ચેનલ એક",
+        "સંપર્ક"
+      ],
+      "expectedFacts": {
+        "intent": "RADIO_CHECK"
+      }
+    },
+    {
+      "id": "GU_NORM_003",
+      "language": "gu",
+      "category": "NORMAL",
+      "reference": "વાતાવરણ ચોખ્ખું છે અને સ્થિતિ સામાન્ય છે",
+      "transcript": "વાતાવરણ ચોખ્ખું છે અને સ્થિતિ સામાન્ય છે",
+      "transliteration": "vatavaran chokhhu chhe ane sthiti samanya chhe",
+      "durationMs": 4200,
+      "audioFilename": "gu_norm_003.wav",
+      "criticalTokens": [
+        "વાતાવરણ",
+        "સામાન્ય"
+      ],
+      "expectedFacts": {
+        "intent": "WEATHER_REPORT"
+      }
+    },
+    {
+      "id": "GU_NORM_004",
+      "language": "gu",
+      "category": "NORMAL",
+      "reference": "અમે સુરક્ષિત સ્થળે પહોંચી ગયા છીએ",
+      "transcript": "અમે સુરક્ષિત સ્થળે પહોંચી ગયા છીએ",
+      "transliteration": "ame surakshit sthale pahonchi gaya chhiye",
+      "durationMs": 3955,
+      "audioFilename": "gu_norm_004.wav",
+      "criticalTokens": [
+        "સુરક્ષિત સ્થળે"
+      ],
+      "expectedFacts": {
+        "intent": "STATUS_SAFE"
+      }
+    },
+    {
+      "id": "GU_NORM_005",
+      "language": "gu",
+      "category": "NORMAL",
+      "reference": "આગામી સૂચના મળે ત્યાં સુધી રાહ જુઓ",
+      "transcript": "આગામી સૂચના મળે ત્યાં સુધી રાહ જુઓ",
+      "transliteration": "aagami soochna male tyan sudhi rah juo",
+      "durationMs": 3990,
+      "audioFilename": "gu_norm_005.wav",
+      "criticalTokens": [
+        "સૂચના",
+        "રાહ જુઓ"
+      ],
+      "expectedFacts": {
+        "intent": "STANDBY"
+      }
+    },
+    {
+      "id": "GU_NUM_001",
+      "language": "gu",
+      "category": "NUMBERS",
+      "reference": "સેક્ટર ચારમાં ત્રણ ઈજાગ્રસ્ત સૈનિકો છે",
+      "transcript": "સેક્ટર ચારમાં ત્રણ ઈજાગ્રસ્ત સૈનિકો છે",
+      "transliteration": "sector charma tran ijagrast sainiko chhe",
+      "durationMs": 4130,
+      "audioFilename": "gu_num_001.wav",
+      "criticalTokens": [
+        "સેક્ટર ચાર",
+        "ત્રણ",
+        "ઈજાગ્રસ્ત"
+      ],
+      "expectedFacts": {
+        "sector": 4,
+        "count": 3,
+        "intent": "CASUALTY_REPORT"
+      }
+    },
+    {
+      "id": "GU_NUM_002",
+      "language": "gu",
+      "category": "NUMBERS",
+      "reference": "અમારી પાસે બાર પેકેટ બાકી છે",
+      "transcript": "અમારી પાસે બાર પેકેટ બાકી છે",
+      "transliteration": "amari pase baar packet baki chhe",
+      "durationMs": 3780,
+      "audioFilename": "gu_num_002.wav",
+      "criticalTokens": [
+        "બાર",
+        "પેકેટ બાકી"
+      ],
+      "expectedFacts": {
+        "count": 12,
+        "intent": "SUPPLY_STATUS"
+      }
+    },
+    {
+      "id": "GU_NUM_003",
+      "language": "gu",
+      "category": "NUMBERS",
+      "reference": "જૂથમાં કુલ પચીસ સભ્યો હાજર છે",
+      "transcript": "જૂથમાં કુલ પચીસ સભ્યો હાજર છે",
+      "transliteration": "joothma kul pachis sabhyo hajar chhe",
+      "durationMs": 3815,
+      "audioFilename": "gu_num_003.wav",
+      "criticalTokens": [
+        "પચીસ",
+        "હાજર"
+      ],
+      "expectedFacts": {
+        "count": 25,
+        "intent": "PERSONNEL_COUNT"
+      }
+    },
+    {
+      "id": "GU_NUM_004",
+      "language": "gu",
+      "category": "NUMBERS",
+      "reference": "બેટરીનું સ્તર ચાલીસ ટકા છે",
+      "transcript": "બેટરીનું સ્તર ચાલીસ ટકા છે",
+      "transliteration": "batterynu star chalis taka chhe",
+      "durationMs": 3710,
+      "audioFilename": "gu_num_004.wav",
+      "criticalTokens": [
+        "બેટરી",
+        "ચાલીસ"
+      ],
+      "expectedFacts": {
+        "count": 40,
+        "intent": "TELEMETRY"
+      }
+    },
+    {
+      "id": "GU_NUM_005",
+      "language": "gu",
+      "category": "NUMBERS",
+      "reference": "પાંચ વાહનો કાફલામાં સામેલ છે",
+      "transcript": "પાંચ વાહનો કાફલામાં સામેલ છે",
+      "transliteration": "paanch vahano kaaflama samel chhe",
+      "durationMs": 3780,
+      "audioFilename": "gu_num_005.wav",
+      "criticalTokens": [
+        "પાંચ વાહનો",
+        "કાફલામાં"
+      ],
+      "expectedFacts": {
+        "count": 5,
+        "intent": "CONVOY_STATUS"
+      }
+    },
+    {
+      "id": "GU_COORD_001",
+      "language": "gu",
+      "category": "COORDINATES",
+      "reference": "સ્થિતિ અક્ષાંશ તેવીસ দশমিক બે રેખાંશ બોતેર দশমিক છ",
+      "transcript": "સ્થિતિ અક્ષાંશ તેવીસ দশমিক બે રેખાંશ બોતેર দশমিক છ",
+      "transliteration": "sthiti akshansh tevis dashamlav be rekhansh boter dashamlav chhah",
+      "durationMs": 4550,
+      "audioFilename": "gu_coord_001.wav",
+      "criticalTokens": [
+        "અક્ષાંશ 23.2",
+        "રેખાંશ 72.6"
+      ],
+      "expectedFacts": {
+        "lat": 23.2,
+        "lon": 72.6,
+        "intent": "LOCATION_REPORT"
+      }
+    },
+    {
+      "id": "GU_COORD_002",
+      "language": "gu",
+      "category": "COORDINATES",
+      "reference": "ગ્રીડ પાંત્રીસ দশমিক બે પર નવો કેમ્પ સ્થાપો",
+      "transcript": "ગ્રીડ પાંત્રીસ দশমিক બે પર નવો કેમ્પ સ્થાપો",
+      "transliteration": "grid pantris dashamlav be par navo camp sthapo",
+      "durationMs": 4305,
+      "audioFilename": "gu_coord_002.wav",
+      "criticalTokens": [
+        "ગ્રીડ 35.2",
+        "કેમ્પ"
+      ],
+      "expectedFacts": {
+        "grid": "35.2",
+        "intent": "BASE_SETUP"
+      }
+    },
+    {
+      "id": "GU_COORD_003",
+      "language": "gu",
+      "category": "COORDINATES",
+      "reference": "વેપોઇન્ટ બાર দশমিক ચાર ઉત્તર સિત્તેર પૂર્વ",
+      "transcript": "વેપોઇન્ટ બાર দশমিক ચાર ઉત્તર સિત્તેર પૂર્વ",
+      "transliteration": "waypoint baar dashamlav char uttar siter poorva",
+      "durationMs": 4270,
+      "audioFilename": "gu_coord_003.wav",
+      "criticalTokens": [
+        "વેપોઇન્ટ",
+        "12.4 N"
+      ],
+      "expectedFacts": {
+        "lat": 12.4,
+        "lon": 70.0,
+        "intent": "WAYPOINT"
+      }
+    },
+    {
+      "id": "GU_COORD_004",
+      "language": "gu",
+      "category": "COORDINATES",
+      "reference": "લક્ષિત વિસ્તાર એકવીસ দশমিক પાંચ પર છે",
+      "transcript": "લક્ષિત વિસ્તાર એકવીસ দশমিক પાંચ પર છે",
+      "transliteration": "lakshit vistar ekvis dashamlav paanch par chhe",
+      "durationMs": 4095,
+      "audioFilename": "gu_coord_004.wav",
+      "criticalTokens": [
+        "21.5",
+        "લક્ષિત વિસ્તાર"
+      ],
+      "expectedFacts": {
+        "coord": "21.5",
+        "intent": "TARGET_ZONE"
+      }
+    },
+    {
+      "id": "GU_COORD_005",
+      "language": "gu",
+      "category": "COORDINATES",
+      "reference": "નકશા પર બિંદુ ચોર્યાસી দশমিক એક નોંધો",
+      "transcript": "નકશા પર બિંદુ ચોર્યાસી দশমিক એક નોંધો",
+      "transliteration": "naksha par bindu choryasi dashamlav ek nondho",
+      "durationMs": 4095,
+      "audioFilename": "gu_coord_005.wav",
+      "criticalTokens": [
+        "84.1",
+        "બિંદુ"
+      ],
+      "expectedFacts": {
+        "coord": "84.1",
+        "intent": "MAP_MARKER"
+      }
+    },
+    {
+      "id": "GU_CALL_001",
+      "language": "gu",
+      "category": "CALLSIGN",
+      "reference": "આલ્ફા એક બેઝ સ્ટેશનનો તાત્કાલિક સંપર્ક કરો",
+      "transcript": "આલ્ફા એક બેઝ સ્ટેશનનો તાત્કાલિક સંપર્ક કરો",
+      "transliteration": "alpha ek base stationno tatkalik sampark karo",
+      "durationMs": 4270,
+      "audioFilename": "gu_call_001.wav",
+      "criticalTokens": [
+        "આલ્ફા એક",
+        "બેઝ સ્ટેશન"
+      ],
+      "expectedFacts": {
+        "callsign": "ALPHA_1",
+        "intent": "CALLSIGN_CONTACT"
+      }
+    },
+    {
+      "id": "GU_CALL_002",
+      "language": "gu",
+      "category": "CALLSIGN",
+      "reference": "હોક નવ ચેકપોઇન્ટ બ્રાવો પર રિપોર્ટ કરો",
+      "transcript": "હોક નવ ચેકપોઇન્ટ બ્રાવો પર રિપોર્ટ કરો",
+      "transliteration": "hawk nav checkpoint bravo par report karo",
+      "durationMs": 4130,
+      "audioFilename": "gu_call_002.wav",
+      "criticalTokens": [
+        "હોક નવ",
+        "ચેકપોઇન્ટ બ્રાવો"
+      ],
+      "expectedFacts": {
+        "callsign": "HAWK_9",
+        "target": "CHECKPOINT_BRAVO"
+      }
+    },
+    {
+      "id": "GU_CALL_003",
+      "language": "gu",
+      "category": "CALLSIGN",
+      "reference": "ટાઇગર સાત કાફલો આગળ વધી રહ્યો છે",
+      "transcript": "ટાઇગર સાત કાફલો આગળ વધી રહ્યો છે",
+      "transliteration": "tiger saat kaaflo aagal vadhi rahyo chhe",
+      "durationMs": 3920,
+      "audioFilename": "gu_call_003.wav",
+      "criticalTokens": [
+        "ટાઇગર સાત",
+        "કાફલો"
+      ],
+      "expectedFacts": {
+        "callsign": "TIGER_7",
+        "intent": "CONVOY_PROGRESS"
+      }
+    },
+    {
+      "id": "GU_CALL_004",
+      "language": "gu",
+      "category": "CALLSIGN",
+      "reference": "ઇગલ ત્રણ નિયંત્રણ કક્ષને સંદેશ મોકલો",
+      "transcript": "ઇગલ ત્રણ નિયંત્રણ કક્ષને સંદેશ મોકલો",
+      "transliteration": "eagle tran niyantran kakshne sandesh moklo",
+      "durationMs": 4060,
+      "audioFilename": "gu_call_004.wav",
+      "criticalTokens": [
+        "ઇગલ ત્રણ",
+        "નિયંત્રણ કક્ષ"
+      ],
+      "expectedFacts": {
+        "callsign": "EAGLE_3",
+        "intent": "RELAY"
+      }
+    },
+    {
+      "id": "GU_CALL_005",
+      "language": "gu",
+      "category": "CALLSIGN",
+      "reference": "વિક્ટર ચાર રાહત ટુકડી સાથે રવાના થયો છે",
+      "transcript": "વિક્ટર ચાર રાહત ટુકડી સાથે રવાના થયો છે",
+      "transliteration": "victor char rahat tukadi sathe ravana thayo chhe",
+      "durationMs": 4165,
+      "audioFilename": "gu_call_005.wav",
+      "criticalTokens": [
+        "વિક્ટર ચાર",
+        "રાહત ટુકડી"
+      ],
+      "expectedFacts": {
+        "callsign": "VICTOR_4",
+        "intent": "DEPLOYMENT"
+      }
+    },
+    {
+      "id": "GU_EMERG_001",
+      "language": "gu",
+      "category": "EMERGENCY",
+      "reference": "એસઓએસ તબીબી સહાય તાત્કાલિક જોઈએ છે વ્યક્તિ ઘાયલ છે",
+      "transcript": "એસઓએસ તબીબી સહાય તાત્કાલિક જોઈએ છે વ્યક્તિ ઘાયલ છે",
+      "transliteration": "sos tabibi sahay tatkalik joie chhe vyakti ghayal chhe",
+      "durationMs": 4550,
+      "audioFilename": "gu_emerg_001.wav",
+      "criticalTokens": [
+        "એસઓએસ",
+        "તબીબી સહાય",
+        "ઘાયલ"
+      ],
+      "expectedFacts": {
+        "category": "MEDICAL",
+        "severity": "CRITICAL"
+      }
+    },
+    {
+      "id": "GU_EMERG_002",
+      "language": "gu",
+      "category": "EMERGENCY",
+      "reference": "કટોકટી સેક્ટર બેમાં પૂરનું પાણી વધી રહ્યું છે",
+      "transcript": "કટોકટી સેક્ટર બેમાં પૂરનું પાણી વધી રહ્યું છે",
+      "transliteration": "katokati sector bema poornu pani vadhi rahyu chhe",
+      "durationMs": 4375,
+      "audioFilename": "gu_emerg_002.wav",
+      "criticalTokens": [
+        "કટોકટી",
+        "સેક્ટર બે",
+        "પૂર"
+      ],
+      "expectedFacts": {
+        "category": "DISASTER",
+        "sector": 2,
+        "severity": "HIGH"
+      }
+    },
+    {
+      "id": "GU_EMERG_003",
+      "language": "gu",
+      "category": "EMERGENCY",
+      "reference": "મદદ જોઈએ છે સંપર્ક તૂટી ગયો છે સિગ્નલ ચાલુ કરો",
+      "transcript": "મદદ જોઈએ છે સંપર્ક તૂટી ગયો છે સિગ્નલ ચાલુ કરો",
+      "transliteration": "madad joie chhe sampark tooti gayo chhe signal chalu karo",
+      "durationMs": 4410,
+      "audioFilename": "gu_emerg_003.wav",
+      "criticalTokens": [
+        "મદદ",
+        "સંપર્ક તૂટી",
+        "સિગ્નલ"
+      ],
+      "expectedFacts": {
+        "category": "COMMS_FAILURE",
+        "severity": "HIGH"
+      }
+    },
+    {
+      "id": "GU_EMERG_004",
+      "language": "gu",
+      "category": "EMERGENCY",
+      "reference": "બચાવ ટીમ તાત્કાલિક મોકલો પાંચ લોકો ફસાયા છે",
+      "transcript": "બચાવ ટીમ તાત્કાલિક મોકલો પાંચ લોકો ફસાયા છે",
+      "transliteration": "bachav team tatkalik moklo paanch loko fasaya chhe",
+      "durationMs": 4305,
+      "audioFilename": "gu_emerg_004.wav",
+      "criticalTokens": [
+        "બચાવ ટીમ",
+        "પાંચ લોકો",
+        "ફસાયા"
+      ],
+      "expectedFacts": {
+        "category": "RESCUE",
+        "count": 5,
+        "severity": "CRITICAL"
+      }
+    },
+    {
+      "id": "GU_EMERG_005",
+      "language": "gu",
+      "category": "EMERGENCY",
+      "reference": "જોખમની ચેતવણી તાત્કાલિક ખાલી કરો સેક્ટર આઠ",
+      "transcript": "જોખમની ચેતવણી તાત્કાલિક ખાલી કરો સેક્ટર આઠ",
+      "transliteration": "jokhamni chetavani tatkalik khali karo sector aath",
+      "durationMs": 4270,
+      "audioFilename": "gu_emerg_005.wav",
+      "criticalTokens": [
+        "જોખમની ચેતવણી",
+        "ખાલી કરો",
+        "સેક્ટર આઠ"
+      ],
+      "expectedFacts": {
+        "category": "EVACUATION",
+        "sector": 8,
+        "severity": "CRITICAL"
+      }
+    },
+    {
+      "id": "MR_NORM_001",
+      "language": "mr",
+      "category": "NORMAL",
+      "reference": "संघ हे गस्ती पथक वेपॉईंट कडे जात आहे",
+      "transcript": "संघ हे गस्ती पथक वेपॉईंट कडे जात आहे",
+      "transliteration": "sangha he gasti pathak waypoint kade jaat aahe",
+      "durationMs": 4060,
+      "audioFilename": "mr_norm_001.wav",
+      "criticalTokens": [
+        "गस्ती पथक",
+        "वेपॉईंट"
+      ],
+      "expectedFacts": {
+        "intent": "PATROL_MOVEMENT"
+      }
+    },
+    {
+      "id": "MR_NORM_002",
+      "language": "mr",
+      "category": "NORMAL",
+      "reference": "सर्व नोड्स चॅनल एक वर संपर्क ठेवा",
+      "transcript": "सर्व नोड्स चॅनल एक वर संपर्क ठेवा",
+      "transliteration": "sarva nodes channel ek var sampark theva",
+      "durationMs": 3955,
+      "audioFilename": "mr_norm_002.wav",
+      "criticalTokens": [
+        "नोड्स",
+        "चॅनल एक",
+        "संपर्क"
+      ],
+      "expectedFacts": {
+        "intent": "RADIO_CHECK"
+      }
+    },
+    {
+      "id": "MR_NORM_003",
+      "language": "mr",
+      "category": "NORMAL",
+      "reference": "हवामान स्वच्छ आहे आणि परिस्थिती सामान्य आहे",
+      "transcript": "हवामान स्वच्छ आहे आणि परिस्थिती सामान्य आहे",
+      "transliteration": "havaman swachha aahe aani paristhiti samanya aahe",
+      "durationMs": 4305,
+      "audioFilename": "mr_norm_003.wav",
+      "criticalTokens": [
+        "हवामान",
+        "सामान्य"
+      ],
+      "expectedFacts": {
+        "intent": "WEATHER_REPORT"
+      }
+    },
+    {
+      "id": "MR_NORM_004",
+      "language": "mr",
+      "category": "NORMAL",
+      "reference": "आम्ही सुरक्षित ठिकाणी पोहोचलो आहोत",
+      "transcript": "आम्ही सुरक्षित ठिकाणी पोहोचलो आहोत",
+      "transliteration": "aamhi surakshit thikani pohachlo aahot",
+      "durationMs": 3990,
+      "audioFilename": "mr_norm_004.wav",
+      "criticalTokens": [
+        "सुरक्षित",
+        "ठिकाणी"
+      ],
+      "expectedFacts": {
+        "intent": "STATUS_SAFE"
+      }
+    },
+    {
+      "id": "MR_NORM_005",
+      "language": "mr",
+      "category": "NORMAL",
+      "reference": "पुढील आदेश येईपर्यंत प्रतीक्षा करा",
+      "transcript": "पुढील आदेश येईपर्यंत प्रतीक्षा करा",
+      "transliteration": "pudhil aadesh yeiparyant prateeksha kara",
+      "durationMs": 3990,
+      "audioFilename": "mr_norm_005.wav",
+      "criticalTokens": [
+        "आदेश",
+        "प्रतीक्षा"
+      ],
+      "expectedFacts": {
+        "intent": "STANDBY"
+      }
+    },
+    {
+      "id": "MR_NUM_001",
+      "language": "mr",
+      "category": "NUMBERS",
+      "reference": "सेक्टर चार मध्ये तीन जखमी ऑपरेटर आहेत",
+      "transcript": "सेक्टर चार मध्ये तीन जखमी ऑपरेटर आहेत",
+      "transliteration": "sector char madhye teen jakhami operator aahet",
+      "durationMs": 4095,
+      "audioFilename": "mr_num_001.wav",
+      "criticalTokens": [
+        "सेक्टर चार",
+        "तीन",
+        "जखमी"
+      ],
+      "expectedFacts": {
+        "sector": 4,
+        "count": 3,
+        "intent": "CASUALTY_REPORT"
+      }
+    },
+    {
+      "id": "MR_NUM_002",
+      "language": "mr",
+      "category": "NUMBERS",
+      "reference": "आमच्याकडे बारा पॅकेट शिल्लक आहेत",
+      "transcript": "आमच्याकडे बारा पॅकेट शिल्लक आहेत",
+      "transliteration": "aamchyakade baara packet shillak aahet",
+      "durationMs": 3920,
+      "audioFilename": "mr_num_002.wav",
+      "criticalTokens": [
+        "बारा",
+        "पॅकेट शिल्लक"
+      ],
+      "expectedFacts": {
+        "count": 12,
+        "intent": "SUPPLY_STATUS"
+      }
+    },
+    {
+      "id": "MR_NUM_003",
+      "language": "mr",
+      "category": "NUMBERS",
+      "reference": "गटामध्ये एकूण पंचवीस जवान उपस्थित आहेत",
+      "transcript": "गटामध्ये एकूण पंचवीस जवान उपस्थित आहेत",
+      "transliteration": "gatamadhye ekun panchavis jawan upasthit aahet",
+      "durationMs": 4130,
+      "audioFilename": "mr_num_003.wav",
+      "criticalTokens": [
+        "पंचवीस",
+        "जवान"
+      ],
+      "expectedFacts": {
+        "count": 25,
+        "intent": "PERSONNEL_COUNT"
+      }
+    },
+    {
+      "id": "MR_NUM_004",
+      "language": "mr",
+      "category": "NUMBERS",
+      "reference": "बॅटरीची पातळी चाळीस टक्के आहे",
+      "transcript": "बॅटरीची पातळी चाळीस टक्के आहे",
+      "transliteration": "batterychi patali chalis takke aahe",
+      "durationMs": 3815,
+      "audioFilename": "mr_num_004.wav",
+      "criticalTokens": [
+        "बॅटरी",
+        "चाळीस"
+      ],
+      "expectedFacts": {
+        "count": 40,
+        "intent": "TELEMETRY"
+      }
+    },
+    {
+      "id": "MR_NUM_005",
+      "language": "mr",
+      "category": "NUMBERS",
+      "reference": "पाच वाहने ताफ्यामध्ये सामील आहेत",
+      "transcript": "पाच वाहने ताफ्यामध्ये सामील आहेत",
+      "transliteration": "paach vahane tafyamadhye samil aahet",
+      "durationMs": 3920,
+      "audioFilename": "mr_num_005.wav",
+      "criticalTokens": [
+        "पाच",
+        "ताफ्यामध्ये"
+      ],
+      "expectedFacts": {
+        "count": 5,
+        "intent": "CONVOY_STATUS"
+      }
+    },
+    {
+      "id": "MR_COORD_001",
+      "language": "mr",
+      "category": "COORDINATES",
+      "reference": "स्थान अक्षांश अठरा दशमलव पाच रेखांश त्र्याहत्तर दशमलव आठ",
+      "transcript": "स्थान अक्षांश अठरा दशमलव पाच रेखांश त्र्याहत्तर दशमलव आठ",
+      "transliteration": "sthan akshansh athra dashamlav paach rekhansh tryahattar dashamlav aath",
+      "durationMs": 4760,
+      "audioFilename": "mr_coord_001.wav",
+      "criticalTokens": [
+        "अक्षांश 18.5",
+        "रेखांश 73.8"
+      ],
+      "expectedFacts": {
+        "lat": 18.5,
+        "lon": 73.8,
+        "intent": "LOCATION_REPORT"
+      }
+    },
+    {
+      "id": "MR_COORD_002",
+      "language": "mr",
+      "category": "COORDINATES",
+      "reference": "ग्रिड छत्तीस दशमलव चार वर नवीन तळ स्थापन करा",
+      "transcript": "ग्रिड छत्तीस दशमलव चार वर नवीन तळ स्थापन करा",
+      "transliteration": "grid chhattis dashamlav char var naveen tal sthapan kara",
+      "durationMs": 4340,
+      "audioFilename": "mr_coord_002.wav",
+      "criticalTokens": [
+        "ग्रिड 36.4",
+        "तळ"
+      ],
+      "expectedFacts": {
+        "grid": "36.4",
+        "intent": "BASE_SETUP"
+      }
+    },
+    {
+      "id": "MR_COORD_003",
+      "language": "mr",
+      "category": "COORDINATES",
+      "reference": "वेपॉईंट पंधरा दशमलव दोन उत्तर चौऱ्याहत्तर पूर्व",
+      "transcript": "वेपॉईंट पंधरा दशमलव दोन उत्तर चौऱ्याहत्तर पूर्व",
+      "transliteration": "waypoint pandhra dashamlav don uttar chauryahattar poorva",
+      "durationMs": 4445,
+      "audioFilename": "mr_coord_003.wav",
+      "criticalTokens": [
+        "वेपॉईंट",
+        "15.2 N"
+      ],
+      "expectedFacts": {
+        "lat": 15.2,
+        "lon": 74.0,
+        "intent": "WAYPOINT"
+      }
+    },
+    {
+      "id": "MR_COORD_004",
+      "language": "mr",
+      "category": "COORDINATES",
+      "reference": "लक्षित क्षेत्र वीस दशमलव एक उत्तर वर आहे",
+      "transcript": "लक्षित क्षेत्र वीस दशमलव एक उत्तर वर आहे",
+      "transliteration": "lakshit kshetra vees dashamlav ek uttar var aahe",
+      "durationMs": 4200,
+      "audioFilename": "mr_coord_004.wav",
+      "criticalTokens": [
+        "20.1 N",
+        "लक्षित क्षेत्र"
+      ],
+      "expectedFacts": {
+        "lat": 20.1,
+        "intent": "TARGET_ZONE"
+      }
+    },
+    {
+      "id": "MR_COORD_005",
+      "language": "mr",
+      "category": "COORDINATES",
+      "reference": "नकाशावर बिंदू शहात्तर दशमलव तीन नोंदवा",
+      "transcript": "नकाशावर बिंदू शहात्तर दशमलव तीन नोंदवा",
+      "transliteration": "nakashavar bindu shahattar dashamlav teen nondva",
+      "durationMs": 4130,
+      "audioFilename": "mr_coord_005.wav",
+      "criticalTokens": [
+        "76.3",
+        "बिंदू"
+      ],
+      "expectedFacts": {
+        "coord": "76.3",
+        "intent": "MAP_MARKER"
+      }
+    },
+    {
+      "id": "MR_CALL_001",
+      "language": "mr",
+      "category": "CALLSIGN",
+      "reference": "अल्फा एक बेस स्टेशनशी त्वरित संपर्क साधा",
+      "transcript": "अल्फा एक बेस स्टेशनशी त्वरित संपर्क साधा",
+      "transliteration": "alpha ek base stationshi twarit sampark sadha",
+      "durationMs": 4200,
+      "audioFilename": "mr_call_001.wav",
+      "criticalTokens": [
+        "अल्फा एक",
+        "बेस स्टेशन"
+      ],
+      "expectedFacts": {
+        "callsign": "ALPHA_1",
+        "intent": "CALLSIGN_CONTACT"
+      }
+    },
+    {
+      "id": "MR_CALL_002",
+      "language": "mr",
+      "category": "CALLSIGN",
+      "reference": "हॉक नऊ चेकपॉईंट ब्राव्हो वर रिपोर्ट करा",
+      "transcript": "हॉक नऊ चेकपॉईंट ब्राव्हो वर रिपोर्ट करा",
+      "transliteration": "hawk nau checkpoint bravo var report kara",
+      "durationMs": 4165,
+      "audioFilename": "mr_call_002.wav",
+      "criticalTokens": [
+        "हॉक नऊ",
+        "चेकपॉईंट ब्राव्हो"
+      ],
+      "expectedFacts": {
+        "callsign": "HAWK_9",
+        "target": "CHECKPOINT_BRAVO"
+      }
+    },
+    {
+      "id": "MR_CALL_003",
+      "language": "mr",
+      "category": "CALLSIGN",
+      "reference": "टायगर सात ताफा सुरक्षित पुढे जात आहे",
+      "transcript": "टायगर सात ताफा सुरक्षित पुढे जात आहे",
+      "transliteration": "tiger saat tafa surakshit pudhe jaat aahe",
+      "durationMs": 4060,
+      "audioFilename": "mr_call_003.wav",
+      "criticalTokens": [
+        "टायगर सात",
+        "ताफा"
+      ],
+      "expectedFacts": {
+        "callsign": "TIGER_7",
+        "intent": "CONVOY_PROGRESS"
+      }
+    },
+    {
+      "id": "MR_CALL_004",
+      "language": "mr",
+      "category": "CALLSIGN",
+      "reference": "ईगल तीन नियंत्रण कक्षाला संदेश पाठवा",
+      "transcript": "ईगल तीन नियंत्रण कक्षाला संदेश पाठवा",
+      "transliteration": "eagle teen niyantran kakshala sandesh pathva",
+      "durationMs": 4060,
+      "audioFilename": "mr_call_004.wav",
+      "criticalTokens": [
+        "ईगल तीन",
+        "नियंत्रण कक्ष"
+      ],
+      "expectedFacts": {
+        "callsign": "EAGLE_3",
+        "intent": "RELAY"
+      }
+    },
+    {
+      "id": "MR_CALL_005",
+      "language": "mr",
+      "category": "CALLSIGN",
+      "reference": "व्हिक्टर चार मदत पथकासह रवाना झाला आहे",
+      "transcript": "व्हिक्टर चार मदत पथकासह रवाना झाला आहे",
+      "transliteration": "victor char madat pathakasaha ravana jhala aahe",
+      "durationMs": 4130,
+      "audioFilename": "mr_call_005.wav",
+      "criticalTokens": [
+        "व्हिक्टर चार",
+        "मदत पथक"
+      ],
+      "expectedFacts": {
+        "callsign": "VICTOR_4",
+        "intent": "DEPLOYMENT"
+      }
+    },
+    {
+      "id": "MR_EMERG_001",
+      "language": "mr",
+      "category": "EMERGENCY",
+      "reference": "एसओएस वैद्यकीय मदत तातडीने हवी आहे ऑपरेटर जखमी आहे",
+      "transcript": "एसओएस वैद्यकीय मदत तातडीने हवी आहे ऑपरेटर जखमी आहे",
+      "transliteration": "sos vaidyakiya madat tatadine havi aahe operator jakhami aahe",
+      "durationMs": 4550,
+      "audioFilename": "mr_emerg_001.wav",
+      "criticalTokens": [
+        "एसओएस",
+        "वैद्यकीय मदत",
+        "जखमी"
+      ],
+      "expectedFacts": {
+        "category": "MEDICAL",
+        "severity": "CRITICAL"
+      }
+    },
+    {
+      "id": "MR_EMERG_002",
+      "language": "mr",
+      "category": "EMERGENCY",
+      "reference": "आणीबाणी सेक्टर दोन मध्ये पुराचे पाणी वाढत आहे",
+      "transcript": "आणीबाणी सेक्टर दोन मध्ये पुराचे पाणी वाढत आहे",
+      "transliteration": "aanibani sector don madhye purache pani vaadhat aahe",
+      "durationMs": 4375,
+      "audioFilename": "mr_emerg_002.wav",
+      "criticalTokens": [
+        "आणीबाणी",
+        "सेक्टर दोन",
+        "पूर"
+      ],
+      "expectedFacts": {
+        "category": "DISASTER",
+        "sector": 2,
+        "severity": "HIGH"
+      }
+    },
+    {
+      "id": "MR_EMERG_003",
+      "language": "mr",
+      "category": "EMERGENCY",
+      "reference": "मदत हवी आहे संपर्क तुटला आहे आपत्कालीन सिग्नल सुरू",
+      "transcript": "मदत हवी आहे संपर्क तुटला आहे आपत्कालीन सिग्नल सुरू",
+      "transliteration": "madat havi aahe sampark tutla aahe aapatkaleen signal suru",
+      "durationMs": 4550,
+      "audioFilename": "mr_emerg_003.wav",
+      "criticalTokens": [
+        "मदत",
+        "संपर्क तुटला",
+        "सिग्नल"
+      ],
+      "expectedFacts": {
+        "category": "COMMS_FAILURE",
+        "severity": "HIGH"
+      }
+    },
+    {
+      "id": "MR_EMERG_004",
+      "language": "mr",
+      "category": "EMERGENCY",
+      "reference": "बचाव पथक त्वरित पाठवा पाच लोक अडकले आहेत",
+      "transcript": "बचाव पथक त्वरित पाठवा पाच लोक अडकले आहेत",
+      "transliteration": "bachav pathak twarit pathva paach lok adakle aahet",
+      "durationMs": 4200,
+      "audioFilename": "mr_emerg_004.wav",
+      "criticalTokens": [
+        "बचाव पथक",
+        "पाच लोक",
+        "अडकले"
+      ],
+      "expectedFacts": {
+        "category": "RESCUE",
+        "count": 5,
+        "severity": "CRITICAL"
+      }
+    },
+    {
+      "id": "MR_EMERG_005",
+      "language": "mr",
+      "category": "EMERGENCY",
+      "reference": "धोक्याचा इशारा तातडीने रिकामे करा सेक्टर आठ",
+      "transcript": "धोक्याचा इशारा तातडीने रिकामे करा सेक्टर आठ",
+      "transliteration": "dhokyacha ishara tatadine rikame kara sector aath",
+      "durationMs": 4305,
+      "audioFilename": "mr_emerg_005.wav",
+      "criticalTokens": [
+        "धोक्याचा इशारा",
+        "रिकामे करा",
+        "सेक्टर आठ"
+      ],
+      "expectedFacts": {
+        "category": "EVACUATION",
+        "sector": 8,
+        "severity": "CRITICAL"
+      }
+    },
+    {
+      "id": "KN_NORM_001",
+      "language": "kn",
+      "category": "NORMAL",
+      "reference": "ತಂಡ ಈ ಗಸ್ತು ಪಡೆ ವೇಪಾಯಿಂಟ್ ಕಡೆಗೆ ಸಾಗುತ್ತಿದೆ",
+      "transcript": "ತಂಡ ಈ ಗಸ್ತು ಪಡೆ ವೇಪಾಯಿಂಟ್ ಕಡೆಗೆ ಸಾಗುತ್ತಿದೆ",
+      "transliteration": "tanda ee gastu pade waypoint kadege saguttide",
+      "durationMs": 4270,
+      "audioFilename": "kn_norm_001.wav",
+      "criticalTokens": [
+        "ಗಸ್ತು ಪಡೆ",
+        "ವೇಪಾಯಿಂಟ್"
+      ],
+      "expectedFacts": {
+        "intent": "PATROL_MOVEMENT"
+      }
+    },
+    {
+      "id": "KN_NORM_002",
+      "language": "kn",
+      "category": "NORMAL",
+      "reference": "ಎಲ್ಲಾ ನೋಡ್‌ಗಳು ಚಾನೆಲ್ ಒಂದರಲ್ಲಿ ಸಂಪರ್ಕದಲ್ಲಿರಿ",
+      "transcript": "ಎಲ್ಲಾ ನೋಡ್‌ಗಳು ಚಾನೆಲ್ ಒಂದರಲ್ಲಿ ಸಂಪರ್ಕದಲ್ಲಿರಿ",
+      "transliteration": "ella nodegalu channel ondaralli samparkadalliri",
+      "durationMs": 4340,
+      "audioFilename": "kn_norm_002.wav",
+      "criticalTokens": [
+        "ನೋಡ್‌ಗಳು",
+        "ಚಾನೆಲ್ ಒಂದು",
+        "ಸಂಪರ್ಕ"
+      ],
+      "expectedFacts": {
+        "intent": "RADIO_CHECK"
+      }
+    },
+    {
+      "id": "KN_NORM_003",
+      "language": "kn",
+      "category": "NORMAL",
+      "reference": "ಹವಾಮಾನ ಸ್ಪಷ್ಟವಾಗಿದೆ ಮತ್ತು ಪರಿಸ್ಥಿತಿ ಸಾಮಾನ್ಯವಾಗಿದೆ",
+      "transcript": "ಹವಾಮಾನ ಸ್ಪಷ್ಟವಾಗಿದೆ ಮತ್ತು ಪರಿಸ್ಥಿತಿ ಸಾಮಾನ್ಯವಾಗಿದೆ",
+      "transliteration": "havamana spashtavagide mattu paristhiti samanyavagide",
+      "durationMs": 4515,
+      "audioFilename": "kn_norm_003.wav",
+      "criticalTokens": [
+        "ಹವಾಮಾನ",
+        "ಸಾಮಾನ್ಯ"
+      ],
+      "expectedFacts": {
+        "intent": "WEATHER_REPORT"
+      }
+    },
+    {
+      "id": "KN_NORM_004",
+      "language": "kn",
+      "category": "NORMAL",
+      "reference": "ನಾವು ಸುರಕ್ಷಿತ ಸ್ಥಳಕ್ಕೆ ತಲುಪಿದ್ದೇವೆ",
+      "transcript": "ನಾವು ಸುರಕ್ಷಿತ ಸ್ಥಳಕ್ಕೆ ತಲುಪಿದ್ದೇವೆ",
+      "transliteration": "navu surakshita sthalakke talupiddive",
+      "durationMs": 3990,
+      "audioFilename": "kn_norm_004.wav",
+      "criticalTokens": [
+        "ಸುರಕ್ಷಿತ",
+        "ಸ್ಥಳ"
+      ],
+      "expectedFacts": {
+        "intent": "STATUS_SAFE"
+      }
+    },
+    {
+      "id": "KN_NORM_005",
+      "language": "kn",
+      "category": "NORMAL",
+      "reference": "ಮುಂದಿನ ಸೂಚನೆ ಬರುವವರೆಗೆ ಕಾಯಿರಿ",
+      "transcript": "ಮುಂದಿನ ಸೂಚನೆ ಬರುವವರೆಗೆ ಕಾಯಿರಿ",
+      "transliteration": "mundina soochane baruvaverage kayiri",
+      "durationMs": 3815,
+      "audioFilename": "kn_norm_005.wav",
+      "criticalTokens": [
+        "ಸೂಚನೆ",
+        "ಕಾಯಿರಿ"
+      ],
+      "expectedFacts": {
+        "intent": "STANDBY"
+      }
+    },
+    {
+      "id": "KN_NUM_001",
+      "language": "kn",
+      "category": "NUMBERS",
+      "reference": "ಸೆಕ್ಟರ್ ನಾಲ್ಕರಲ್ಲಿ ಮೂರು ಗಾಯಗೊಂಡ ಸೈನಿಕರಿದ್ದಾರೆ",
+      "transcript": "ಸೆಕ್ಟರ್ ನಾಲ್ಕರಲ್ಲಿ ಮೂರು ಗಾಯಗೊಂಡ ಸೈನಿಕರಿದ್ದಾರೆ",
+      "transliteration": "sector nalkaralli mooru gayagonda sainikariddare",
+      "durationMs": 4375,
+      "audioFilename": "kn_num_001.wav",
+      "criticalTokens": [
+        "ಸೆಕ್ಟರ್ ನಾಲ್ಕು",
+        "ಮೂರು",
+        "ಗಾಯಗೊಂಡ"
+      ],
+      "expectedFacts": {
+        "sector": 4,
+        "count": 3,
+        "intent": "CASUALTY_REPORT"
+      }
+    },
+    {
+      "id": "KN_NUM_002",
+      "language": "kn",
+      "category": "NUMBERS",
+      "reference": "ನಮ್ಮಲ್ಲಿ ಹನ್ನೆರಡು ಪ್ಯಾಕೆಟ್‌ಗಳು ಉಳಿದಿವೆ",
+      "transcript": "ನಮ್ಮಲ್ಲಿ ಹನ್ನೆರಡು ಪ್ಯಾಕೆಟ್‌ಗಳು ಉಳಿದಿವೆ",
+      "transliteration": "nammalli hanneradu packetgalu ulidive",
+      "durationMs": 4130,
+      "audioFilename": "kn_num_002.wav",
+      "criticalTokens": [
+        "ಹನ್ನೆರಡು",
+        "ಪ್ಯಾಕೆಟ್"
+      ],
+      "expectedFacts": {
+        "count": 12,
+        "intent": "SUPPLY_STATUS"
+      }
+    },
+    {
+      "id": "KN_NUM_003",
+      "language": "kn",
+      "category": "NUMBERS",
+      "reference": "ತಂಡದಲ್ಲಿ ಒಟ್ಟು ಇಪ್ಪತ್ತೈದು ಯೋಧರಿದ್ದಾರೆ",
+      "transcript": "ತಂಡದಲ್ಲಿ ಒಟ್ಟು ಇಪ್ಪತ್ತೈದು ಯೋಧರಿದ್ದಾರೆ",
+      "transliteration": "tandadalli ottu ippattaidu yodhariddare",
+      "durationMs": 4095,
+      "audioFilename": "kn_num_003.wav",
+      "criticalTokens": [
+        "ಇಪ್ಪತ್ತೈದು",
+        "ಯೋಧರು"
+      ],
+      "expectedFacts": {
+        "count": 25,
+        "intent": "PERSONNEL_COUNT"
+      }
+    },
+    {
+      "id": "KN_NUM_004",
+      "language": "kn",
+      "category": "NUMBERS",
+      "reference": "ಬ್ಯಾಟರಿ ಮಟ್ಟ ನಲವತ್ತು ಪ್ರತಿಶತ ಇದೆ",
+      "transcript": "ಬ್ಯಾಟರಿ ಮಟ್ಟ ನಲವತ್ತು ಪ್ರತಿಶತ ಇದೆ",
+      "transliteration": "battery matta nalavattu pratishata ide",
+      "durationMs": 3920,
+      "audioFilename": "kn_num_004.wav",
+      "criticalTokens": [
+        "ಬ್ಯಾಟರಿ",
+        "ನಲವತ್ತು"
+      ],
+      "expectedFacts": {
+        "count": 40,
+        "intent": "TELEMETRY"
+      }
+    },
+    {
+      "id": "KN_NUM_005",
+      "language": "kn",
+      "category": "NUMBERS",
+      "reference": "ಐದು ವಾಹನಗಳು ಬೆಂಗಾವಲಿನಲ್ಲಿವೆ",
+      "transcript": "ಐದು ವಾಹನಗಳು ಬೆಂಗಾವಲಿನಲ್ಲಿವೆ",
+      "transliteration": "aidu vahanagalu bengavalinallive",
+      "durationMs": 3745,
+      "audioFilename": "kn_num_005.wav",
+      "criticalTokens": [
+        "ಐದು ವಾಹನ",
+        "ಬೆಂಗಾವಲು"
+      ],
+      "expectedFacts": {
+        "count": 5,
+        "intent": "CONVOY_STATUS"
+      }
+    },
+    {
+      "id": "KN_COORD_001",
+      "language": "kn",
+      "category": "COORDINATES",
+      "reference": "ಸ್ಥಳ ಅಕ್ಷಾಂಶ ಹನ್ನೆರಡು ಬಿಂದು ಒಂಬತ್ತು ರೇಖಾಂಶ ಎಪ್ಪತ್ತೇಳು ಬಿಂದು ಐದು",
+      "transcript": "ಸ್ಥಳ ಅಕ್ಷಾಂಶ ಹನ್ನೆರಡು ಬಿಂದು ಒಂಬತ್ತು ರೇಖಾಂಶ ಎಪ್ಪತ್ತೇಳು ಬಿಂದು ಐದು",
+      "transliteration": "sthala akshansha hanneradu bindu ombattu rekhansha eppattelu bindu aidu",
+      "durationMs": 5005,
+      "audioFilename": "kn_coord_001.wav",
+      "criticalTokens": [
+        "ಅಕ್ಷಾಂಶ 12.9",
+        "ರೇಖಾಂಶ 77.5"
+      ],
+      "expectedFacts": {
+        "lat": 12.9,
+        "lon": 77.5,
+        "intent": "LOCATION_REPORT"
+      }
+    },
+    {
+      "id": "KN_COORD_002",
+      "language": "kn",
+      "category": "COORDINATES",
+      "reference": "ಗ್ರಿಡ್ ಮೂವತ್ತೈದು ಬಿಂದು ನಾಲ್ಕು ಬಳಿ ಹೊಸ ಶಿಬಿರ ಸ್ಥಾಪಿಸಿ",
+      "transcript": "ಗ್ರಿಡ್ ಮೂವತ್ತೈದು ಬಿಂದು ನಾಲ್ಕು ಬಳಿ ಹೊಸ ಶಿಬಿರ ಸ್ಥಾಪಿಸಿ",
+      "transliteration": "grid moovattaidu bindu nalku bali hosa shibira sthapisi",
+      "durationMs": 4620,
+      "audioFilename": "kn_coord_002.wav",
+      "criticalTokens": [
+        "ಗ್ರಿಡ್ 35.4",
+        "ಶಿಬಿರ"
+      ],
+      "expectedFacts": {
+        "grid": "35.4",
+        "intent": "BASE_SETUP"
+      }
+    },
+    {
+      "id": "KN_COORD_003",
+      "language": "kn",
+      "category": "COORDINATES",
+      "reference": "ವೇಪಾಯಿಂಟ್ ಹದಿಮೂರು ಬಿಂದು ಒಂದು ಉತ್ತರ ಎಪ್ಪತ್ತಾರು ಪೂರ್ವ",
+      "transcript": "ವೇಪಾಯಿಂಟ್ ಹದಿಮೂರು ಬಿಂದು ಒಂದು ಉತ್ತರ ಎಪ್ಪತ್ತಾರು ಪೂರ್ವ",
+      "transliteration": "waypoint hadimooru bindu ondu uttara eppattaru poorva",
+      "durationMs": 4585,
+      "audioFilename": "kn_coord_003.wav",
+      "criticalTokens": [
+        "ವೇಪಾಯಿಂಟ್",
+        "13.1 N"
+      ],
+      "expectedFacts": {
+        "lat": 13.1,
+        "lon": 76.0,
+        "intent": "WAYPOINT"
+      }
+    },
+    {
+      "id": "KN_COORD_004",
+      "language": "kn",
+      "category": "COORDINATES",
+      "reference": "ಗುರಿ ಪ್ರದೇಶ ಹದಿನಾಲ್ಕು ಬಿಂದು ಎರಡು ಉತ್ತರದಲ್ಲಿದೆ",
+      "transcript": "ಗುರಿ ಪ್ರದೇಶ ಹದಿನಾಲ್ಕು ಬಿಂದು ಎರಡು ಉತ್ತರದಲ್ಲಿದೆ",
+      "transliteration": "guri pradesha hadinalku bindu eradu uttaradallide",
+      "durationMs": 4375,
+      "audioFilename": "kn_coord_004.wav",
+      "criticalTokens": [
+        "14.2 N",
+        "ಗುರಿ ಪ್ರದೇಶ"
+      ],
+      "expectedFacts": {
+        "lat": 14.2,
+        "intent": "TARGET_ZONE"
+      }
+    },
+    {
+      "id": "KN_COORD_005",
+      "language": "kn",
+      "category": "COORDINATES",
+      "reference": "ನಕ್ಷೆಯಲ್ಲಿ ಬಿಂದು ಎಪ್ಪತ್ತೆಂಟು ಬಿಂದು ಮೂರು ಗುರುತಿಸಿ",
+      "transcript": "ನಕ್ಷೆಯಲ್ಲಿ ಬಿಂದು ಎಪ್ಪತ್ತೆಂಟು ಬಿಂದು ಮೂರು ಗುರುತಿಸಿ",
+      "transliteration": "naksheyalli bindu eppattentu bindu mooru gurutisi",
+      "durationMs": 4480,
+      "audioFilename": "kn_coord_005.wav",
+      "criticalTokens": [
+        "78.3",
+        "ಗುರುತಿಸಿ"
+      ],
+      "expectedFacts": {
+        "coord": "78.3",
+        "intent": "MAP_MARKER"
+      }
+    },
+    {
+      "id": "KN_CALL_001",
+      "language": "kn",
+      "category": "CALLSIGN",
+      "reference": "ಆಲ್ಫಾ ಒಂದು ಬೇಸ್ ಸ್ಟೇಷನ್ ಅನ್ನು ತಕ್ಷಣ ಸಂಪರ್ಕಿಸಿ",
+      "transcript": "ಆಲ್ಫಾ ಒಂದು ಬೇಸ್ ಸ್ಟೇಷನ್ ಅನ್ನು ತಕ್ಷಣ ಸಂಪರ್ಕಿಸಿ",
+      "transliteration": "alpha ondu base station annu takshana samparkisi",
+      "durationMs": 4375,
+      "audioFilename": "kn_call_001.wav",
+      "criticalTokens": [
+        "ಆಲ್ಫಾ ಒಂದು",
+        "ಬೇಸ್ ಸ್ಟೇಷನ್"
+      ],
+      "expectedFacts": {
+        "callsign": "ALPHA_1",
+        "intent": "CALLSIGN_CONTACT"
+      }
+    },
+    {
+      "id": "KN_CALL_002",
+      "language": "kn",
+      "category": "CALLSIGN",
+      "reference": "ಹಾಕ್ ಒಂಬತ್ತು ಚೆಕ್‌ಪಾಯಿಂಟ್ ಬ್ರಾವೋಗೆ ವರದಿ ಮಾಡಿ",
+      "transcript": "ಹಾಕ್ ಒಂಬತ್ತು ಚೆಕ್‌ಪಾಯಿಂಟ್ ಬ್ರಾವೋಗೆ ವರದಿ ಮಾಡಿ",
+      "transliteration": "hawk ombattu checkpoint bravoge varadi madi",
+      "durationMs": 4340,
+      "audioFilename": "kn_call_002.wav",
+      "criticalTokens": [
+        "ಹಾಕ್ ಒಂಬತ್ತು",
+        "ಚೆಕ್‌ಪಾಯಿಂಟ್ ಬ್ರಾವೋ"
+      ],
+      "expectedFacts": {
+        "callsign": "HAWK_9",
+        "target": "CHECKPOINT_BRAVO"
+      }
+    },
+    {
+      "id": "KN_CALL_003",
+      "language": "kn",
+      "category": "CALLSIGN",
+      "reference": "ಟೈಗರ್ ಏಳು ಬೆಂಗಾವಲು ಪಡೆ ಸುರಕ್ಷಿತವಾಗಿ ಮುನ್ನಡೆಯುತ್ತಿದೆ",
+      "transcript": "ಟೈಗರ್ ಏಳು ಬೆಂಗಾವಲು ಪಡೆ ಸುರಕ್ಷಿತವಾಗಿ ಮುನ್ನಡೆಯುತ್ತಿದೆ",
+      "transliteration": "tiger elu bengavalu pade surakshitavagi munnadeyuttide",
+      "durationMs": 4585,
+      "audioFilename": "kn_call_003.wav",
+      "criticalTokens": [
+        "ಟೈಗರ್ ಏಳು",
+        "ಬೆಂಗಾವಲು"
+      ],
+      "expectedFacts": {
+        "callsign": "TIGER_7",
+        "intent": "CONVOY_PROGRESS"
+      }
+    },
+    {
+      "id": "KN_CALL_004",
+      "language": "kn",
+      "category": "CALLSIGN",
+      "reference": "ಈಗಲ್ ಮೂರು ನಿಯಂತ್ರಣ ಕೊಠಡಿಗೆ ಸಂದೇಶ ಕಳುಹಿಸಿ",
+      "transcript": "ಈಗಲ್ ಮೂರು ನಿಯಂತ್ರಣ ಕೊಠಡಿಗೆ ಸಂದೇಶ ಕಳುಹಿಸಿ",
+      "transliteration": "eagle mooru niyantrana kothadige sandesha kaluhisi",
+      "durationMs": 4200,
+      "audioFilename": "kn_call_004.wav",
+      "criticalTokens": [
+        "ಈಗಲ್ ಮೂರು",
+        "ನಿಯಂತ್ರಣ ಕೊಠಡಿ"
+      ],
+      "expectedFacts": {
+        "callsign": "EAGLE_3",
+        "intent": "RELAY"
+      }
+    },
+    {
+      "id": "KN_CALL_005",
+      "language": "kn",
+      "category": "CALLSIGN",
+      "reference": "ವಿಕ್ಟರ್ ನಾಲ್ಕು ಸಹಾಯ ತಂಡದೊಂದಿಗೆ ಹೊರಟಿದೆ",
+      "transcript": "ವಿಕ್ಟರ್ ನಾಲ್ಕು ಸಹಾಯ ತಂಡದೊಂದಿಗೆ ಹೊರಟಿದೆ",
+      "transliteration": "victor nalku sahaya tandadondige horatide",
+      "durationMs": 4130,
+      "audioFilename": "kn_call_005.wav",
+      "criticalTokens": [
+        "ವಿಕ್ಟರ್ ನಾಲ್ಕು",
+        "ಸಹಾಯ ತಂಡ"
+      ],
+      "expectedFacts": {
+        "callsign": "VICTOR_4",
+        "intent": "DEPLOYMENT"
+      }
+    },
+    {
+      "id": "KN_EMERG_001",
+      "language": "kn",
+      "category": "EMERGENCY",
+      "reference": "ಎಸ್ಒಎಸ್ ವೈದ್ಯಕೀಯ ಸಹಾಯ ತುರ್ತಾಗಿ ಬೇಕು ಆಪರೇಟರ್ ಗಾಯಗೊಂಡಿದ್ದಾರೆ",
+      "transcript": "ಎಸ್ಒಎಸ್ ವೈದ್ಯಕೀಯ ಸಹಾಯ ತುರ್ತಾಗಿ ಬೇಕು ಆಪರೇಟರ್ ಗಾಯಗೊಂಡಿದ್ದಾರೆ",
+      "transliteration": "sos vaidyakiya sahaya turtagi beku operator gayagondiddare",
+      "durationMs": 4830,
+      "audioFilename": "kn_emerg_001.wav",
+      "criticalTokens": [
+        "ಎಸ್ಒಎಸ್",
+        "ವೈದ್ಯಕೀಯ ಸಹಾಯ",
+        "ಗಾಯಗೊಂಡಿದ್ದಾರೆ"
+      ],
+      "expectedFacts": {
+        "category": "MEDICAL",
+        "severity": "CRITICAL"
+      }
+    },
+    {
+      "id": "KN_EMERG_002",
+      "language": "kn",
+      "category": "EMERGENCY",
+      "reference": "ತುರ್ತು ಪರಿಸ್ಥಿತಿ ಸೆಕ್ಟರ್ ಎರಡರಲ್ಲಿ ಪ್ರವಾಹ ನೀರು ಏರುತ್ತಿದೆ",
+      "transcript": "ತುರ್ತು ಪರಿಸ್ಥಿತಿ ಸೆಕ್ಟರ್ ಎರಡರಲ್ಲಿ ಪ್ರವಾಹ ನೀರು ಏರುತ್ತಿದೆ",
+      "transliteration": "turtu paristhiti sector eradaralli pravaha neeru eruttide",
+      "durationMs": 4725,
+      "audioFilename": "kn_emerg_002.wav",
+      "criticalTokens": [
+        "ತುರ್ತು ಪರಿಸ್ಥಿತಿ",
+        "ಸೆಕ್ಟರ್ ಎರಡು",
+        "ಪ್ರವಾಹ"
+      ],
+      "expectedFacts": {
+        "category": "DISASTER",
+        "sector": 2,
+        "severity": "HIGH"
+      }
+    },
+    {
+      "id": "KN_EMERG_003",
+      "language": "kn",
+      "category": "EMERGENCY",
+      "reference": "ಸಹಾಯ ಬೇಕು ಸಂಪರ್ಕ ಕಡಿತಗೊಂಡಿದೆ ತುರ್ತು ಸಿಗ್ನಲ್ ಆನ್ ಆಗಿದೆ",
+      "transcript": "ಸಹಾಯ ಬೇಕು ಸಂಪರ್ಕ ಕಡಿತಗೊಂಡಿದೆ ತುರ್ತು ಸಿಗ್ನಲ್ ಆನ್ ಆಗಿದೆ",
+      "transliteration": "sahaya beku samparka kaditagondide turtu signal on aagide",
+      "durationMs": 4655,
+      "audioFilename": "kn_emerg_003.wav",
+      "criticalTokens": [
+        "ಸಹಾಯ ಬೇಕು",
+        "ಸಂಪರ್ಕ ಕಡಿತ",
+        "ಸಿಗ್ನಲ್"
+      ],
+      "expectedFacts": {
+        "category": "COMMS_FAILURE",
+        "severity": "HIGH"
+      }
+    },
+    {
+      "id": "KN_EMERG_004",
+      "language": "kn",
+      "category": "EMERGENCY",
+      "reference": "ರಕ್ಷಣಾ ತಂಡವನ್ನು ತಕ್ಷಣ ಕಳುಹಿಸಿ ಐದು ಜನರು ಸಿಲುಕಿದ್ದಾರೆ",
+      "transcript": "ರಕ್ಷಣಾ ತಂಡವನ್ನು ತಕ್ಷಣ ಕಳುಹಿಸಿ ಐದು ಜನರು ಸಿಲುಕಿದ್ದಾರೆ",
+      "transliteration": "rakshana tandavannu takshana kaluhisi aidu janaru silukiddare",
+      "durationMs": 4585,
+      "audioFilename": "kn_emerg_004.wav",
+      "criticalTokens": [
+        "ರಕ್ಷಣಾ ತಂಡ",
+        "ಐದು ಜನರು",
+        "ಸಿಲುಕಿದ್ದಾರೆ"
+      ],
+      "expectedFacts": {
+        "category": "RESCUE",
+        "count": 5,
+        "severity": "CRITICAL"
+      }
+    },
+    {
+      "id": "KN_EMERG_005",
+      "language": "kn",
+      "category": "EMERGENCY",
+      "reference": "ಅಪಾಯದ ಎಚ್ಚರಿಕೆ ತಕ್ಷಣ ಖಾಲಿ ಮಾಡಿ ಸೆಕ್ಟರ್ ಎಂಟು",
+      "transcript": "ಅಪಾಯದ ಎಚ್ಚರಿಕೆ ತಕ್ಷಣ ಖಾಲಿ ಮಾಡಿ ಸೆಕ್ಟರ್ ಎಂಟು",
+      "transliteration": "apayada eccharike takshana khali madi sector entu",
+      "durationMs": 4305,
+      "audioFilename": "kn_emerg_005.wav",
+      "criticalTokens": [
+        "ಅಪಾಯದ ಎಚ್ಚರಿಕೆ",
+        "ಖಾಲಿ ಮಾಡಿ",
+        "ಸೆಕ್ಟರ್ ಎಂಟು"
+      ],
+      "expectedFacts": {
+        "category": "EVACUATION",
+        "sector": 8,
+        "severity": "CRITICAL"
+      }
+    },
+    {
+      "id": "ML_NORM_001",
+      "language": "ml",
+      "category": "NORMAL",
+      "reference": "സംഘം പട്രോളിംഗ് യൂണിറ്റ് വേപോയിന്റിലേക്ക് നീങ്ങുന്നു",
+      "transcript": "സംഘം പട്രോളിംഗ് യൂണിറ്റ് വേപോയിന്റിലേക്ക് നീങ്ങുന്നു",
+      "transliteration": "sangham patrolling unit waypointilekku neengunnu",
+      "durationMs": 4620,
+      "audioFilename": "ml_norm_001.wav",
+      "criticalTokens": [
+        "പട്രോളിംഗ്",
+        "വേപോയിന്റ്"
+      ],
+      "expectedFacts": {
+        "intent": "PATROL_MOVEMENT"
+      }
+    },
+    {
+      "id": "ML_NORM_002",
+      "language": "ml",
+      "category": "NORMAL",
+      "reference": "എല്ലാ നോഡുകളും ചാനൽ ഒന്നിൽ ബന്ധപ്പെടുക",
+      "transcript": "എല്ലാ നോഡുകളും ചാനൽ ഒന്നിൽ ബന്ധപ്പെടുക",
+      "transliteration": "ella nodukalum channel onnil bandhappaduka",
+      "durationMs": 4130,
+      "audioFilename": "ml_norm_002.wav",
+      "criticalTokens": [
+        "നോഡുകൾ",
+        "ചാനൽ ഒന്ന്",
+        "ബന്ധപ്പെടുക"
+      ],
+      "expectedFacts": {
+        "intent": "RADIO_CHECK"
+      }
+    },
+    {
+      "id": "ML_NORM_003",
+      "language": "ml",
+      "category": "NORMAL",
+      "reference": "കാലാവസ്ഥ വ്യക്തമാണ് സ്ഥിതി സാധാരണമാണ്",
+      "transcript": "കാലാവസ്ഥ വ്യക്തമാണ് സ്ഥിതി സാധാരണമാണ്",
+      "transliteration": "kaalavastha vyakthamannu sthiti sadharanamannu",
+      "durationMs": 4095,
+      "audioFilename": "ml_norm_003.wav",
+      "criticalTokens": [
+        "കാലാവസ്ഥ",
+        "സാധാരണ"
+      ],
+      "expectedFacts": {
+        "intent": "WEATHER_REPORT"
+      }
+    },
+    {
+      "id": "ML_NORM_004",
+      "language": "ml",
+      "category": "NORMAL",
+      "reference": "ഞങ്ങൾ സുരക്ഷിത സ്ഥാനത്ത് എത്തിച്ചേർന്നു",
+      "transcript": "ഞങ്ങൾ സുരക്ഷിത സ്ഥാനത്ത് എത്തിച്ചേർന്നു",
+      "transliteration": "njangal surakshitha sthanathu ethicherthu",
+      "durationMs": 4165,
+      "audioFilename": "ml_norm_004.wav",
+      "criticalTokens": [
+        "സുരക്ഷിത",
+        "സ്ഥാനത്ത്"
+      ],
+      "expectedFacts": {
+        "intent": "STATUS_SAFE"
+      }
+    },
+    {
+      "id": "ML_NORM_005",
+      "language": "ml",
+      "category": "NORMAL",
+      "reference": "അടുത്ത നിർദ്ദേശം വരെ കാത്തിരിക്കുക",
+      "transcript": "അടുത്ത നിർദ്ദേശം വരെ കാത്തിരിക്കുക",
+      "transliteration": "adutha nirdesham vare kaathirikkuka",
+      "durationMs": 3990,
+      "audioFilename": "ml_norm_005.wav",
+      "criticalTokens": [
+        "നിർദ്ദേശം",
+        "കാത്തിരിക്കുക"
+      ],
+      "expectedFacts": {
+        "intent": "STANDBY"
+      }
+    },
+    {
+      "id": "ML_NUM_001",
+      "language": "ml",
+      "category": "NUMBERS",
+      "reference": "സെക്ടർ നാലിൽ മൂന്ന് പേർക്ക് പരിക്കേറ്റു",
+      "transcript": "സെക്ടർ നാലിൽ മൂന്ന് പേർക്ക് പരിക്കേറ്റു",
+      "transliteration": "sector naalil moonnu perkku parikkettu",
+      "durationMs": 4165,
+      "audioFilename": "ml_num_001.wav",
+      "criticalTokens": [
+        "സെക്ടർ നാല്",
+        "മൂന്ന്",
+        "പരിക്കേറ്റു"
+      ],
+      "expectedFacts": {
+        "sector": 4,
+        "count": 3,
+        "intent": "CASUALTY_REPORT"
+      }
+    },
+    {
+      "id": "ML_NUM_002",
+      "language": "ml",
+      "category": "NUMBERS",
+      "reference": "ഞങ്ങളുടെ പക്കൽ പന്ത്രണ്ട് പാക്കറ്റുകൾ ബാക്കിയുണ്ട്",
+      "transcript": "ഞങ്ങളുടെ പക്കൽ പന്ത്രണ്ട് പാക്കറ്റുകൾ ബാക്കിയുണ്ട്",
+      "transliteration": "njangalude pakkal pantrandu packetukal bakkiyundu",
+      "durationMs": 4550,
+      "audioFilename": "ml_num_002.wav",
+      "criticalTokens": [
+        "പന്ത്രണ്ട്",
+        "പാക്കറ്റുകൾ"
+      ],
+      "expectedFacts": {
+        "count": 12,
+        "intent": "SUPPLY_STATUS"
+      }
+    },
+    {
+      "id": "ML_NUM_003",
+      "language": "ml",
+      "category": "NUMBERS",
+      "reference": "ഗ്രൂപ്പിൽ ആകെ ഇരുപത്തിയഞ്ച് അംഗങ്ങളുണ്ട്",
+      "transcript": "ഗ്രൂപ്പിൽ ആകെ ഇരുപത്തിയഞ്ച് അംഗങ്ങളുണ്ട്",
+      "transliteration": "groupil aake irupathiyanchu angangalundu",
+      "durationMs": 4200,
+      "audioFilename": "ml_num_003.wav",
+      "criticalTokens": [
+        "ഇരുപത്തിയഞ്ച്",
+        "അംഗങ്ങൾ"
+      ],
+      "expectedFacts": {
+        "count": 25,
+        "intent": "PERSONNEL_COUNT"
+      }
+    },
+    {
+      "id": "ML_NUM_004",
+      "language": "ml",
+      "category": "NUMBERS",
+      "reference": "ബാറ്ററി നില നാൽപ്പത് ശതമാനമാണ്",
+      "transcript": "ബാറ്ററി നില നാൽപ്പത് ശതമാനമാണ്",
+      "transliteration": "battery nila nalppathu shathamanamaanu",
+      "durationMs": 3850,
+      "audioFilename": "ml_num_004.wav",
+      "criticalTokens": [
+        "ബാറ്ററി",
+        "നാൽപ്പത്"
+      ],
+      "expectedFacts": {
+        "count": 40,
+        "intent": "TELEMETRY"
+      }
+    },
+    {
+      "id": "ML_NUM_005",
+      "language": "ml",
+      "category": "NUMBERS",
+      "reference": "അഞ്ച് വാഹനങ്ങൾ വാഹനവ്യൂഹത്തിലുണ്ട്",
+      "transcript": "അഞ്ച് വാഹനങ്ങൾ വാഹനവ്യൂഹത്തിലുണ്ട്",
+      "transliteration": "anchu vahanangal vahanavyoohathilundu",
+      "durationMs": 3990,
+      "audioFilename": "ml_num_005.wav",
+      "criticalTokens": [
+        "അഞ്ച് വാഹനം",
+        "വാഹനവ്യൂഹം"
+      ],
+      "expectedFacts": {
+        "count": 5,
+        "intent": "CONVOY_STATUS"
+      }
+    },
+    {
+      "id": "ML_COORD_001",
+      "language": "ml",
+      "category": "COORDINATES",
+      "reference": "സ്ഥാനം അക്ഷാംശം എട്ട് ദശാംശം അഞ്ച് രേഖാംശം എഴുപത്തിയാറ് ദശാംശം ഒമ്പത്",
+      "transcript": "സ്ഥാനം അക്ഷാംശം എട്ട് ദശാംശം അഞ്ച് രേഖാംശം എഴുപത്തിയാറ് ദശാംശം ഒമ്പത്",
+      "transliteration": "sthanam akshamsham ettu dashamsham anchu rekhamsham ezhupathiaaru dashamsham ompathu",
+      "durationMs": 5215,
+      "audioFilename": "ml_coord_001.wav",
+      "criticalTokens": [
+        "അക്ഷാംശം 8.5",
+        "രേഖാംശം 76.9"
+      ],
+      "expectedFacts": {
+        "lat": 8.5,
+        "lon": 76.9,
+        "intent": "LOCATION_REPORT"
+      }
+    },
+    {
+      "id": "ML_COORD_002",
+      "language": "ml",
+      "category": "COORDINATES",
+      "reference": "ഗ്രിഡ് മുപ്പത്തിയഞ്ച് ദശാംശം രണ്ട് പുതിയ ക്യാമ്പ് സ്ഥാപിക്കുക",
+      "transcript": "ഗ്രിഡ് മുപ്പത്തിയഞ്ച് ദശാംശം രണ്ട് പുതിയ ക്യാമ്പ് സ്ഥാപിക്കുക",
+      "transliteration": "grid muppathiyanchu dashamsham randu puthiya camp sthapikkuka",
+      "durationMs": 4935,
+      "audioFilename": "ml_coord_002.wav",
+      "criticalTokens": [
+        "ഗ്രിഡ് 35.2",
+        "ക്യാമ്പ്"
+      ],
+      "expectedFacts": {
+        "grid": "35.2",
+        "intent": "BASE_SETUP"
+      }
+    },
+    {
+      "id": "ML_COORD_003",
+      "language": "ml",
+      "category": "COORDINATES",
+      "reference": "വേപോയിന്റ് പത്ത് ദശാംശം ഒന്ന് വടക്ക് എഴുപത്തിയേഴ് കിഴക്ക്",
+      "transcript": "വേപോയിന്റ് പത്ത് ദശാംശം ഒന്ന് വടക്ക് എഴുപത്തിയേഴ് കിഴക്ക്",
+      "transliteration": "waypoint pathu dashamsham onnu vadakku ezhupathiyelu kizhaku",
+      "durationMs": 4795,
+      "audioFilename": "ml_coord_003.wav",
+      "criticalTokens": [
+        "വേപോയിന്റ്",
+        "10.1 N"
+      ],
+      "expectedFacts": {
+        "lat": 10.1,
+        "lon": 77.0,
+        "intent": "WAYPOINT"
+      }
+    },
+    {
+      "id": "ML_COORD_004",
+      "language": "ml",
+      "category": "COORDINATES",
+      "reference": "ലക്ഷ്യസ്ഥാനം ഒമ്പത് ദശാംശം നാല് വടക്കിലാണ്",
+      "transcript": "ലക്ഷ്യസ്ഥാനം ഒമ്പത് ദശാംശം നാല് വടക്കിലാണ്",
+      "transliteration": "lakshyasthanam ompathu dashamsham naalu vadakkilanu",
+      "durationMs": 4270,
+      "audioFilename": "ml_coord_004.wav",
+      "criticalTokens": [
+        "9.4 N",
+        "ലക്ഷ്യസ്ഥാനം"
+      ],
+      "expectedFacts": {
+        "lat": 9.4,
+        "intent": "TARGET_ZONE"
+      }
+    },
+    {
+      "id": "ML_COORD_005",
+      "language": "ml",
+      "category": "COORDINATES",
+      "reference": "മാപ്പിൽ ബിന്ദു എഴുപത്തിയെട്ട് ദശാംശം രണ്ട് രേഖപ്പെടുത്തുക",
+      "transcript": "മാപ്പിൽ ബിന്ദു എഴുപത്തിയെട്ട് ദശാംശം രണ്ട് രേഖപ്പെടുത്തുക",
+      "transliteration": "mappil bindu ezhupathiyettu dashamsham randu rekhapeduthuka",
+      "durationMs": 4795,
+      "audioFilename": "ml_coord_005.wav",
+      "criticalTokens": [
+        "78.2",
+        "ബിന്ദു"
+      ],
+      "expectedFacts": {
+        "coord": "78.2",
+        "intent": "MAP_MARKER"
+      }
+    },
+    {
+      "id": "ML_CALL_001",
+      "language": "ml",
+      "category": "CALLSIGN",
+      "reference": "ആൽഫ ഒന്ന് ബേസ് സ്റ്റേഷനുമായി ഉടൻ ബന്ധപ്പെടുക",
+      "transcript": "ആൽഫ ഒന്ന് ബേസ് സ്റ്റേഷനുമായി ഉടൻ ബന്ധപ്പെടുക",
+      "transliteration": "alpha onnu base stationumaayi udan bandhappaduka",
+      "durationMs": 4340,
+      "audioFilename": "ml_call_001.wav",
+      "criticalTokens": [
+        "ആൽഫ ഒന്ന്",
+        "ബേസ് സ്റ്റേഷൻ"
+      ],
+      "expectedFacts": {
+        "callsign": "ALPHA_1",
+        "intent": "CALLSIGN_CONTACT"
+      }
+    },
+    {
+      "id": "ML_CALL_002",
+      "language": "ml",
+      "category": "CALLSIGN",
+      "reference": "ഹോക്ക് ഒമ്പത് ചെക്ക്പോയിന്റ് ബ്രാവോയിൽ റിപ്പോർട്ട് ചെയ്യുക",
+      "transcript": "ഹോക്ക് ഒമ്പത് ചെക്ക്പോയിന്റ് ബ്രാവോയിൽ റിപ്പോർട്ട് ചെയ്യുക",
+      "transliteration": "hawk ompathu checkpoint bravoyil report cheyyuka",
+      "durationMs": 4830,
+      "audioFilename": "ml_call_002.wav",
+      "criticalTokens": [
+        "ഹോക്ക് ഒമ്പത്",
+        "ചെക്ക്പോയിന്റ് ബ്രാവോ"
+      ],
+      "expectedFacts": {
+        "callsign": "HAWK_9",
+        "target": "CHECKPOINT_BRAVO"
+      }
+    },
+    {
+      "id": "ML_CALL_003",
+      "language": "ml",
+      "category": "CALLSIGN",
+      "reference": "ടൈഗർ ഏഴ് വ്യൂഹം സുരക്ഷിതമായി മുന്നേറുന്നു",
+      "transcript": "ടൈഗർ ഏഴ് വ്യൂഹം സുരക്ഷിതമായി മുന്നേറുന്നു",
+      "transliteration": "tiger ezhu vyooham surakshithamaayi munnerrunnu",
+      "durationMs": 4235,
+      "audioFilename": "ml_call_003.wav",
+      "criticalTokens": [
+        "ടൈഗർ ഏഴ്",
+        "വ്യൂഹം"
+      ],
+      "expectedFacts": {
+        "callsign": "TIGER_7",
+        "intent": "CONVOY_PROGRESS"
+      }
+    },
+    {
+      "id": "ML_CALL_004",
+      "language": "ml",
+      "category": "CALLSIGN",
+      "reference": "ഈഗിൾ മൂന്ന് കൺട്രോൾ റൂമിലേക്ക് സന്ദേശം അയക്കുക",
+      "transcript": "ഈഗിൾ മൂന്ന് കൺട്രോൾ റൂമിലേക്ക് സന്ദേശം അയക്കുക",
+      "transliteration": "eagle moonnu control roomilekku sandesham ayakkuka",
+      "durationMs": 4410,
+      "audioFilename": "ml_call_004.wav",
+      "criticalTokens": [
+        "ഈഗിൾ മൂന്ന്",
+        "കൺട്രോൾ റൂം"
+      ],
+      "expectedFacts": {
+        "callsign": "EAGLE_3",
+        "intent": "RELAY"
+      }
+    },
+    {
+      "id": "ML_CALL_005",
+      "language": "ml",
+      "category": "CALLSIGN",
+      "reference": "വിക്ടർ നാല് സഹായ സംഘത്തോടൊപ്പം പുറപ്പെട്ടു",
+      "transcript": "വിക്ടർ നാല് സഹായ സംഘത്തോടൊപ്പം പുറപ്പെട്ടു",
+      "transliteration": "victor naalu sahaya sanghathodoppam purappettu",
+      "durationMs": 4270,
+      "audioFilename": "ml_call_005.wav",
+      "criticalTokens": [
+        "വിക്ടർ നാല്",
+        "സഹായ സംഘം"
+      ],
+      "expectedFacts": {
+        "callsign": "VICTOR_4",
+        "intent": "DEPLOYMENT"
+      }
+    },
+    {
+      "id": "ML_EMERG_001",
+      "language": "ml",
+      "category": "EMERGENCY",
+      "reference": "എസ്ഒഎസ് അടിയന്തിര വൈദ്യസഹായം വേണം ആൾക്ക് പരിക്കേറ്റു",
+      "transcript": "എസ്ഒഎസ് അടിയന്തിര വൈദ്യസഹായം വേണം ആൾക്ക് പരിക്കേറ്റു",
+      "transliteration": "sos adiyanthira vaidyasahayam venam aalkku parikkettu",
+      "durationMs": 4620,
+      "audioFilename": "ml_emerg_001.wav",
+      "criticalTokens": [
+        "എസ്ഒഎസ്",
+        "വൈദ്യസഹായം",
+        "പരിക്കേറ്റു"
+      ],
+      "expectedFacts": {
+        "category": "MEDICAL",
+        "severity": "CRITICAL"
+      }
+    },
+    {
+      "id": "ML_EMERG_002",
+      "language": "ml",
+      "category": "EMERGENCY",
+      "reference": "അടിയന്തരാവസ്ഥ സെക്ടർ രണ്ടിൽ വെള്ളപ്പൊക്കം ഉയരുന്നു",
+      "transcript": "അടിയന്തരാവസ്ഥ സെക്ടർ രണ്ടിൽ വെള്ളപ്പൊക്കം ഉയരുന്നു",
+      "transliteration": "adiyanthiravastha sector randil vellappokkam uyarunnu",
+      "durationMs": 4550,
+      "audioFilename": "ml_emerg_002.wav",
+      "criticalTokens": [
+        "അടിയന്തരാവസ്ഥ",
+        "സെക്ടർ രണ്ട്",
+        "വെള്ളപ്പൊക്കം"
+      ],
+      "expectedFacts": {
+        "category": "DISASTER",
+        "sector": 2,
+        "severity": "HIGH"
+      }
+    },
+    {
+      "id": "ML_EMERG_003",
+      "language": "ml",
+      "category": "EMERGENCY",
+      "reference": "സഹായം വേണം ആശയവിനിമയം തകർന്നു അപായ സിഗ്നൽ നൽകി",
+      "transcript": "സഹായം വേണം ആശയവിനിമയം തകർന്നു അപായ സിഗ്നൽ നൽകി",
+      "transliteration": "sahayam venam aashayavinimayam thakarnnu apaaya signal nalki",
+      "durationMs": 4410,
+      "audioFilename": "ml_emerg_003.wav",
+      "criticalTokens": [
+        "സഹായം",
+        "ആശയവിനിമയം തകർന്നു",
+        "സിഗ്നൽ"
+      ],
+      "expectedFacts": {
+        "category": "COMMS_FAILURE",
+        "severity": "HIGH"
+      }
+    },
+    {
+      "id": "ML_EMERG_004",
+      "language": "ml",
+      "category": "EMERGENCY",
+      "reference": "രക്ഷാപ്രവർത്തകരെ ഉടൻ അയക്കൂ അഞ്ച് പേർ കുടുങ്ങി",
+      "transcript": "രക്ഷാപ്രവർത്തകരെ ഉടൻ അയക്കൂ അഞ്ച് പേർ കുടുങ്ങി",
+      "transliteration": "rakshapravarthakare udan ayakkum anchu per kudungi",
+      "durationMs": 4410,
+      "audioFilename": "ml_emerg_004.wav",
+      "criticalTokens": [
+        "രക്ഷാപ്രവർത്തകർ",
+        "അഞ്ച് പേർ",
+        "കുടുങ്ങി"
+      ],
+      "expectedFacts": {
+        "category": "RESCUE",
+        "count": 5,
+        "severity": "CRITICAL"
+      }
+    },
+    {
+      "id": "ML_EMERG_005",
+      "language": "ml",
+      "category": "EMERGENCY",
+      "reference": "അപകട മുന്നറിയിപ്പ് ഉടൻ ഒഴിഞ്ഞുപോകൂ സെക്ടർ എട്ട്",
+      "transcript": "അപകട മുന്നറിയിപ്പ് ഉടൻ ഒഴിഞ്ഞുപോകൂ സെക്ടർ എട്ട്",
+      "transliteration": "apakada munnariyippu udan ozhinjupoku sector ettu",
+      "durationMs": 4445,
+      "audioFilename": "ml_emerg_005.wav",
+      "criticalTokens": [
+        "അപകട മുന്നറിയിപ്പ്",
+        "ഒഴിഞ്ഞുപോകൂ",
+        "സെക്ടർ എട്ട്"
+      ],
+      "expectedFacts": {
+        "category": "EVACUATION",
+        "sector": 8,
+        "severity": "CRITICAL"
+      }
+    },
+    {
+      "id": "TA_NORM_001",
+      "language": "ta",
+      "category": "NORMAL",
+      "reference": "அணி இந்த ரோந்து குழு வேபாயிண்ட் நோக்கி செல்கிறது",
+      "transcript": "அணி இந்த ரோந்து குழு வேபாயிண்ட் நோக்கி செல்கிறது",
+      "transliteration": "ani intha ronthu kulu waypoint nokki selkirathu",
+      "durationMs": 4480,
+      "audioFilename": "ta_norm_001.wav",
+      "criticalTokens": [
+        "ரோந்து குழு",
+        "வேபாயிண்ட்"
+      ],
+      "expectedFacts": {
+        "intent": "PATROL_MOVEMENT"
+      }
+    },
+    {
+      "id": "TA_NORM_002",
+      "language": "ta",
+      "category": "NORMAL",
+      "reference": "அனைத்து முனையங்களும் சேனல் ஒன்றில் தொடர்பில் இருக்கவும்",
+      "transcript": "அனைத்து முனையங்களும் சேனல் ஒன்றில் தொடர்பில் இருக்கவும்",
+      "transliteration": "anaithu munaiyangalum channel ondril thodarpil irukkavum",
+      "durationMs": 4725,
+      "audioFilename": "ta_norm_002.wav",
+      "criticalTokens": [
+        "முனையங்கள்",
+        "சேனல் ஒன்று",
+        "தொடர்பு"
+      ],
+      "expectedFacts": {
+        "intent": "RADIO_CHECK"
+      }
+    },
+    {
+      "id": "TA_NORM_003",
+      "language": "ta",
+      "category": "NORMAL",
+      "reference": "வானிலை தெளிவாக உள்ளது மற்றும் நிலைமை சாதாரணமாக உள்ளது",
+      "transcript": "வானிலை தெளிவாக உள்ளது மற்றும் நிலைமை சாதாரணமாக உள்ளது",
+      "transliteration": "vaanilai thelivaga ullathu matrum nilaimai sadharanamaaga ullathu",
+      "durationMs": 4655,
+      "audioFilename": "ta_norm_003.wav",
+      "criticalTokens": [
+        "வானிலை",
+        "சாதாரணமாக"
+      ],
+      "expectedFacts": {
+        "intent": "WEATHER_REPORT"
+      }
+    },
+    {
+      "id": "TA_NORM_004",
+      "language": "ta",
+      "category": "NORMAL",
+      "reference": "நாங்கள் பாதுகாப்பான இடத்தை அடைந்துவிட்டோம்",
+      "transcript": "நாங்கள் பாதுகாப்பான இடத்தை அடைந்துவிட்டோம்",
+      "transliteration": "naangal paathukaappana idathai adainthuvittom",
+      "durationMs": 4270,
+      "audioFilename": "ta_norm_004.wav",
+      "criticalTokens": [
+        "பாதுகாப்பான",
+        "இடத்தை"
+      ],
+      "expectedFacts": {
+        "intent": "STATUS_SAFE"
+      }
+    },
+    {
+      "id": "TA_NORM_005",
+      "language": "ta",
+      "category": "NORMAL",
+      "reference": "அடுத்த உத்தரவு வரும் வரை காத்திருக்கவும்",
+      "transcript": "அடுத்த உத்தரவு வரும் வரை காத்திருக்கவும்",
+      "transliteration": "adutha utharavu varum varai kaathirukkavum",
+      "durationMs": 4200,
+      "audioFilename": "ta_norm_005.wav",
+      "criticalTokens": [
+        "உத்தரவு",
+        "காத்திருக்கவும்"
+      ],
+      "expectedFacts": {
+        "intent": "STANDBY"
+      }
+    },
+    {
+      "id": "TA_NUM_001",
+      "language": "ta",
+      "category": "NUMBERS",
+      "reference": "செக்டார் நான்கில் மூன்று வீரர்கள் காயமடைந்துள்ளனர்",
+      "transcript": "செக்டார் நான்கில் மூன்று வீரர்கள் காயமடைந்துள்ளனர்",
+      "transliteration": "sector naangil moondru veerarkal kayamadainthullanar",
+      "durationMs": 4550,
+      "audioFilename": "ta_num_001.wav",
+      "criticalTokens": [
+        "செக்டார் நான்கு",
+        "மூன்று",
+        "காயமடைந்துள்ளனர்"
+      ],
+      "expectedFacts": {
+        "sector": 4,
+        "count": 3,
+        "intent": "CASUALTY_REPORT"
+      }
+    },
+    {
+      "id": "TA_NUM_002",
+      "language": "ta",
+      "category": "NUMBERS",
+      "reference": "எங்களிடம் பன்னிரண்டு பாக்கெட்டுகள் மீதம் உள்ளன",
+      "transcript": "எங்களிடம் பன்னிரண்டு பாக்கெட்டுகள் மீதம் உள்ளன",
+      "transliteration": "engalidam pannirandu packettukal meetham ullana",
+      "durationMs": 4410,
+      "audioFilename": "ta_num_002.wav",
+      "criticalTokens": [
+        "பன்னிரண்டு",
+        "பாக்கெட்டுகள்"
+      ],
+      "expectedFacts": {
+        "count": 12,
+        "intent": "SUPPLY_STATUS"
+      }
+    },
+    {
+      "id": "TA_NUM_003",
+      "language": "ta",
+      "category": "NUMBERS",
+      "reference": "குழுவில் மொத்தம் இருபத்தைந்து வீரர்கள் உள்ளனர்",
+      "transcript": "குழுவில் மொத்தம் இருபத்தைந்து வீரர்கள் உள்ளனர்",
+      "transliteration": "kuluvil motham irubathainthu veerarkal ullanar",
+      "durationMs": 4410,
+      "audioFilename": "ta_num_003.wav",
+      "criticalTokens": [
+        "இருபத்தைந்து",
+        "வீரர்கள்"
+      ],
+      "expectedFacts": {
+        "count": 25,
+        "intent": "PERSONNEL_COUNT"
+      }
+    },
+    {
+      "id": "TA_NUM_004",
+      "language": "ta",
+      "category": "NUMBERS",
+      "reference": "பேட்டரி அளவு நாற்பது சதவீதம் உள்ளது",
+      "transcript": "பேட்டரி அளவு நாற்பது சதவீதம் உள்ளது",
+      "transliteration": "battery alavu narpathu sathaveetham ullathu",
+      "durationMs": 4025,
+      "audioFilename": "ta_num_004.wav",
+      "criticalTokens": [
+        "பேட்டரி",
+        "நாற்பது"
+      ],
+      "expectedFacts": {
+        "count": 40,
+        "intent": "TELEMETRY"
+      }
+    },
+    {
+      "id": "TA_NUM_005",
+      "language": "ta",
+      "category": "NUMBERS",
+      "reference": "ஐந்து வாகனங்கள் அணியில் உள்ளன",
+      "transcript": "ஐந்து வாகனங்கள் அணியில் உள்ளன",
+      "transliteration": "ainthu vaahanangal aniyil ullana",
+      "durationMs": 3815,
+      "audioFilename": "ta_num_005.wav",
+      "criticalTokens": [
+        "ஐந்து வாகனம்",
+        "அணியில்"
+      ],
+      "expectedFacts": {
+        "count": 5,
+        "intent": "CONVOY_STATUS"
+      }
+    },
+    {
+      "id": "TA_COORD_001",
+      "language": "ta",
+      "category": "COORDINATES",
+      "reference": "இடம் அட்சரேகை பதினொன்று புள்ளி பூஜ்ஜியம் தீர்க்கரேகை எழுபத்தேழு புள்ளி பூஜ்ஜியம்",
+      "transcript": "இடம் அட்சரேகை பதினொன்று புள்ளி பூஜ்ஜியம் தீர்க்கரேகை எழுபத்தேழு புள்ளி பூஜ்ஜியம்",
+      "transliteration": "idam atcharegai pathinondru pulli poojjiyam theerkaregai elupathelu pulli poojjiyam",
+      "durationMs": 5600,
+      "audioFilename": "ta_coord_001.wav",
+      "criticalTokens": [
+        "அட்சரேகை 11.0",
+        "தீர்க்கரேகை 77.0"
+      ],
+      "expectedFacts": {
+        "lat": 11.0,
+        "lon": 77.0,
+        "intent": "LOCATION_REPORT"
+      }
+    },
+    {
+      "id": "TA_COORD_002",
+      "language": "ta",
+      "category": "COORDINATES",
+      "reference": "கிரிட் முப்பத்தைந்து புள்ளி நான்கு புதிய முகாமை அமைக்கவும்",
+      "transcript": "கிரிட் முப்பத்தைந்து புள்ளி நான்கு புதிய முகாமை அமைக்கவும்",
+      "transliteration": "grid muppathainthu pulli naangu puthiya mugamai amaikkavum",
+      "durationMs": 4830,
+      "audioFilename": "ta_coord_002.wav",
+      "criticalTokens": [
+        "கிரிட் 35.4",
+        "முகாம்"
+      ],
+      "expectedFacts": {
+        "grid": "35.4",
+        "intent": "BASE_SETUP"
+      }
+    },
+    {
+      "id": "TA_COORD_003",
+      "language": "ta",
+      "category": "COORDINATES",
+      "reference": "வேபாயிண்ட் பதிமூன்று புள்ளி இரண்டு வடக்கு எழுபத்தெட்டு கிழக்கு",
+      "transcript": "வேபாயிண்ட் பதிமூன்று புள்ளி இரண்டு வடக்கு எழுபத்தெட்டு கிழக்கு",
+      "transliteration": "waypoint pathimoondru pulli irandu vadakku elupathentu kilakku",
+      "durationMs": 4970,
+      "audioFilename": "ta_coord_003.wav",
+      "criticalTokens": [
+        "வேபாயிண்ட்",
+        "13.2 N"
+      ],
+      "expectedFacts": {
+        "lat": 13.2,
+        "lon": 78.0,
+        "intent": "WAYPOINT"
+      }
+    },
+    {
+      "id": "TA_COORD_004",
+      "language": "ta",
+      "category": "COORDINATES",
+      "reference": "இலக்கு பகுதி பன்னிரண்டு புள்ளி ஐந்து வடக்கில் உள்ளது",
+      "transcript": "இலக்கு பகுதி பன்னிரண்டு புள்ளி ஐந்து வடக்கில் உள்ளது",
+      "transliteration": "ilakku paguthi pannirandu pulli ainthu vadakkil ullathu",
+      "durationMs": 4620,
+      "audioFilename": "ta_coord_004.wav",
+      "criticalTokens": [
+        "12.5 N",
+        "இலக்கு பகுதி"
+      ],
+      "expectedFacts": {
+        "lat": 12.5,
+        "intent": "TARGET_ZONE"
+      }
+    },
+    {
+      "id": "TA_COORD_005",
+      "language": "ta",
+      "category": "COORDINATES",
+      "reference": "வரைபடத்தில் புள்ளி எழுபத்தொன்பது புள்ளி ஒன்று குறிக்கவும்",
+      "transcript": "வரைபடத்தில் புள்ளி எழுபத்தொன்பது புள்ளி ஒன்று குறிக்கவும்",
+      "transliteration": "varaipadathil pulli elupatthonpathu pulli ondru kurikkavum",
+      "durationMs": 4795,
+      "audioFilename": "ta_coord_005.wav",
+      "criticalTokens": [
+        "79.1",
+        "புள்ளி"
+      ],
+      "expectedFacts": {
+        "coord": "79.1",
+        "intent": "MAP_MARKER"
+      }
+    },
+    {
+      "id": "TA_CALL_001",
+      "language": "ta",
+      "category": "CALLSIGN",
+      "reference": "ஆல்ஃபா ஒன்று அடிப்படை நிலையத்தை உடனடியாக தொடர்பு கொள்ளவும்",
+      "transcript": "ஆல்ஃபா ஒன்று அடிப்படை நிலையத்தை உடனடியாக தொடர்பு கொள்ளவும்",
+      "transliteration": "alpha ondru adippadai nilaiyathai udanadiyaga thodarpukollavum",
+      "durationMs": 4830,
+      "audioFilename": "ta_call_001.wav",
+      "criticalTokens": [
+        "ஆல்ஃபா ஒன்று",
+        "அடிப்படை நிலையம்"
+      ],
+      "expectedFacts": {
+        "callsign": "ALPHA_1",
+        "intent": "CALLSIGN_CONTACT"
+      }
+    },
+    {
+      "id": "TA_CALL_002",
+      "language": "ta",
+      "category": "CALLSIGN",
+      "reference": "ஹாக் ஒன்பது சோதனை சாவடி பிராவோவில் தகவல் தெரிவிக்கவும்",
+      "transcript": "ஹாக் ஒன்பது சோதனை சாவடி பிராவோவில் தகவல் தெரிவிக்கவும்",
+      "transliteration": "hawk onpathu sodhanai saavadi bravovil thagaval therivikkavum",
+      "durationMs": 4690,
+      "audioFilename": "ta_call_002.wav",
+      "criticalTokens": [
+        "ஹாக் ஒன்பது",
+        "சோதனை சாவடி பிராவோ"
+      ],
+      "expectedFacts": {
+        "callsign": "HAWK_9",
+        "target": "CHECKPOINT_BRAVO"
+      }
+    },
+    {
+      "id": "TA_CALL_003",
+      "language": "ta",
+      "category": "CALLSIGN",
+      "reference": "டைகர் ஏழு படைப்பிரிவு பாதுகாப்பாக முன்னேறுகிறது",
+      "transcript": "டைகர் ஏழு படைப்பிரிவு பாதுகாப்பாக முன்னேறுகிறது",
+      "transliteration": "tiger ezhlu padaippirivu paathukaappaga munnerugirathu",
+      "durationMs": 4445,
+      "audioFilename": "ta_call_003.wav",
+      "criticalTokens": [
+        "டைகர் ஏழு",
+        "படைப்பிரிவு"
+      ],
+      "expectedFacts": {
+        "callsign": "TIGER_7",
+        "intent": "CONVOY_PROGRESS"
+      }
+    },
+    {
+      "id": "TA_CALL_004",
+      "language": "ta",
+      "category": "CALLSIGN",
+      "reference": "ஈகிள் மூன்று கட்டுப்பாட்டு அறைக்கு செய்தி அனுப்பவும்",
+      "transcript": "ஈகிள் மூன்று கட்டுப்பாட்டு அறைக்கு செய்தி அனுப்பவும்",
+      "transliteration": "eagle moondru kattuppattu araikku seithi anuppavum",
+      "durationMs": 4620,
+      "audioFilename": "ta_call_004.wav",
+      "criticalTokens": [
+        "ஈகிள் மூன்று",
+        "கட்டுப்பாட்டு அறை"
+      ],
+      "expectedFacts": {
+        "callsign": "EAGLE_3",
+        "intent": "RELAY"
+      }
+    },
+    {
+      "id": "TA_CALL_005",
+      "language": "ta",
+      "category": "CALLSIGN",
+      "reference": "விக்டர் நான்கு உதவி குழுவுடன் புறப்பட்டுள்ளது",
+      "transcript": "விக்டர் நான்கு உதவி குழுவுடன் புறப்பட்டுள்ளது",
+      "transliteration": "victor naangu uthavi kuluvudan purappattullathu",
+      "durationMs": 4375,
+      "audioFilename": "ta_call_005.wav",
+      "criticalTokens": [
+        "விக்டர் நான்கு",
+        "உதவி குழு"
+      ],
+      "expectedFacts": {
+        "callsign": "VICTOR_4",
+        "intent": "DEPLOYMENT"
+      }
+    },
+    {
+      "id": "TA_EMERG_001",
+      "language": "ta",
+      "category": "EMERGENCY",
+      "reference": "எஸ்ஓஎஸ் மருத்துவ உதவி உடனடியாக தேவைப்படுகிறது நபர் காயமடைந்துள்ளார்",
+      "transcript": "எஸ்ஓஎஸ் மருத்துவ உதவி உடனடியாக தேவைப்படுகிறது நபர் காயமடைந்துள்ளார்",
+      "transliteration": "sos maruthuva uthavi udanadiyaga thevaippadugirathu nabar kayamadainthullar",
+      "durationMs": 5145,
+      "audioFilename": "ta_emerg_001.wav",
+      "criticalTokens": [
+        "எஸ்ஓஎஸ்",
+        "மருத்துவ உதவி",
+        "காயமடைந்துள்ளார்"
+      ],
+      "expectedFacts": {
+        "category": "MEDICAL",
+        "severity": "CRITICAL"
+      }
+    },
+    {
+      "id": "TA_EMERG_002",
+      "language": "ta",
+      "category": "EMERGENCY",
+      "reference": "அவசரநிலை செக்டார் இரண்டில் வெள்ள நீர் உயர்கிறது",
+      "transcript": "அவசரநிலை செக்டார் இரண்டில் வெள்ள நீர் உயர்கிறது",
+      "transliteration": "avasaranilai sector irandil vella neer uyargirathu",
+      "durationMs": 4445,
+      "audioFilename": "ta_emerg_002.wav",
+      "criticalTokens": [
+        "அவசரநிலை",
+        "செக்டார் இரண்டு",
+        "வெள்ள நீர்"
+      ],
+      "expectedFacts": {
+        "category": "DISASTER",
+        "sector": 2,
+        "severity": "HIGH"
+      }
+    },
+    {
+      "id": "TA_EMERG_003",
+      "language": "ta",
+      "category": "EMERGENCY",
+      "reference": "உதவி தேவை தொடர்பு துண்டிக்கப்பட்டது அவசர சிக்னல் இயக்கப்பட்டது",
+      "transcript": "உதவி தேவை தொடர்பு துண்டிக்கப்பட்டது அவசர சிக்னல் இயக்கப்பட்டது",
+      "transliteration": "uthavi thevai thodarpu thundikkappattathu avasara signal iyakkappattathu",
+      "durationMs": 4970,
+      "audioFilename": "ta_emerg_003.wav",
+      "criticalTokens": [
+        "உதவி தேவை",
+        "தொடர்பு துண்டிக்கப்பட்டது",
+        "சிக்னல்"
+      ],
+      "expectedFacts": {
+        "category": "COMMS_FAILURE",
+        "severity": "HIGH"
+      }
+    },
+    {
+      "id": "TA_EMERG_004",
+      "language": "ta",
+      "category": "EMERGENCY",
+      "reference": "மீட்பு குழுவை உடனடியாக அனுப்பவும் ஐந்து பேர் சிக்கியுள்ளனர்",
+      "transcript": "மீட்பு குழுவை உடனடியாக அனுப்பவும் ஐந்து பேர் சிக்கியுள்ளனர்",
+      "transliteration": "meetpu kuluvai udanadiyaga anuppavum ainthu per sikkiyullanar",
+      "durationMs": 4865,
+      "audioFilename": "ta_emerg_004.wav",
+      "criticalTokens": [
+        "மீட்பு குழு",
+        "ஐந்து பேர்",
+        "சிக்கியுள்ளனர்"
+      ],
+      "expectedFacts": {
+        "category": "RESCUE",
+        "count": 5,
+        "severity": "CRITICAL"
+      }
+    },
+    {
+      "id": "TA_EMERG_005",
+      "language": "ta",
+      "category": "EMERGENCY",
+      "reference": "ஆபத்து எச்சரிக்கை உடனடியாக வெளியேறவும் செக்டார் எட்டு",
+      "transcript": "ஆபத்து எச்சரிக்கை உடனடியாக வெளியேறவும் செக்டார் எட்டு",
+      "transliteration": "aabathu eccharikkai udanadiyaga veliyeravum sector ettu",
+      "durationMs": 4655,
+      "audioFilename": "ta_emerg_005.wav",
+      "criticalTokens": [
+        "ஆபத்து எச்சரிக்கை",
+        "வெளியேறவும்",
+        "செக்டார் எட்டு"
+      ],
+      "expectedFacts": {
+        "category": "EVACUATION",
+        "sector": 8,
+        "severity": "CRITICAL"
+      }
+    },
+    {
+      "id": "TE_NORM_001",
+      "language": "te",
+      "category": "NORMAL",
+      "reference": "బృందం ఈ పెట్రోలింగ్ బృందం వేపాయింట్ వైపు కదులుతోంది",
+      "transcript": "బృందం ఈ పెట్రోలింగ్ బృందం వేపాయింట్ వైపు కదులుతోంది",
+      "transliteration": "brundam ee patrolling brundam waypoint vaipu kadulutondi",
+      "durationMs": 4585,
+      "audioFilename": "te_norm_001.wav",
+      "criticalTokens": [
+        "పెట్రోలింగ్",
+        "వేపాయింట్"
+      ],
+      "expectedFacts": {
+        "intent": "PATROL_MOVEMENT"
+      }
+    },
+    {
+      "id": "TE_NORM_002",
+      "language": "te",
+      "category": "NORMAL",
+      "reference": "అన్ని నోడ్లు ఛానెల్ ఒకటిలో సంప్రదింపుల్లో ఉండండి",
+      "transcript": "అన్ని నోడ్లు ఛానెల్ ఒకటిలో సంప్రదింపుల్లో ఉండండి",
+      "transliteration": "anni nodelu channel okatilo sampradimmpullo undandi",
+      "durationMs": 4480,
+      "audioFilename": "te_norm_002.wav",
+      "criticalTokens": [
+        "నోడ్లు",
+        "ఛానెల్ ఒకటి",
+        "సంప్రదింపు"
+      ],
+      "expectedFacts": {
+        "intent": "RADIO_CHECK"
+      }
+    },
+    {
+      "id": "TE_NORM_003",
+      "language": "te",
+      "category": "NORMAL",
+      "reference": "వాతావరణం స్పష్టంగా ఉంది మరియు పరిస్థితి సాధారణంగా ఉంది",
+      "transcript": "వాతావరణం స్పష్టంగా ఉంది మరియు పరిస్థితి సాధారణంగా ఉంది",
+      "transliteration": "vatavaranam spashtanga undi mariyu paristhiti sadharananga undi",
+      "durationMs": 4690,
+      "audioFilename": "te_norm_003.wav",
+      "criticalTokens": [
+        "వాతావరణం",
+        "సాధారణం"
+      ],
+      "expectedFacts": {
+        "intent": "WEATHER_REPORT"
+      }
+    },
+    {
+      "id": "TE_NORM_004",
+      "language": "te",
+      "category": "NORMAL",
+      "reference": "మేము సురక్షిత ప్రదేశానికి చేరుకున్నాము",
+      "transcript": "మేము సురక్షిత ప్రదేశానికి చేరుకున్నాము",
+      "transliteration": "memu surakshita pradeshaniki cherukunnamu",
+      "durationMs": 4130,
+      "audioFilename": "te_norm_004.wav",
+      "criticalTokens": [
+        "సురక్షిత",
+        "ప్రదేశం"
+      ],
+      "expectedFacts": {
+        "intent": "STATUS_SAFE"
+      }
+    },
+    {
+      "id": "TE_NORM_005",
+      "language": "te",
+      "category": "NORMAL",
+      "reference": "తదుపరి ఆదేశాలు వచ్చేవరకు వేచి ఉండండి",
+      "transcript": "తదుపరి ఆదేశాలు వచ్చేవరకు వేచి ఉండండి",
+      "transliteration": "tadupari aadeshalu vachevaraku vechi undandi",
+      "durationMs": 4060,
+      "audioFilename": "te_norm_005.wav",
+      "criticalTokens": [
+        "ఆదేశాలు",
+        "వేచి ఉండండి"
+      ],
+      "expectedFacts": {
+        "intent": "STANDBY"
+      }
+    },
+    {
+      "id": "TE_NUM_001",
+      "language": "te",
+      "category": "NUMBERS",
+      "reference": "సెక్టార్ నాలుగులో ముగ్గురు గాయపడిన ఆపరేటర్లు ఉన్నారు",
+      "transcript": "సెక్టార్ నాలుగులో ముగ్గురు గాయపడిన ఆపరేటర్లు ఉన్నారు",
+      "transliteration": "sector naalugulo mugguru gayapadina operatorlu unnaru",
+      "durationMs": 4620,
+      "audioFilename": "te_num_001.wav",
+      "criticalTokens": [
+        "సెక్టార్ నాలుగు",
+        "ముగ్గురు",
+        "గాయపడిన"
+      ],
+      "expectedFacts": {
+        "sector": 4,
+        "count": 3,
+        "intent": "CASUALTY_REPORT"
+      }
+    },
+    {
+      "id": "TE_NUM_002",
+      "language": "te",
+      "category": "NUMBERS",
+      "reference": "మా వద్ద పన్నెండు ప్యాకెట్లు మిగిలి ఉన్నాయి",
+      "transcript": "మా వద్ద పన్నెండు ప్యాకెట్లు మిగిలి ఉన్నాయి",
+      "transliteration": "maa vadda pannelamdu packetlu migili unnaayi",
+      "durationMs": 4270,
+      "audioFilename": "te_num_002.wav",
+      "criticalTokens": [
+        "పన్నెండు",
+        "ప్యాకెట్లు"
+      ],
+      "expectedFacts": {
+        "count": 12,
+        "intent": "SUPPLY_STATUS"
+      }
+    },
+    {
+      "id": "TE_NUM_003",
+      "language": "te",
+      "category": "NUMBERS",
+      "reference": "సమూహంలో మొత్తం ఇరవై ఐదు మంది సభ్యులు ఉన్నారు",
+      "transcript": "సమూహంలో మొత్తం ఇరవై ఐదు మంది సభ్యులు ఉన్నారు",
+      "transliteration": "samuhamlo motham iravai aidu mandi sabhyulu unnaru",
+      "durationMs": 4340,
+      "audioFilename": "te_num_003.wav",
+      "criticalTokens": [
+        "ఇరవై ఐదు",
+        "సభ్యులు"
+      ],
+      "expectedFacts": {
+        "count": 25,
+        "intent": "PERSONNEL_COUNT"
+      }
+    },
+    {
+      "id": "TE_NUM_004",
+      "language": "te",
+      "category": "NUMBERS",
+      "reference": "బ్యాటరీ స్థాయి నలభై శాతం ఉంది",
+      "transcript": "బ్యాటరీ స్థాయి నలభై శాతం ఉంది",
+      "transliteration": "battery sthayi nalabhai shaatam undi",
+      "durationMs": 3815,
+      "audioFilename": "te_num_004.wav",
+      "criticalTokens": [
+        "బ్యాటరీ",
+        "నలభై"
+      ],
+      "expectedFacts": {
+        "count": 40,
+        "intent": "TELEMETRY"
+      }
+    },
+    {
+      "id": "TE_NUM_005",
+      "language": "te",
+      "category": "NUMBERS",
+      "reference": "కాన్వాయ్‌లో ఐదు వాహనాలు ఉన్నాయి",
+      "transcript": "కాన్వాయ్‌లో ఐదు వాహనాలు ఉన్నాయి",
+      "transliteration": "convoylo aidu vahanalu unnaayi",
+      "durationMs": 3885,
+      "audioFilename": "te_num_005.wav",
+      "criticalTokens": [
+        "ఐదు వాహనాలు",
+        "కాన్వాయ్"
+      ],
+      "expectedFacts": {
+        "count": 5,
+        "intent": "CONVOY_STATUS"
+      }
+    },
+    {
+      "id": "TE_COORD_001",
+      "language": "te",
+      "category": "COORDINATES",
+      "reference": "స్థానం అక్షాంశం పదిహేడు దశాంశం నాలుగు రేఖాంశం డెబ్బై ఎనిమిది దశాంశం ఐదు",
+      "transcript": "స్థానం అక్షాంశం పదిహేడు దశాంశం నాలుగు రేఖాంశం డెబ్బై ఎనిమిది దశాంశం ఐదు",
+      "transliteration": "sthanam akshamsham padihedu dashamsham naalugu rekhamsham debbai enimidi dashamsham aidu",
+      "durationMs": 5285,
+      "audioFilename": "te_coord_001.wav",
+      "criticalTokens": [
+        "అక్షాంశం 17.4",
+        "రేఖాంశం 78.5"
+      ],
+      "expectedFacts": {
+        "lat": 17.4,
+        "lon": 78.5,
+        "intent": "LOCATION_REPORT"
+      }
+    },
+    {
+      "id": "TE_COORD_002",
+      "language": "te",
+      "category": "COORDINATES",
+      "reference": "గ్రిడ్ ముప్పై ఆరు దశాంశం రెండు వద్ద కొత్త బేస్ ఏర్పాటు చేయండి",
+      "transcript": "గ్రిడ్ ముప్పై ఆరు దశాంశం రెండు వద్ద కొత్త బేస్ ఏర్పాటు చేయండి",
+      "transliteration": "grid muppai aaru dashamsham rendu vadda kottha base erpaatu cheyandi",
+      "durationMs": 4935,
+      "audioFilename": "te_coord_002.wav",
+      "criticalTokens": [
+        "గ్రిడ్ 36.2",
+        "బేస్"
+      ],
+      "expectedFacts": {
+        "grid": "36.2",
+        "intent": "BASE_SETUP"
+      }
+    },
+    {
+      "id": "TE_COORD_003",
+      "language": "te",
+      "category": "COORDINATES",
+      "reference": "వేపాయింట్ పదహారు దశాంశం ఒకటి ఉత్తరం డెబ్బై తొమ్మిది తూర్పు",
+      "transcript": "వేపాయింట్ పదహారు దశాంశం ఒకటి ఉత్తరం డెబ్బై తొమ్మిది తూర్పు",
+      "transliteration": "waypoint padahaaru dashamsham okati uttaram debbai tommidi thoorpu",
+      "durationMs": 4830,
+      "audioFilename": "te_coord_003.wav",
+      "criticalTokens": [
+        "వేపాయింట్",
+        "16.1 N"
+      ],
+      "expectedFacts": {
+        "lat": 16.1,
+        "lon": 79.0,
+        "intent": "WAYPOINT"
+      }
+    },
+    {
+      "id": "TE_COORD_004",
+      "language": "te",
+      "category": "COORDINATES",
+      "reference": "లక్ష్య ప్రాంతం పదిహేను దశాంశం ఎనిమిది ఉత్తరంలో ఉంది",
+      "transcript": "లక్ష్య ప్రాంతం పదిహేను దశాంశం ఎనిమిది ఉత్తరంలో ఉంది",
+      "transliteration": "lakshya prantham padihenu dashamsham enimidi uttarando undi",
+      "durationMs": 4585,
+      "audioFilename": "te_coord_004.wav",
+      "criticalTokens": [
+        "15.8 N",
+        "లక్ష్య ప్రాంతం"
+      ],
+      "expectedFacts": {
+        "lat": 15.8,
+        "intent": "TARGET_ZONE"
+      }
+    },
+    {
+      "id": "TE_COORD_005",
+      "language": "te",
+      "category": "COORDINATES",
+      "reference": "మ్యాప్‌లో పాయింట్ ఎనభై దశాంశం మూడు గుర్తించండి",
+      "transcript": "మ్యాప్‌లో పాయింట్ ఎనభై దశాంశం మూడు గుర్తించండి",
+      "transliteration": "maplo point enabhai dashamsham moodu gurtinchandi",
+      "durationMs": 4410,
+      "audioFilename": "te_coord_005.wav",
+      "criticalTokens": [
+        "80.3",
+        "పాయింట్"
+      ],
+      "expectedFacts": {
+        "coord": "80.3",
+        "intent": "MAP_MARKER"
+      }
+    },
+    {
+      "id": "TE_CALL_001",
+      "language": "te",
+      "category": "CALLSIGN",
+      "reference": "ఆల్ఫా ఒకటి బేస్ స్టేషన్‌ను తక్షణమే సంప్రదించండి",
+      "transcript": "ఆల్ఫా ఒకటి బేస్ స్టేషన్‌ను తక్షణమే సంప్రదించండి",
+      "transliteration": "alpha okati base stationnu takshaname sampradinchandi",
+      "durationMs": 4445,
+      "audioFilename": "te_call_001.wav",
+      "criticalTokens": [
+        "ఆల్ఫా ఒకటి",
+        "బేస్ స్టేషన్"
+      ],
+      "expectedFacts": {
+        "callsign": "ALPHA_1",
+        "intent": "CALLSIGN_CONTACT"
+      }
+    },
+    {
+      "id": "TE_CALL_002",
+      "language": "te",
+      "category": "CALLSIGN",
+      "reference": "హాక్ తొమ్మిది చెక్‌పాయింట్ బ్రావోకు నివేదించండి",
+      "transcript": "హాక్ తొమ్మిది చెక్‌పాయింట్ బ్రావోకు నివేదించండి",
+      "transliteration": "hawk tommidi checkpoint bravoku nivedinchandi",
+      "durationMs": 4445,
+      "audioFilename": "te_call_002.wav",
+      "criticalTokens": [
+        "హాక్ తొమ్మిది",
+        "చెక్‌పాయింట్ బ్రావో"
+      ],
+      "expectedFacts": {
+        "callsign": "HAWK_9",
+        "target": "CHECKPOINT_BRAVO"
+      }
+    },
+    {
+      "id": "TE_CALL_003",
+      "language": "te",
+      "category": "CALLSIGN",
+      "reference": "టైగర్ ఏడు కాన్వాయ్ సురక్షితంగా ముందుకు సాగుతోంది",
+      "transcript": "టైగర్ ఏడు కాన్వాయ్ సురక్షితంగా ముందుకు సాగుతోంది",
+      "transliteration": "tiger edu convoy surakshitanga munduku sagutondi",
+      "durationMs": 4480,
+      "audioFilename": "te_call_003.wav",
+      "criticalTokens": [
+        "టైగర్ ఏడు",
+        "కాన్వాయ్"
+      ],
+      "expectedFacts": {
+        "callsign": "TIGER_7",
+        "intent": "CONVOY_PROGRESS"
+      }
+    },
+    {
+      "id": "TE_CALL_004",
+      "language": "te",
+      "category": "CALLSIGN",
+      "reference": "ఈగిల్ మూడు కంట్రోల్ రూమ్‌కు సమాచారం పంపండి",
+      "transcript": "ఈగిల్ మూడు కంట్రోల్ రూమ్‌కు సమాచారం పంపండి",
+      "transliteration": "eagle moodu control roomku samacharam pampandi",
+      "durationMs": 4270,
+      "audioFilename": "te_call_004.wav",
+      "criticalTokens": [
+        "ఈగిల్ మూడు",
+        "కంట్రోల్ రూమ్"
+      ],
+      "expectedFacts": {
+        "callsign": "EAGLE_3",
+        "intent": "RELAY"
+      }
+    },
+    {
+      "id": "TE_CALL_005",
+      "language": "te",
+      "category": "CALLSIGN",
+      "reference": "విక్టర్ నాలుగు సహాయ బృందంతో బయలుదేరింది",
+      "transcript": "విక్టర్ నాలుగు సహాయ బృందంతో బయలుదేరింది",
+      "transliteration": "victor naalugu sahaya brundamtho bayaluderindi",
+      "durationMs": 4165,
+      "audioFilename": "te_call_005.wav",
+      "criticalTokens": [
+        "విక్టర్ నాలుగు",
+        "సహాయ బృందం"
+      ],
+      "expectedFacts": {
+        "callsign": "VICTOR_4",
+        "intent": "DEPLOYMENT"
+      }
+    },
+    {
+      "id": "TE_EMERG_001",
+      "language": "te",
+      "category": "EMERGENCY",
+      "reference": "ఎస్ఓఎస్ వైద్య సహాయం తక్షణమే కావాలి ఆపరేటర్ గాయపడ్డాడు",
+      "transcript": "ఎస్ఓఎస్ వైద్య సహాయం తక్షణమే కావాలి ఆపరేటర్ గాయపడ్డాడు",
+      "transliteration": "sos vaidya sahayam takshaname kaavali operator gayapaddadu",
+      "durationMs": 4655,
+      "audioFilename": "te_emerg_001.wav",
+      "criticalTokens": [
+        "ఎస్ఓఎస్",
+        "వైద్య సహాయం",
+        "గాయపడ్డాడు"
+      ],
+      "expectedFacts": {
+        "category": "MEDICAL",
+        "severity": "CRITICAL"
+      }
+    },
+    {
+      "id": "TE_EMERG_002",
+      "language": "te",
+      "category": "EMERGENCY",
+      "reference": "అత్యవసర పరిస్థితి సెక్టార్ రెండులో వరద నీరు పెరుగుతోంది",
+      "transcript": "అత్యవసర పరిస్థితి సెక్టార్ రెండులో వరద నీరు పెరుగుతోంది",
+      "transliteration": "atyavasara paristhiti sector rendulo varada neeru perugutondi",
+      "durationMs": 4725,
+      "audioFilename": "te_emerg_002.wav",
+      "criticalTokens": [
+        "అత్యవసర పరిస్థితి",
+        "సెక్టార్ రెండు",
+        "వరద నీరు"
+      ],
+      "expectedFacts": {
+        "category": "DISASTER",
+        "sector": 2,
+        "severity": "HIGH"
+      }
+    },
+    {
+      "id": "TE_EMERG_003",
+      "language": "te",
+      "category": "EMERGENCY",
+      "reference": "సహాయం కావాలి కమ్యూనికేషన్ తెగిపోయింది అత్యవసర సిగ్నల్ ఆన్",
+      "transcript": "సహాయం కావాలి కమ్యూనికేషన్ తెగిపోయింది అత్యవసర సిగ్నల్ ఆన్",
+      "transliteration": "sahayam kaavali communication tegipoyindi atyavasara signal on",
+      "durationMs": 4795,
+      "audioFilename": "te_emerg_003.wav",
+      "criticalTokens": [
+        "సహాయం",
+        "కమ్యూనికేషన్ తెగిపోయింది",
+        "సిగ్నల్"
+      ],
+      "expectedFacts": {
+        "category": "COMMS_FAILURE",
+        "severity": "HIGH"
+      }
+    },
+    {
+      "id": "TE_EMERG_004",
+      "language": "te",
+      "category": "EMERGENCY",
+      "reference": "రెస్క్యూ టీమ్‌ను వెంటనే పంపండి ఐదుగురు చిక్కుకున్నారు",
+      "transcript": "రెస్క్యూ టీమ్‌ను వెంటనే పంపండి ఐదుగురు చిక్కుకున్నారు",
+      "transliteration": "rescue teamnu ventane pampandi aiduguru chikkukunnaru",
+      "durationMs": 4655,
+      "audioFilename": "te_emerg_004.wav",
+      "criticalTokens": [
+        "రెస్క్యూ టీమ్",
+        "ఐదుగురు",
+        "చిక్కుకున్నారు"
+      ],
+      "expectedFacts": {
+        "category": "RESCUE",
+        "count": 5,
+        "severity": "CRITICAL"
+      }
+    },
+    {
+      "id": "TE_EMERG_005",
+      "language": "te",
+      "category": "EMERGENCY",
+      "reference": "ప్రమాద హెచ్చరిక వెంటనే ఖాళీ చేయండి సెక్టార్ ఎనిమిది",
+      "transcript": "ప్రమాద హెచ్చరిక వెంటనే ఖాళీ చేయండి సెక్టార్ ఎనిమిది",
+      "transliteration": "pramada heccharika ventane khaali cheyandi sector enimidi",
+      "durationMs": 4585,
+      "audioFilename": "te_emerg_005.wav",
+      "criticalTokens": [
+        "ప్రమాద హెచ్చరిక",
+        "ఖాళీ చేయండి",
+        "సెక్టార్ ఎనిమిది"
+      ],
+      "expectedFacts": {
+        "category": "EVACUATION",
+        "sector": 8,
+        "severity": "CRITICAL"
+      }
+    },
+    {
+      "id": "OR_NORM_001",
+      "language": "or",
+      "category": "NORMAL",
+      "reference": "ଦଳ ଏହି ପାଟ୍ରୋଲିଂ ୟୁନିଟ୍ ୱେପଏଣ୍ଟ ଆଡକୁ ଯାଉଛି",
+      "transcript": "ଦଳ ଏହି ପାଟ୍ରୋଲିଂ ୟୁନିଟ୍ ୱେପଏଣ୍ଟ ଆଡକୁ ଯାଉଛି",
+      "transliteration": "dala ehi patrolling unit waypoint aadaku jauchhi",
+      "durationMs": 4270,
+      "audioFilename": "or_norm_001.wav",
+      "criticalTokens": [
+        "ପାଟ୍ରୋଲିଂ",
+        "ୱେପଏଣ୍ଟ"
+      ],
+      "expectedFacts": {
+        "intent": "PATROL_MOVEMENT"
+      }
+    },
+    {
+      "id": "OR_NORM_002",
+      "language": "or",
+      "category": "NORMAL",
+      "reference": "ସମସ୍ତ ନୋଡ ଚ୍ୟାନେଲ୍ ଏକରେ ଯୋଗାଯୋଗ ରଖନ୍ତୁ",
+      "transcript": "ସମସ୍ତ ନୋଡ ଚ୍ୟାନେଲ୍ ଏକରେ ଯୋଗାଯୋଗ ରଖନ୍ତୁ",
+      "transliteration": "samasta node channel ekare yogayog rakhantu",
+      "durationMs": 4130,
+      "audioFilename": "or_norm_002.wav",
+      "criticalTokens": [
+        "ନୋଡ",
+        "ଚ୍ୟାନେଲ୍ ଏକ",
+        "ଯୋଗାଯୋଗ"
+      ],
+      "expectedFacts": {
+        "intent": "RADIO_CHECK"
+      }
+    },
+    {
+      "id": "OR_NORM_003",
+      "language": "or",
+      "category": "NORMAL",
+      "reference": "ପାଣିପାଗ ସ୍ୱଚ୍ଛ ଅଛି ଏବଂ ପରିସ୍ଥିତି ସାଧାରଣ ଅଛି",
+      "transcript": "ପାଣିପାଗ ସ୍ୱଚ୍ଛ ଅଛି ଏବଂ ପରିସ୍ଥିତି ସାଧାରଣ ଅଛି",
+      "transliteration": "panipaga swachha achhi ebang paristhiti sadharana achhi",
+      "durationMs": 4305,
+      "audioFilename": "or_norm_003.wav",
+      "criticalTokens": [
+        "ପାଣିପାଗ",
+        "ସାଧାରଣ"
+      ],
+      "expectedFacts": {
+        "intent": "WEATHER_REPORT"
+      }
+    },
+    {
+      "id": "OR_NORM_004",
+      "language": "or",
+      "category": "NORMAL",
+      "reference": "ଆମେ ସୁରକ୍ଷିତ ସ୍ଥାନରେ ପହଞ୍ଚି ଯାଇଛୁ",
+      "transcript": "ଆମେ ସୁରକ୍ଷିତ ସ୍ଥାନରେ ପହଞ୍ଚି ଯାଇଛୁ",
+      "transliteration": "aame surakshita sthanare pahanchi yaichhu",
+      "durationMs": 3955,
+      "audioFilename": "or_norm_004.wav",
+      "criticalTokens": [
+        "ସୁରକ୍ଷିତ",
+        "ସ୍ଥାନ"
+      ],
+      "expectedFacts": {
+        "intent": "STATUS_SAFE"
+      }
+    },
+    {
+      "id": "OR_NORM_005",
+      "language": "or",
+      "category": "NORMAL",
+      "reference": "ପରବର୍ତ୍ତୀ ନିର୍ଦ୍ଦେଶ ପର୍ଯ୍ୟନ୍ତ ଅପେକ୍ଷା କରନ୍ତୁ",
+      "transcript": "ପରବର୍ତ୍ତୀ ନିର୍ଦ୍ଦେଶ ପର୍ଯ୍ୟନ୍ତ ଅପେକ୍ଷା କରନ୍ତୁ",
+      "transliteration": "paravartti nirddesha paryanta apeksha karantu",
+      "durationMs": 4340,
+      "audioFilename": "or_norm_005.wav",
+      "criticalTokens": [
+        "ନିର୍ଦ୍ଦେଶ",
+        "ଅପେକ୍ଷା"
+      ],
+      "expectedFacts": {
+        "intent": "STANDBY"
+      }
+    },
+    {
+      "id": "OR_NUM_001",
+      "language": "or",
+      "category": "NUMBERS",
+      "reference": "ସେକ୍ଟର ଚାରିରେ ତିନି ଜଣ ଆହତ ଅପରେଟର ଅଛନ୍ତି",
+      "transcript": "ସେକ୍ଟର ଚାରିରେ ତିନି ଜଣ ଆହତ ଅପରେଟର ଅଛନ୍ତି",
+      "transliteration": "sector charire tini jana aahata operator achhanti",
+      "durationMs": 4165,
+      "audioFilename": "or_num_001.wav",
+      "criticalTokens": [
+        "ସେକ୍ଟର ଚାରି",
+        "ତିନି",
+        "ଆହତ"
+      ],
+      "expectedFacts": {
+        "sector": 4,
+        "count": 3,
+        "intent": "CASUALTY_REPORT"
+      }
+    },
+    {
+      "id": "OR_NUM_002",
+      "language": "or",
+      "category": "NUMBERS",
+      "reference": "ଆମ ପାଖରେ ବାରଟି ପ୍ୟାକେଟ୍ ବାକି ଅଛି",
+      "transcript": "ଆମ ପାଖରେ ବାରଟି ପ୍ୟାକେଟ୍ ବାକି ଅଛି",
+      "transliteration": "aama pakhare barati packet baki achhi",
+      "durationMs": 3920,
+      "audioFilename": "or_num_002.wav",
+      "criticalTokens": [
+        "ବାରଟି",
+        "ପ୍ୟାକେଟ୍"
+      ],
+      "expectedFacts": {
+        "count": 12,
+        "intent": "SUPPLY_STATUS"
+      }
+    },
+    {
+      "id": "OR_NUM_003",
+      "language": "or",
+      "category": "NUMBERS",
+      "reference": "ଦଳରେ ମୋଟ ପଚିଶ ଜଣ ଯବାନ ଉପସ୍ଥିତ ଅଛନ୍ତି",
+      "transcript": "ଦଳରେ ମୋଟ ପଚିଶ ଜଣ ଯବାନ ଉପସ୍ଥିତ ଅଛନ୍ତି",
+      "transliteration": "dalare mota pachisha jana jawana upasthita achhanti",
+      "durationMs": 4060,
+      "audioFilename": "or_num_003.wav",
+      "criticalTokens": [
+        "ପଚିଶ",
+        "ଯବାନ"
+      ],
+      "expectedFacts": {
+        "count": 25,
+        "intent": "PERSONNEL_COUNT"
+      }
+    },
+    {
+      "id": "OR_NUM_004",
+      "language": "or",
+      "category": "NUMBERS",
+      "reference": "ବ୍ୟାଟେରୀ ସ୍ତର ଚାଳିଶ ପ୍ରତିଶତ ଅଛି",
+      "transcript": "ବ୍ୟାଟେରୀ ସ୍ତର ଚାଳିଶ ପ୍ରତିଶତ ଅଛି",
+      "transliteration": "battery stara chalisha pratishata achhi",
+      "durationMs": 3885,
+      "audioFilename": "or_num_004.wav",
+      "criticalTokens": [
+        "ବ୍ୟାଟେରୀ",
+        "ଚାଳିଶ"
+      ],
+      "expectedFacts": {
+        "count": 40,
+        "intent": "TELEMETRY"
+      }
+    },
+    {
+      "id": "OR_NUM_005",
+      "language": "or",
+      "category": "NUMBERS",
+      "reference": "ପାଞ୍ଚଟି ଗାଡ଼ି କନଭୟରେ ସାମିଲ ଅଛି",
+      "transcript": "ପାଞ୍ଚଟି ଗାଡ଼ି କନଭୟରେ ସାମିଲ ଅଛି",
+      "transliteration": "panchati gaadi convoyre samila achhi",
+      "durationMs": 3850,
+      "audioFilename": "or_num_005.wav",
+      "criticalTokens": [
+        "ପାଞ୍ଚଟି ଗାଡ଼ି",
+        "କନଭୟ"
+      ],
+      "expectedFacts": {
+        "count": 5,
+        "intent": "CONVOY_STATUS"
+      }
+    },
+    {
+      "id": "OR_COORD_001",
+      "language": "or",
+      "category": "COORDINATES",
+      "reference": "ସ୍ଥିତି ଅକ୍ଷାଂଶ କୋଡ଼ିଏ ଦଶମିକ ଦୁଇ ଦ୍ରାଘିମା ପଞ୍ଚାଅଶୀ ଦଶମିକ ଆଠ",
+      "transcript": "ସ୍ଥିତି ଅକ୍ଷାଂଶ କୋଡ଼ିଏ ଦଶମିକ ଦୁଇ ଦ୍ରାଘିମା ପଞ୍ଚାଅଶୀ ଦଶମିକ ଆଠ",
+      "transliteration": "sthiti akshamsha kodiye dashamika dui draghima panchaashi dashamika aatha",
+      "durationMs": 4830,
+      "audioFilename": "or_coord_001.wav",
+      "criticalTokens": [
+        "ଅକ୍ଷାଂଶ 20.2",
+        "ଦ୍ରାଘିମା 85.8"
+      ],
+      "expectedFacts": {
+        "lat": 20.2,
+        "lon": 85.8,
+        "intent": "LOCATION_REPORT"
+      }
+    },
+    {
+      "id": "OR_COORD_002",
+      "language": "or",
+      "category": "COORDINATES",
+      "reference": "ଗ୍ରିଡ୍ ଚଉତିରିଶ ଦଶମିକ ଏକରେ ନୂତନ କ୍ୟାମ୍ପ ସ୍ଥାପନ କରନ୍ତୁ",
+      "transcript": "ଗ୍ରିଡ୍ ଚଉତିରିଶ ଦଶମିକ ଏକରେ ନୂତନ କ୍ୟାମ୍ପ ସ୍ଥାପନ କରନ୍ତୁ",
+      "transliteration": "grid chautirisha dashamika ekare nutana camp sthapana karantu",
+      "durationMs": 4620,
+      "audioFilename": "or_coord_002.wav",
+      "criticalTokens": [
+        "ଗ୍ରିଡ୍ 34.1",
+        "କ୍ୟାମ୍ପ"
+      ],
+      "expectedFacts": {
+        "grid": "34.1",
+        "intent": "BASE_SETUP"
+      }
+    },
+    {
+      "id": "OR_COORD_003",
+      "language": "or",
+      "category": "COORDINATES",
+      "reference": "ୱେପଏଣ୍ଟ ଏକୋଇଶ ଦଶମିକ ପାଞ୍ଚ ଉତ୍ତର ଛୟାଅଶୀ ପୂର୍ବ",
+      "transcript": "ୱେପଏଣ୍ଟ ଏକୋଇଶ ଦଶମିକ ପାଞ୍ଚ ଉତ୍ତର ଛୟାଅଶୀ ପୂର୍ବ",
+      "transliteration": "waypoint ekoisha dashamika pancha uttara chhayaashi poorva",
+      "durationMs": 4340,
+      "audioFilename": "or_coord_003.wav",
+      "criticalTokens": [
+        "ୱେପଏଣ୍ଟ",
+        "21.5 N"
+      ],
+      "expectedFacts": {
+        "lat": 21.5,
+        "lon": 86.0,
+        "intent": "WAYPOINT"
+      }
+    },
+    {
+      "id": "OR_COORD_004",
+      "language": "or",
+      "category": "COORDINATES",
+      "reference": "ଲକ୍ଷ୍ୟ ସ୍ଥଳ ଉଣେଇଶ ଦଶମିକ ଛଅ ଉତ୍ତରରେ ଅବସ୍ଥିତ",
+      "transcript": "ଲକ୍ଷ୍ୟ ସ୍ଥଳ ଉଣେଇଶ ଦଶମିକ ଛଅ ଉତ୍ତରରେ ଅବସ୍ଥିତ",
+      "transliteration": "lakshya sthala uneisha dashamika chhaya uttarare avasthita",
+      "durationMs": 4270,
+      "audioFilename": "or_coord_004.wav",
+      "criticalTokens": [
+        "19.6 N",
+        "ଲକ୍ଷ୍ୟ ସ୍ଥଳ"
+      ],
+      "expectedFacts": {
+        "lat": 19.6,
+        "intent": "TARGET_ZONE"
+      }
+    },
+    {
+      "id": "OR_COORD_005",
+      "language": "or",
+      "category": "COORDINATES",
+      "reference": "ମାନଚିତ୍ରରେ ବିନ୍ଦୁ ସତାଅଶୀ ଦଶମିକ ଚାରି ଚିହ୍ନଟ କରନ୍ତୁ",
+      "transcript": "ମାନଚିତ୍ରରେ ବିନ୍ଦୁ ସତାଅଶୀ ଦଶମିକ ଚାରି ଚିହ୍ନଟ କରନ୍ତୁ",
+      "transliteration": "manachitrare bindu sataashi dashamika chari chihnata karantu",
+      "durationMs": 4515,
+      "audioFilename": "or_coord_005.wav",
+      "criticalTokens": [
+        "87.4",
+        "ବିନ୍ଦୁ"
+      ],
+      "expectedFacts": {
+        "coord": "87.4",
+        "intent": "MAP_MARKER"
+      }
+    },
+    {
+      "id": "OR_CALL_001",
+      "language": "or",
+      "category": "CALLSIGN",
+      "reference": "ଆଲଫା ଏକ ବେସ୍ ଷ୍ଟେସନ୍ ସହିତ ତୁରନ୍ତ ଯୋଗାଯୋଗ କରନ୍ତୁ",
+      "transcript": "ଆଲଫା ଏକ ବେସ୍ ଷ୍ଟେସନ୍ ସହିତ ତୁରନ୍ତ ଯୋଗାଯୋଗ କରନ୍ତୁ",
+      "transliteration": "alpha eka base station sahita turanta yogayog karantu",
+      "durationMs": 4445,
+      "audioFilename": "or_call_001.wav",
+      "criticalTokens": [
+        "ଆଲଫା ଏକ",
+        "ବେସ୍ ଷ୍ଟେସନ୍"
+      ],
+      "expectedFacts": {
+        "callsign": "ALPHA_1",
+        "intent": "CALLSIGN_CONTACT"
+      }
+    },
+    {
+      "id": "OR_CALL_002",
+      "language": "or",
+      "category": "CALLSIGN",
+      "reference": "ହକ୍ ନଅ ଚେକପଏଣ୍ଟ ବ୍ରାଭୋକୁ ରିପୋର୍ଟ କରନ୍ତୁ",
+      "transcript": "ହକ୍ ନଅ ଚେକପଏଣ୍ଟ ବ୍ରାଭୋକୁ ରିପୋର୍ଟ କରନ୍ତୁ",
+      "transliteration": "hawk naa checkpoint bravoku report karantu",
+      "durationMs": 4165,
+      "audioFilename": "or_call_002.wav",
+      "criticalTokens": [
+        "ହକ୍ ନଅ",
+        "ଚେକପଏଣ୍ଟ ବ୍ରାଭୋ"
+      ],
+      "expectedFacts": {
+        "callsign": "HAWK_9",
+        "target": "CHECKPOINT_BRAVO"
+      }
+    },
+    {
+      "id": "OR_CALL_003",
+      "language": "or",
+      "category": "CALLSIGN",
+      "reference": "ଟାଇଗର ସାତ କନଭୟ ସୁରକ୍ଷିତ ଭାବେ ଆଗକୁ ବଢ଼ୁଛି",
+      "transcript": "ଟାଇଗର ସାତ କନଭୟ ସୁରକ୍ଷିତ ଭାବେ ଆଗକୁ ବଢ଼ୁଛି",
+      "transliteration": "tiger saata convoy surakshita bhabe aagaku badhuchhi",
+      "durationMs": 4200,
+      "audioFilename": "or_call_003.wav",
+      "criticalTokens": [
+        "ଟାଇଗର ସାତ",
+        "କନଭୟ"
+      ],
+      "expectedFacts": {
+        "callsign": "TIGER_7",
+        "intent": "CONVOY_PROGRESS"
+      }
+    },
+    {
+      "id": "OR_CALL_004",
+      "language": "or",
+      "category": "CALLSIGN",
+      "reference": "ଇଗଲ ତିନି ନିୟନ୍ତ୍ରଣ କକ୍ଷକୁ ବାର୍ତ୍ତା ପଠାନ୍ତୁ",
+      "transcript": "ଇଗଲ ତିନି ନିୟନ୍ତ୍ରଣ କକ୍ଷକୁ ବାର୍ତ୍ତା ପଠାନ୍ତୁ",
+      "transliteration": "eagle tini niyantrana kakshaku bartta pathantu",
+      "durationMs": 4270,
+      "audioFilename": "or_call_004.wav",
+      "criticalTokens": [
+        "ଇଗଲ ତିନି",
+        "ନିୟନ୍ତ୍ରଣ କକ୍ଷ"
+      ],
+      "expectedFacts": {
+        "callsign": "EAGLE_3",
+        "intent": "RELAY"
+      }
+    },
+    {
+      "id": "OR_CALL_005",
+      "language": "or",
+      "category": "CALLSIGN",
+      "reference": "ଭିକ୍ଟର ଚାରି ସହାୟତା ଦଳ ସହିତ ବାହାରିଛି",
+      "transcript": "ଭିକ୍ଟର ଚାରି ସହାୟତା ଦଳ ସହିତ ବାହାରିଛି",
+      "transliteration": "victor chari sahayata dala sahita baharichhi",
+      "durationMs": 4025,
+      "audioFilename": "or_call_005.wav",
+      "criticalTokens": [
+        "ଭିକ୍ଟର ଚାରି",
+        "ସହାୟତା ଦଳ"
+      ],
+      "expectedFacts": {
+        "callsign": "VICTOR_4",
+        "intent": "DEPLOYMENT"
+      }
+    },
+    {
+      "id": "OR_EMERG_001",
+      "language": "or",
+      "category": "EMERGENCY",
+      "reference": "ଏସଓଏସ ଡାକ୍ତରୀ ସହାୟତା ତୁରନ୍ତ ଆବଶ୍ୟକ ଅପରେଟର ଆହତ ଅଛନ୍ତି",
+      "transcript": "ଏସଓଏସ ଡାକ୍ତରୀ ସହାୟତା ତୁରନ୍ତ ଆବଶ୍ୟକ ଅପରେଟର ଆହତ ଅଛନ୍ତି",
+      "transliteration": "sos daktari sahayata turanta aabashyaka operator aahata achhanti",
+      "durationMs": 4620,
+      "audioFilename": "or_emerg_001.wav",
+      "criticalTokens": [
+        "ଏସଓଏସ",
+        "ଡାକ୍ତରୀ ସହାୟତା",
+        "ଆହତ"
+      ],
+      "expectedFacts": {
+        "category": "MEDICAL",
+        "severity": "CRITICAL"
+      }
+    },
+    {
+      "id": "OR_EMERG_002",
+      "language": "or",
+      "category": "EMERGENCY",
+      "reference": "ଜରୁରୀକାଳୀନ ସେକ୍ଟର ଦୁଇରେ ବନ୍ୟା ଜଳ ବୃଦ୍ଧି ପାଉଛି",
+      "transcript": "ଜରୁରୀକାଳୀନ ସେକ୍ଟର ଦୁଇରେ ବନ୍ୟା ଜଳ ବୃଦ୍ଧି ପାଉଛି",
+      "transliteration": "jarurikaleena sector duire banya jala bruddhi pauchhi",
+      "durationMs": 4375,
+      "audioFilename": "or_emerg_002.wav",
+      "criticalTokens": [
+        "ଜରୁରୀକାଳୀନ",
+        "ସେକ୍ଟର ଦୁଇ",
+        "ବନ୍ୟା"
+      ],
+      "expectedFacts": {
+        "category": "DISASTER",
+        "sector": 2,
+        "severity": "HIGH"
+      }
+    },
+    {
+      "id": "OR_EMERG_003",
+      "language": "or",
+      "category": "EMERGENCY",
+      "reference": "ସାହାଯ୍ୟ ଦରକାର ଯୋଗାଯୋଗ ବିଚ୍ଛିନ୍ନ ହୋଇଛି ଜରୁରୀ ସିଗ୍ନାଲ ସକ୍ରିୟ",
+      "transcript": "ସାହାଯ୍ୟ ଦରକାର ଯୋଗାଯୋଗ ବିଚ୍ଛିନ୍ନ ହୋଇଛି ଜରୁରୀ ସିଗ୍ନାଲ ସକ୍ରିୟ",
+      "transliteration": "sahajya darakar yogayog bichhinna hoichhi jaruri signal sakriya",
+      "durationMs": 4830,
+      "audioFilename": "or_emerg_003.wav",
+      "criticalTokens": [
+        "ସାହାଯ୍ୟ",
+        "ଯୋଗାଯୋଗ ବିଚ୍ଛିନ୍ନ",
+        "ସିଗ୍ନାଲ"
+      ],
+      "expectedFacts": {
+        "category": "COMMS_FAILURE",
+        "severity": "HIGH"
+      }
+    },
+    {
+      "id": "OR_EMERG_004",
+      "language": "or",
+      "category": "EMERGENCY",
+      "reference": "ଉଦ୍ଧାରକାରୀ ଦଳକୁ ତୁରନ୍ତ ପଠାନ୍ତୁ ପାଞ୍ଚ ଜଣ ଫସି ରହିଛନ୍ତି",
+      "transcript": "ଉଦ୍ଧାରକାରୀ ଦଳକୁ ତୁରନ୍ତ ପଠାନ୍ତୁ ପାଞ୍ଚ ଜଣ ଫସି ରହିଛନ୍ତି",
+      "transliteration": "uddharakari dalaku turanta pathantu pancha jana fasi rahichhanti",
+      "durationMs": 4620,
+      "audioFilename": "or_emerg_004.wav",
+      "criticalTokens": [
+        "ଉଦ୍ଧାରକାରୀ",
+        "ପାଞ୍ଚ ଜଣ",
+        "ଫସି ରହିଛନ୍ତି"
+      ],
+      "expectedFacts": {
+        "category": "RESCUE",
+        "count": 5,
+        "severity": "CRITICAL"
+      }
+    },
+    {
+      "id": "OR_EMERG_005",
+      "language": "or",
+      "category": "EMERGENCY",
+      "reference": "ବିପଦ ଚେତାବନୀ ତୁରନ୍ତ ଖାଲି କରନ୍ତୁ ସେକ୍ଟର ଆଠ",
+      "transcript": "ବିପଦ ଚେତାବନୀ ତୁରନ୍ତ ଖାଲି କରନ୍ତୁ ସେକ୍ଟର ଆଠ",
+      "transliteration": "bipada chetavani turanta khali karantu sector aatha",
+      "durationMs": 4235,
+      "audioFilename": "or_emerg_005.wav",
+      "criticalTokens": [
+        "ବିପଦ ଚେତାବନୀ",
+        "ଖାଲି କରନ୍ତୁ",
+        "ସେକ୍ଟର ଆଠ"
+      ],
+      "expectedFacts": {
+        "category": "EVACUATION",
+        "sector": 8,
+        "severity": "CRITICAL"
+      }
+    },
+    {
+      "id": "BN_NORM_001",
+      "language": "bn",
+      "category": "NORMAL",
+      "reference": "দল এই টহল ইউনিট ওয়েপয়েন্টের দিকে এগোচ্ছে",
+      "transcript": "দল এই টহল ইউনিট ওয়েপয়েন্টের দিকে এগোচ্ছে",
+      "transliteration": "dal ei tahal unit waypoint-er dike egochhe",
+      "durationMs": 4270,
+      "audioFilename": "bn_norm_001.wav",
+      "criticalTokens": [
+        "টহল ইউনিট",
+        "ওয়েপয়েন্ট"
+      ],
+      "expectedFacts": {
+        "intent": "PATROL_MOVEMENT"
+      }
+    },
+    {
+      "id": "BN_NORM_002",
+      "language": "bn",
+      "category": "NORMAL",
+      "reference": "সব নোড চ্যানেল একে যোগাযোগ বজায় রাখুন",
+      "transcript": "সব নোড চ্যানেল একে যোগাযোগ বজায় রাখুন",
+      "transliteration": "sob node channel ek-e jogajog bojay rakhun",
+      "durationMs": 4130,
+      "audioFilename": "bn_norm_002.wav",
+      "criticalTokens": [
+        "নোড",
+        "চ্যানেল এক",
+        "যোগাযোগ"
+      ],
+      "expectedFacts": {
+        "intent": "RADIO_CHECK"
+      }
+    },
+    {
+      "id": "BN_NORM_003",
+      "language": "bn",
+      "category": "NORMAL",
+      "reference": "আবহাওয়া পরিষ্কার আছে এবং পরিস্থিতি স্বাভাবিক",
+      "transcript": "আবহাওয়া পরিষ্কার আছে এবং পরিস্থিতি স্বাভাবিক",
+      "transliteration": "aabhowa porishkar aachhe ebong poristhiti swabhabik",
+      "durationMs": 4375,
+      "audioFilename": "bn_norm_003.wav",
+      "criticalTokens": [
+        "আবহাওয়া",
+        "স্বাভাবিক"
+      ],
+      "expectedFacts": {
+        "intent": "WEATHER_REPORT"
+      }
+    },
+    {
+      "id": "BN_NORM_004",
+      "language": "bn",
+      "category": "NORMAL",
+      "reference": "আমরা নিরাপদ স্থানে পৌঁছে গেছি",
+      "transcript": "আমরা নিরাপদ স্থানে পৌঁছে গেছি",
+      "transliteration": "aamra nirapod sthane pouchhe gechhi",
+      "durationMs": 3815,
+      "audioFilename": "bn_norm_004.wav",
+      "criticalTokens": [
+        "নিরাপদ",
+        "স্থানে"
+      ],
+      "expectedFacts": {
+        "intent": "STATUS_SAFE"
+      }
+    },
+    {
+      "id": "BN_NORM_005",
+      "language": "bn",
+      "category": "NORMAL",
+      "reference": "পরবর্তী নির্দেশ না আসা পর্যন্ত অপেক্ষা করুন",
+      "transcript": "পরবর্তী নির্দেশ না আসা পর্যন্ত অপেক্ষা করুন",
+      "transliteration": "poroborti nirdesh na aasa porjonto opeksha korun",
+      "durationMs": 4305,
+      "audioFilename": "bn_norm_005.wav",
+      "criticalTokens": [
+        "নির্দেশ",
+        "অপেক্ষা"
+      ],
+      "expectedFacts": {
+        "intent": "STANDBY"
+      }
+    },
+    {
+      "id": "BN_NUM_001",
+      "language": "bn",
+      "category": "NUMBERS",
+      "reference": "সেক্টর চারে তিনজন আহত অপারেটর রয়েছে",
+      "transcript": "সেক্টর চারে তিনজন আহত অপারেটর রয়েছে",
+      "transliteration": "sector chaar-e tinjon aahoto operator royechhe",
+      "durationMs": 4060,
+      "audioFilename": "bn_num_001.wav",
+      "criticalTokens": [
+        "সেক্টর চার",
+        "তিনজন",
+        "আহত"
+      ],
+      "expectedFacts": {
+        "sector": 4,
+        "count": 3,
+        "intent": "CASUALTY_REPORT"
+      }
+    },
+    {
+      "id": "BN_NUM_002",
+      "language": "bn",
+      "category": "NUMBERS",
+      "reference": "আমাদের কাছে বারোটি প্যাকেট অবশিষ্ট আছে",
+      "transcript": "আমাদের কাছে বারোটি প্যাকেট অবশিষ্ট আছে",
+      "transliteration": "aamader kaachhe baaroti packet oboshishto aachhe",
+      "durationMs": 4130,
+      "audioFilename": "bn_num_002.wav",
+      "criticalTokens": [
+        "বারোটি",
+        "প্যাকেট"
+      ],
+      "expectedFacts": {
+        "count": 12,
+        "intent": "SUPPLY_STATUS"
+      }
+    },
+    {
+      "id": "BN_NUM_003",
+      "language": "bn",
+      "category": "NUMBERS",
+      "reference": "দলে মোট পঁচিশ জন সদস্য উপস্থিত আছে",
+      "transcript": "দলে মোট পঁচিশ জন সদস্য উপস্থিত আছে",
+      "transliteration": "dole mot ponchish jon sodosyo uposthit aachhe",
+      "durationMs": 3990,
+      "audioFilename": "bn_num_003.wav",
+      "criticalTokens": [
+        "পঁচিশ",
+        "সদস্য"
+      ],
+      "expectedFacts": {
+        "count": 25,
+        "intent": "PERSONNEL_COUNT"
+      }
+    },
+    {
+      "id": "BN_NUM_004",
+      "language": "bn",
+      "category": "NUMBERS",
+      "reference": "ব্যাটারির মাত্রা চল্লিশ শতাংশ আছে",
+      "transcript": "ব্যাটারির মাত্রা চল্লিশ শতাংশ আছে",
+      "transliteration": "batteryr maatra chollish shotangsho aachhe",
+      "durationMs": 3955,
+      "audioFilename": "bn_num_004.wav",
+      "criticalTokens": [
+        "ব্যাটারি",
+        "চল্লিশ"
+      ],
+      "expectedFacts": {
+        "count": 40,
+        "intent": "TELEMETRY"
+      }
+    },
+    {
+      "id": "BN_NUM_005",
+      "language": "bn",
+      "category": "NUMBERS",
+      "reference": "পাঁচটি গাড়ি কনভয়ে অন্তর্ভুক্ত রয়েছে",
+      "transcript": "পাঁচটি গাড়ি কনভয়ে অন্তর্ভুক্ত রয়েছে",
+      "transliteration": "paanchti gaari convoy-e ontorbhukto royechhe",
+      "durationMs": 4130,
+      "audioFilename": "bn_num_005.wav",
+      "criticalTokens": [
+        "পাঁচটি গাড়ি",
+        "কনভয়ে"
+      ],
+      "expectedFacts": {
+        "count": 5,
+        "intent": "CONVOY_STATUS"
+      }
+    },
+    {
+      "id": "BN_COORD_001",
+      "language": "bn",
+      "category": "COORDINATES",
+      "reference": "অবস্থান অক্ষাংশ বাইশ দশমিক পাঁচ দ্রাঘিমাংশ অষ্টআশি দশমিক তিন",
+      "transcript": "অবস্থান অক্ষাংশ বাইশ দশমিক পাঁচ দ্রাঘিমাংশ অষ্টআশি দশমিক তিন",
+      "transliteration": "obosthan okkhangsho baish doshomik paanch draghimangsho oshtoashi doshomik tin",
+      "durationMs": 4900,
+      "audioFilename": "bn_coord_001.wav",
+      "criticalTokens": [
+        "অক্ষাংশ 22.5",
+        "দ্রাঘিমাংশ 88.3"
+      ],
+      "expectedFacts": {
+        "lat": 22.5,
+        "lon": 88.3,
+        "intent": "LOCATION_REPORT"
+      }
+    },
+    {
+      "id": "BN_COORD_002",
+      "language": "bn",
+      "category": "COORDINATES",
+      "reference": "গ্রিড পঁয়ত্রিশ দশমিক চার এ নতুন বেস স্থাপন করুন",
+      "transcript": "গ্রিড পঁয়ত্রিশ দশমিক চার এ নতুন বেস স্থাপন করুন",
+      "transliteration": "grid poyntrish doshomik chaar e notun base sthapon korun",
+      "durationMs": 4480,
+      "audioFilename": "bn_coord_002.wav",
+      "criticalTokens": [
+        "গ্রিড 35.4",
+        "বেস"
+      ],
+      "expectedFacts": {
+        "grid": "35.4",
+        "intent": "BASE_SETUP"
+      }
+    },
+    {
+      "id": "BN_COORD_003",
+      "language": "bn",
+      "category": "COORDINATES",
+      "reference": "ওয়েপয়েন্ট চব্বিশ দশমিক এক উত্তর সাতাশি পূর্ব",
+      "transcript": "ওয়েপয়েন্ট চব্বিশ দশমিক এক উত্তর সাতাশি পূর্ব",
+      "transliteration": "waypoint chobbish doshomik ek uttor satashi poorba",
+      "durationMs": 4410,
+      "audioFilename": "bn_coord_003.wav",
+      "criticalTokens": [
+        "ওয়েপয়েন্ট",
+        "24.1 N"
+      ],
+      "expectedFacts": {
+        "lat": 24.1,
+        "lon": 87.0,
+        "intent": "WAYPOINT"
+      }
+    },
+    {
+      "id": "BN_COORD_004",
+      "language": "bn",
+      "category": "COORDINATES",
+      "reference": "লক্ষ্য এলাকা তেইশ দশমিক সাত উত্তর এ অবস্থিত",
+      "transcript": "লক্ষ্য এলাকা তেইশ দশমিক সাত উত্তর এ অবস্থিত",
+      "transliteration": "lokkhyo elaka teish doshomik saat uttor e obosthit",
+      "durationMs": 4305,
+      "audioFilename": "bn_coord_004.wav",
+      "criticalTokens": [
+        "23.7 N",
+        "লক্ষ্য এলাকা"
+      ],
+      "expectedFacts": {
+        "lat": 23.7,
+        "intent": "TARGET_ZONE"
+      }
+    },
+    {
+      "id": "BN_COORD_005",
+      "language": "bn",
+      "category": "COORDINATES",
+      "reference": "মানচিত্রে বিন্দু উননব্বই দশমিক দুই চিহ্নিত করুন",
+      "transcript": "মানচিত্রে বিন্দু উননব্বই দশমিক দুই চিহ্নিত করুন",
+      "transliteration": "manchitre bindu unnobbai doshomik dui chihnito korun",
+      "durationMs": 4445,
+      "audioFilename": "bn_coord_005.wav",
+      "criticalTokens": [
+        "89.2",
+        "বিন্দু"
+      ],
+      "expectedFacts": {
+        "coord": "89.2",
+        "intent": "MAP_MARKER"
+      }
+    },
+    {
+      "id": "BN_CALL_001",
+      "language": "bn",
+      "category": "CALLSIGN",
+      "reference": "আলফা এক বেস স্টেশনের সাথে অবিলম্বে যোগাযোগ করুন",
+      "transcript": "আলফা এক বেস স্টেশনের সাথে অবিলম্বে যোগাযোগ করুন",
+      "transliteration": "alpha ek base station-er sathe obilombe jogajog korun",
+      "durationMs": 4445,
+      "audioFilename": "bn_call_001.wav",
+      "criticalTokens": [
+        "আলফা এক",
+        "বেস স্টেশন"
+      ],
+      "expectedFacts": {
+        "callsign": "ALPHA_1",
+        "intent": "CALLSIGN_CONTACT"
+      }
+    },
+    {
+      "id": "BN_CALL_002",
+      "language": "bn",
+      "category": "CALLSIGN",
+      "reference": "হক নয় চেকপয়েন্ট ব্রাভোতে রিপোর্ট করুন",
+      "transcript": "হক নয় চেকপয়েন্ট ব্রাভোতে রিপোর্ট করুন",
+      "transliteration": "hawk noy checkpoint bravo-te report korun",
+      "durationMs": 4165,
+      "audioFilename": "bn_call_002.wav",
+      "criticalTokens": [
+        "হক নয়",
+        "চেকপয়েন্ট ব্রাভো"
+      ],
+      "expectedFacts": {
+        "callsign": "HAWK_9",
+        "target": "CHECKPOINT_BRAVO"
+      }
+    },
+    {
+      "id": "BN_CALL_003",
+      "language": "bn",
+      "category": "CALLSIGN",
+      "reference": "টাইগার সাত কনভয় নিরাপদে এগিয়ে চলেছে",
+      "transcript": "টাইগার সাত কনভয় নিরাপদে এগিয়ে চলেছে",
+      "transliteration": "tiger saat convoy nirapode egiye cholechhe",
+      "durationMs": 4095,
+      "audioFilename": "bn_call_003.wav",
+      "criticalTokens": [
+        "টাইগার সাত",
+        "কনভয়"
+      ],
+      "expectedFacts": {
+        "callsign": "TIGER_7",
+        "intent": "CONVOY_PROGRESS"
+      }
+    },
+    {
+      "id": "BN_CALL_004",
+      "language": "bn",
+      "category": "CALLSIGN",
+      "reference": "ঈগল তিন নিয়ন্ত্রণ কক্ষে বার্তা প্রেরণ করুন",
+      "transcript": "ঈগল তিন নিয়ন্ত্রণ কক্ষে বার্তা প্রেরণ করুন",
+      "transliteration": "eagle tin niyontron kokkhe barta preran korun",
+      "durationMs": 4305,
+      "audioFilename": "bn_call_004.wav",
+      "criticalTokens": [
+        "ঈগল তিন",
+        "নিয়ন্ত্রণ কক্ষ"
+      ],
+      "expectedFacts": {
+        "callsign": "EAGLE_3",
+        "intent": "RELAY"
+      }
+    },
+    {
+      "id": "BN_CALL_005",
+      "language": "bn",
+      "category": "CALLSIGN",
+      "reference": "ভিক্টর চার সাহায্য দলের সাথে রওনা হয়েছে",
+      "transcript": "ভিক্টর চার সাহায্য দলের সাথে রওনা হয়েছে",
+      "transliteration": "victor chaar sahajyo doler sathe rowna hoyechhe",
+      "durationMs": 4200,
+      "audioFilename": "bn_call_005.wav",
+      "criticalTokens": [
+        "ভিক্টর চার",
+        "সাহায্য দল"
+      ],
+      "expectedFacts": {
+        "callsign": "VICTOR_4",
+        "intent": "DEPLOYMENT"
+      }
+    },
+    {
+      "id": "BN_EMERG_001",
+      "language": "bn",
+      "category": "EMERGENCY",
+      "reference": "এসওএস জরুরি চিকিৎসা সাহায্য প্রয়োজন অপারেটর আহত",
+      "transcript": "এসওএস জরুরি চিকিৎসা সাহায্য প্রয়োজন অপারেটর আহত",
+      "transliteration": "sos joruri chikitsa sahajyo proyojon operator aahoto",
+      "durationMs": 4480,
+      "audioFilename": "bn_emerg_001.wav",
+      "criticalTokens": [
+        "এসওএস",
+        "চিকিৎসা সাহায্য",
+        "আহত"
+      ],
+      "expectedFacts": {
+        "category": "MEDICAL",
+        "severity": "CRITICAL"
+      }
+    },
+    {
+      "id": "BN_EMERG_002",
+      "language": "bn",
+      "category": "EMERGENCY",
+      "reference": "জরুরি অবস্থা সেক্টর দুইতে বন্যার জল বাড়ছে",
+      "transcript": "জরুরি অবস্থা সেক্টর দুইতে বন্যার জল বাড়ছে",
+      "transliteration": "joruri obostha sector dui-te bonnar jol baarchhe",
+      "durationMs": 4270,
+      "audioFilename": "bn_emerg_002.wav",
+      "criticalTokens": [
+        "জরুরি অবস্থা",
+        "সেক্টর দুই",
+        "বন্যা"
+      ],
+      "expectedFacts": {
+        "category": "DISASTER",
+        "sector": 2,
+        "severity": "HIGH"
+      }
+    },
+    {
+      "id": "BN_EMERG_003",
+      "language": "bn",
+      "category": "EMERGENCY",
+      "reference": "সাহায্য চাই যোগাযোগ বিচ্ছিন্ন হয়েছে জরুরি সংকেত সক্রিয়",
+      "transcript": "সাহায্য চাই যোগাযোগ বিচ্ছিন্ন হয়েছে জরুরি সংকেত সক্রিয়",
+      "transliteration": "sahajyo chai jogajog bicchinno hoyechhe joruri songket sokriyo",
+      "durationMs": 4760,
+      "audioFilename": "bn_emerg_003.wav",
+      "criticalTokens": [
+        "সাহায্য",
+        "যোগাযোগ বিচ্ছিন্ন",
+        "জরুরি সংকেত"
+      ],
+      "expectedFacts": {
+        "category": "COMMS_FAILURE",
+        "severity": "HIGH"
+      }
+    },
+    {
+      "id": "BN_EMERG_004",
+      "language": "bn",
+      "category": "EMERGENCY",
+      "reference": "উদ্ধারকারী দল অবিলম্বে পাঠান পাঁচজন আটকে আছে",
+      "transcript": "উদ্ধারকারী দল অবিলম্বে পাঠান পাঁচজন আটকে আছে",
+      "transliteration": "uddharakari dol obilombe pathan paanchjon aatke aachhe",
+      "durationMs": 4340,
+      "audioFilename": "bn_emerg_004.wav",
+      "criticalTokens": [
+        "উদ্ধারকারী দল",
+        "পাঁচজন",
+        "আটকে"
+      ],
+      "expectedFacts": {
+        "category": "RESCUE",
+        "count": 5,
+        "severity": "CRITICAL"
+      }
+    },
+    {
+      "id": "BN_EMERG_005",
+      "language": "bn",
+      "category": "EMERGENCY",
+      "reference": "বিপদের সতর্কতা অবিলম্বে খালি করুন সেক্টর আট",
+      "transcript": "বিপদের সতর্কতা অবিলম্বে খালি করুন সেক্টর আট",
+      "transliteration": "bipoder sotorkota obilombe khali korun sector aat",
+      "durationMs": 4305,
+      "audioFilename": "bn_emerg_005.wav",
+      "criticalTokens": [
+        "বিপদের সতর্কতা",
+        "খালি করুন",
+        "সেক্টর আট"
+      ],
+      "expectedFacts": {
+        "category": "EVACUATION",
+        "sector": 8,
+        "severity": "CRITICAL"
+      }
+    },
+    {
+      "id": "EN_NORM_001",
+      "language": "en",
+      "category": "NORMAL",
+      "reference": "Team this patrol unit is advancing toward the waypoint",
+      "transcript": "Team this patrol unit is advancing toward the waypoint",
+      "transliteration": "Team this patrol unit is advancing toward the waypoint",
+      "durationMs": 4690,
+      "audioFilename": "en_norm_001.wav",
+      "criticalTokens": [
+        "patrol unit",
+        "waypoint"
+      ],
+      "expectedFacts": {
+        "intent": "PATROL_MOVEMENT"
+      }
+    },
+    {
+      "id": "EN_NORM_002",
+      "language": "en",
+      "category": "NORMAL",
+      "reference": "All nodes maintain contact on channel one",
+      "transcript": "All nodes maintain contact on channel one",
+      "transliteration": "All nodes maintain contact on channel one",
+      "durationMs": 4235,
+      "audioFilename": "en_norm_002.wav",
+      "criticalTokens": [
+        "nodes",
+        "channel one",
+        "contact"
+      ],
+      "expectedFacts": {
+        "intent": "RADIO_CHECK"
+      }
+    },
+    {
+      "id": "EN_NORM_003",
+      "language": "en",
+      "category": "NORMAL",
+      "reference": "Weather is clear and visibility is normal",
+      "transcript": "Weather is clear and visibility is normal",
+      "transliteration": "Weather is clear and visibility is normal",
+      "durationMs": 4235,
+      "audioFilename": "en_norm_003.wav",
+      "criticalTokens": [
+        "weather",
+        "visibility normal"
+      ],
+      "expectedFacts": {
+        "intent": "WEATHER_REPORT"
+      }
+    },
+    {
+      "id": "EN_NORM_004",
+      "language": "en",
+      "category": "NORMAL",
+      "reference": "We have arrived safely at the designated location",
+      "transcript": "We have arrived safely at the designated location",
+      "transliteration": "We have arrived safely at the designated location",
+      "durationMs": 4515,
+      "audioFilename": "en_norm_004.wav",
+      "criticalTokens": [
+        "safely",
+        "location"
+      ],
+      "expectedFacts": {
+        "intent": "STATUS_SAFE"
+      }
+    },
+    {
+      "id": "EN_NORM_005",
+      "language": "en",
+      "category": "NORMAL",
+      "reference": "Standby for next tactical instructions",
+      "transcript": "Standby for next tactical instructions",
+      "transliteration": "Standby for next tactical instructions",
+      "durationMs": 4130,
+      "audioFilename": "en_norm_005.wav",
+      "criticalTokens": [
+        "standby",
+        "instructions"
+      ],
+      "expectedFacts": {
+        "intent": "STANDBY"
+      }
+    },
+    {
+      "id": "EN_NUM_001",
+      "language": "en",
+      "category": "NUMBERS",
+      "reference": "Sector four reports three injured operators",
+      "transcript": "Sector four reports three injured operators",
+      "transliteration": "Sector four reports three injured operators",
+      "durationMs": 4305,
+      "audioFilename": "en_num_001.wav",
+      "criticalTokens": [
+        "sector four",
+        "three",
+        "injured"
+      ],
+      "expectedFacts": {
+        "sector": 4,
+        "count": 3,
+        "intent": "CASUALTY_REPORT"
+      }
+    },
+    {
+      "id": "EN_NUM_002",
+      "language": "en",
+      "category": "NUMBERS",
+      "reference": "We have twelve supply packets remaining",
+      "transcript": "We have twelve supply packets remaining",
+      "transliteration": "We have twelve supply packets remaining",
+      "durationMs": 4165,
+      "audioFilename": "en_num_002.wav",
+      "criticalTokens": [
+        "twelve",
+        "packets remaining"
+      ],
+      "expectedFacts": {
+        "count": 12,
+        "intent": "SUPPLY_STATUS"
+      }
+    },
+    {
+      "id": "EN_NUM_003",
+      "language": "en",
+      "category": "NUMBERS",
+      "reference": "Total twenty five personnel present in platoon",
+      "transcript": "Total twenty five personnel present in platoon",
+      "transliteration": "Total twenty five personnel present in platoon",
+      "durationMs": 4410,
+      "audioFilename": "en_num_003.wav",
+      "criticalTokens": [
+        "twenty five",
+        "personnel"
+      ],
+      "expectedFacts": {
+        "count": 25,
+        "intent": "PERSONNEL_COUNT"
+      }
+    },
+    {
+      "id": "EN_NUM_004",
+      "language": "en",
+      "category": "NUMBERS",
+      "reference": "Battery level is forty percent",
+      "transcript": "Battery level is forty percent",
+      "transliteration": "Battery level is forty percent",
+      "durationMs": 3850,
+      "audioFilename": "en_num_004.wav",
+      "criticalTokens": [
+        "battery",
+        "forty"
+      ],
+      "expectedFacts": {
+        "count": 40,
+        "intent": "TELEMETRY"
+      }
+    },
+    {
+      "id": "EN_NUM_005",
+      "language": "en",
+      "category": "NUMBERS",
+      "reference": "Five vehicles included in tactical convoy",
+      "transcript": "Five vehicles included in tactical convoy",
+      "transliteration": "Five vehicles included in tactical convoy",
+      "durationMs": 4235,
+      "audioFilename": "en_num_005.wav",
+      "criticalTokens": [
+        "five vehicles",
+        "convoy"
+      ],
+      "expectedFacts": {
+        "count": 5,
+        "intent": "CONVOY_STATUS"
+      }
+    },
+    {
+      "id": "EN_COORD_001",
+      "language": "en",
+      "category": "COORDINATES",
+      "reference": "Position latitude twelve point nine longitude seventy seven point five",
+      "transcript": "Position latitude twelve point nine longitude seventy seven point five",
+      "transliteration": "Position latitude twelve point nine longitude seventy seven point five",
+      "durationMs": 5250,
+      "audioFilename": "en_coord_001.wav",
+      "criticalTokens": [
+        "latitude 12.9",
+        "longitude 77.5"
+      ],
+      "expectedFacts": {
+        "lat": 12.9,
+        "lon": 77.5,
+        "intent": "LOCATION_REPORT"
+      }
+    },
+    {
+      "id": "EN_COORD_002",
+      "language": "en",
+      "category": "COORDINATES",
+      "reference": "Establish forward base at grid thirty five point four",
+      "transcript": "Establish forward base at grid thirty five point four",
+      "transliteration": "Establish forward base at grid thirty five point four",
+      "durationMs": 4655,
+      "audioFilename": "en_coord_002.wav",
+      "criticalTokens": [
+        "grid 35.4",
+        "base"
+      ],
+      "expectedFacts": {
+        "grid": "35.4",
+        "intent": "BASE_SETUP"
+      }
+    },
+    {
+      "id": "EN_COORD_003",
+      "language": "en",
+      "category": "COORDINATES",
+      "reference": "Waypoint thirteen point one north seventy six point zero east",
+      "transcript": "Waypoint thirteen point one north seventy six point zero east",
+      "transliteration": "Waypoint thirteen point one north seventy six point zero east",
+      "durationMs": 4935,
+      "audioFilename": "en_coord_003.wav",
+      "criticalTokens": [
+        "waypoint",
+        "13.1 N",
+        "76.0 E"
+      ],
+      "expectedFacts": {
+        "lat": 13.1,
+        "lon": 76.0,
+        "intent": "WAYPOINT"
+      }
+    },
+    {
+      "id": "EN_COORD_004",
+      "language": "en",
+      "category": "COORDINATES",
+      "reference": "Target zone located at twenty eight point six north",
+      "transcript": "Target zone located at twenty eight point six north",
+      "transliteration": "Target zone located at twenty eight point six north",
+      "durationMs": 4585,
+      "audioFilename": "en_coord_004.wav",
+      "criticalTokens": [
+        "28.6 N",
+        "target zone"
+      ],
+      "expectedFacts": {
+        "lat": 28.6,
+        "intent": "TARGET_ZONE"
+      }
+    },
+    {
+      "id": "EN_COORD_005",
+      "language": "en",
+      "category": "COORDINATES",
+      "reference": "Mark coordinates seventy seven point two on map",
+      "transcript": "Mark coordinates seventy seven point two on map",
+      "transliteration": "Mark coordinates seventy seven point two on map",
+      "durationMs": 4445,
+      "audioFilename": "en_coord_005.wav",
+      "criticalTokens": [
+        "77.2",
+        "coordinates"
+      ],
+      "expectedFacts": {
+        "coord": "77.2",
+        "intent": "MAP_MARKER"
+      }
+    },
+    {
+      "id": "EN_CALL_001",
+      "language": "en",
+      "category": "CALLSIGN",
+      "reference": "Alpha one contact base station immediately",
+      "transcript": "Alpha one contact base station immediately",
+      "transliteration": "Alpha one contact base station immediately",
+      "durationMs": 4270,
+      "audioFilename": "en_call_001.wav",
+      "criticalTokens": [
+        "alpha one",
+        "base station"
+      ],
+      "expectedFacts": {
+        "callsign": "ALPHA_1",
+        "intent": "CALLSIGN_CONTACT"
+      }
+    },
+    {
+      "id": "EN_CALL_002",
+      "language": "en",
+      "category": "CALLSIGN",
+      "reference": "Hawk nine report status at checkpoint bravo",
+      "transcript": "Hawk nine report status at checkpoint bravo",
+      "transliteration": "Hawk nine report status at checkpoint bravo",
+      "durationMs": 4305,
+      "audioFilename": "en_call_002.wav",
+      "criticalTokens": [
+        "hawk nine",
+        "checkpoint bravo"
+      ],
+      "expectedFacts": {
+        "callsign": "HAWK_9",
+        "target": "CHECKPOINT_BRAVO"
+      }
+    },
+    {
+      "id": "EN_CALL_003",
+      "language": "en",
+      "category": "CALLSIGN",
+      "reference": "Tiger seven convoy proceeding safely to rendezvous",
+      "transcript": "Tiger seven convoy proceeding safely to rendezvous",
+      "transliteration": "Tiger seven convoy proceeding safely to rendezvous",
+      "durationMs": 4550,
+      "audioFilename": "en_call_003.wav",
+      "criticalTokens": [
+        "tiger seven",
+        "convoy"
+      ],
+      "expectedFacts": {
+        "callsign": "TIGER_7",
+        "intent": "CONVOY_PROGRESS"
+      }
+    },
+    {
+      "id": "EN_CALL_004",
+      "language": "en",
+      "category": "CALLSIGN",
+      "reference": "Eagle three relay message to command center",
+      "transcript": "Eagle three relay message to command center",
+      "transliteration": "Eagle three relay message to command center",
+      "durationMs": 4305,
+      "audioFilename": "en_call_004.wav",
+      "criticalTokens": [
+        "eagle three",
+        "command center"
+      ],
+      "expectedFacts": {
+        "callsign": "EAGLE_3",
+        "intent": "RELAY"
+      }
+    },
+    {
+      "id": "EN_CALL_005",
+      "language": "en",
+      "category": "CALLSIGN",
+      "reference": "Victor four deployed with emergency support team",
+      "transcript": "Victor four deployed with emergency support team",
+      "transliteration": "Victor four deployed with emergency support team",
+      "durationMs": 4480,
+      "audioFilename": "en_call_005.wav",
+      "criticalTokens": [
+        "victor four",
+        "support team"
+      ],
+      "expectedFacts": {
+        "callsign": "VICTOR_4",
+        "intent": "DEPLOYMENT"
+      }
+    },
+    {
+      "id": "EN_EMERG_001",
+      "language": "en",
+      "category": "EMERGENCY",
+      "reference": "SOS immediate medical assistance required operator injured",
+      "transcript": "SOS immediate medical assistance required operator injured",
+      "transliteration": "SOS immediate medical assistance required operator injured",
+      "durationMs": 4830,
+      "audioFilename": "en_emerg_001.wav",
+      "criticalTokens": [
+        "SOS",
+        "medical assistance",
+        "injured"
+      ],
+      "expectedFacts": {
+        "category": "MEDICAL",
+        "severity": "CRITICAL"
+      }
+    },
+    {
+      "id": "EN_EMERG_002",
+      "language": "en",
+      "category": "EMERGENCY",
+      "reference": "Emergency flood water rising rapidly in sector two",
+      "transcript": "Emergency flood water rising rapidly in sector two",
+      "transliteration": "Emergency flood water rising rapidly in sector two",
+      "durationMs": 4550,
+      "audioFilename": "en_emerg_002.wav",
+      "criticalTokens": [
+        "emergency",
+        "sector two",
+        "flood"
+      ],
+      "expectedFacts": {
+        "category": "DISASTER",
+        "sector": 2,
+        "severity": "HIGH"
+      }
+    },
+    {
+      "id": "EN_EMERG_003",
+      "language": "en",
+      "category": "EMERGENCY",
+      "reference": "Mayday comms link broken emergency beacon activated",
+      "transcript": "Mayday comms link broken emergency beacon activated",
+      "transliteration": "Mayday comms link broken emergency beacon activated",
+      "durationMs": 4585,
+      "audioFilename": "en_emerg_003.wav",
+      "criticalTokens": [
+        "mayday",
+        "comms link broken",
+        "emergency beacon"
+      ],
+      "expectedFacts": {
+        "category": "COMMS_FAILURE",
+        "severity": "HIGH"
+      }
+    },
+    {
+      "id": "EN_EMERG_004",
+      "language": "en",
+      "category": "EMERGENCY",
+      "reference": "Dispatch rescue team immediately five operators trapped",
+      "transcript": "Dispatch rescue team immediately five operators trapped",
+      "transliteration": "Dispatch rescue team immediately five operators trapped",
+      "durationMs": 4725,
+      "audioFilename": "en_emerg_004.wav",
+      "criticalTokens": [
+        "rescue team",
+        "five operators",
+        "trapped"
+      ],
+      "expectedFacts": {
+        "category": "RESCUE",
+        "count": 5,
+        "severity": "CRITICAL"
+      }
+    },
+    {
+      "id": "EN_EMERG_005",
+      "language": "en",
+      "category": "EMERGENCY",
+      "reference": "Hazard warning evacuate sector eight without delay",
+      "transcript": "Hazard warning evacuate sector eight without delay",
+      "transliteration": "Hazard warning evacuate sector eight without delay",
+      "durationMs": 4550,
+      "audioFilename": "en_emerg_005.wav",
+      "criticalTokens": [
+        "hazard warning",
+        "evacuate",
+        "sector eight"
+      ],
+      "expectedFacts": {
+        "category": "EVACUATION",
+        "sector": 8,
+        "severity": "CRITICAL"
+      }
+    }
+  ]
+}

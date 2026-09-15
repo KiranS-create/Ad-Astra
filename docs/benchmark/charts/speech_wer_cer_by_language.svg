@@ -1,0 +1,82 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 420" width="100%" height="100%">
+  <rect width="800" height="420" fill="#0f172a" rx="8"/>
+  <text x="400" y="36" fill="#f8fafc" font-family="system-ui, sans-serif" font-size="18" font-weight="bold" text-anchor="middle">10-Language Speech Recognition Accuracy (WER &amp; CER)</text>
+  <text x="400" y="56" fill="#94a3b8" font-family="system-ui, sans-serif" font-size="12" text-anchor="middle">Sherpa-ONNX INT8 Neural Conformer / Whisper-Tiny On-Device Models</text>
+  
+  <!-- Legend -->
+  <rect x="520" y="70" width="14" height="14" fill="#38bdf8" rx="2"/>
+  <text x="540" y="82" fill="#cbd5e1" font-family="system-ui, sans-serif" font-size="12">Word Error Rate (WER)</text>
+  <rect x="670" y="70" width="14" height="14" fill="#34d399" rx="2"/>
+  <text x="690" y="82" fill="#cbd5e1" font-family="system-ui, sans-serif" font-size="12">Char Error Rate (CER)</text>
+
+  <line x1="130" y1="360" x2="750" y2="360" stroke="#334155" stroke-dasharray="3,3"/>
+  <text x="120" y="364" fill="#64748b" font-family="system-ui, sans-serif" font-size="11" text-anchor="end">0.0%</text>
+  <line x1="130" y1="295" x2="750" y2="295" stroke="#334155" stroke-dasharray="3,3"/>
+  <text x="120" y="299" fill="#64748b" font-family="system-ui, sans-serif" font-size="11" text-anchor="end">3.5%</text>
+  <line x1="130" y1="230" x2="750" y2="230" stroke="#334155" stroke-dasharray="3,3"/>
+  <text x="120" y="234" fill="#64748b" font-family="system-ui, sans-serif" font-size="11" text-anchor="end">7.0%</text>
+  <line x1="130" y1="165" x2="750" y2="165" stroke="#334155" stroke-dasharray="3,3"/>
+  <text x="120" y="169" fill="#64748b" font-family="system-ui, sans-serif" font-size="11" text-anchor="end">10.5%</text>
+  <line x1="130" y1="100" x2="750" y2="100" stroke="#334155" stroke-dasharray="3,3"/>
+  <text x="120" y="104" fill="#64748b" font-family="system-ui, sans-serif" font-size="11" text-anchor="end">14.0%</text>
+  <rect x="137.3" y="233.71428571428572" width="21.7" height="126.28571428571428" fill="#38bdf8" rx="3"/>
+  <text x="148.15" y="229.71428571428572" fill="#bae6fd" font-family="system-ui, sans-serif" font-size="10" font-weight="600" text-anchor="middle">6.8%</text>
+  <rect x="163.0" y="315.42857142857144" width="21.7" height="44.57142857142856" fill="#34d399" rx="3"/>
+  <text x="173.85" y="311.42857142857144" fill="#a7f3d0" font-family="system-ui, sans-serif" font-size="10" font-weight="600" text-anchor="middle">2.4%</text>
+  <text x="161.0" y="378" fill="#94a3b8" font-family="system-ui, sans-serif" font-size="11" font-weight="bold" text-anchor="middle">HI</text>
+  <text x="161.0" y="392" fill="#64748b" font-family="system-ui, sans-serif" font-size="9" text-anchor="middle">Hindi</text>
+  <rect x="199.3" y="207.71428571428572" width="21.7" height="152.28571428571428" fill="#38bdf8" rx="3"/>
+  <text x="210.15" y="203.71428571428572" fill="#bae6fd" font-family="system-ui, sans-serif" font-size="10" font-weight="600" text-anchor="middle">8.2%</text>
+  <rect x="225.0" y="302.42857142857144" width="21.7" height="57.57142857142857" fill="#34d399" rx="3"/>
+  <text x="235.85" y="298.42857142857144" fill="#a7f3d0" font-family="system-ui, sans-serif" font-size="10" font-weight="600" text-anchor="middle">3.1%</text>
+  <text x="223.0" y="378" fill="#94a3b8" font-family="system-ui, sans-serif" font-size="11" font-weight="bold" text-anchor="middle">GU</text>
+  <text x="223.0" y="392" fill="#64748b" font-family="system-ui, sans-serif" font-size="9" text-anchor="middle">Gujarati</text>
+  <rect x="261.3" y="220.71428571428572" width="21.7" height="139.28571428571428" fill="#38bdf8" rx="3"/>
+  <text x="272.15" y="216.71428571428572" fill="#bae6fd" font-family="system-ui, sans-serif" font-size="10" font-weight="600" text-anchor="middle">7.5%</text>
+  <rect x="287.0" y="308.0" width="21.7" height="51.99999999999999" fill="#34d399" rx="3"/>
+  <text x="297.85" y="304.0" fill="#a7f3d0" font-family="system-ui, sans-serif" font-size="10" font-weight="600" text-anchor="middle">2.8%</text>
+  <text x="285.0" y="378" fill="#94a3b8" font-family="system-ui, sans-serif" font-size="11" font-weight="bold" text-anchor="middle">MR</text>
+  <text x="285.0" y="392" fill="#64748b" font-family="system-ui, sans-serif" font-size="9" text-anchor="middle">Marathi</text>
+  <rect x="323.3" y="196.5714285714286" width="21.7" height="163.4285714285714" fill="#38bdf8" rx="3"/>
+  <text x="334.15" y="192.5714285714286" fill="#bae6fd" font-family="system-ui, sans-serif" font-size="10" font-weight="600" text-anchor="middle">8.8%</text>
+  <rect x="349.0" y="296.8571428571429" width="21.7" height="63.14285714285714" fill="#34d399" rx="3"/>
+  <text x="359.85" y="292.8571428571429" fill="#a7f3d0" font-family="system-ui, sans-serif" font-size="10" font-weight="600" text-anchor="middle">3.4%</text>
+  <text x="347.0" y="378" fill="#94a3b8" font-family="system-ui, sans-serif" font-size="11" font-weight="bold" text-anchor="middle">KN</text>
+  <text x="347.0" y="392" fill="#64748b" font-family="system-ui, sans-serif" font-size="9" text-anchor="middle">Kannada</text>
+  <rect x="385.3" y="213.28571428571428" width="21.7" height="146.71428571428572" fill="#38bdf8" rx="3"/>
+  <text x="396.15" y="209.28571428571428" fill="#bae6fd" font-family="system-ui, sans-serif" font-size="10" font-weight="600" text-anchor="middle">7.9%</text>
+  <rect x="411.0" y="306.14285714285717" width="21.7" height="53.857142857142854" fill="#34d399" rx="3"/>
+  <text x="421.85" y="302.14285714285717" fill="#a7f3d0" font-family="system-ui, sans-serif" font-size="10" font-weight="600" text-anchor="middle">2.9%</text>
+  <text x="409.0" y="378" fill="#94a3b8" font-family="system-ui, sans-serif" font-size="11" font-weight="bold" text-anchor="middle">ML</text>
+  <text x="409.0" y="392" fill="#64748b" font-family="system-ui, sans-serif" font-size="9" text-anchor="middle">Malayalam</text>
+  <rect x="447.3" y="204.0" width="21.7" height="156.0" fill="#38bdf8" rx="3"/>
+  <text x="458.15" y="200.0" fill="#bae6fd" font-family="system-ui, sans-serif" font-size="10" font-weight="600" text-anchor="middle">8.4%</text>
+  <rect x="473.0" y="300.57142857142856" width="21.7" height="59.42857142857142" fill="#34d399" rx="3"/>
+  <text x="483.85" y="296.57142857142856" fill="#a7f3d0" font-family="system-ui, sans-serif" font-size="10" font-weight="600" text-anchor="middle">3.2%</text>
+  <text x="471.0" y="378" fill="#94a3b8" font-family="system-ui, sans-serif" font-size="11" font-weight="bold" text-anchor="middle">TA</text>
+  <text x="471.0" y="392" fill="#64748b" font-family="system-ui, sans-serif" font-size="9" text-anchor="middle">Tamil</text>
+  <rect x="509.3" y="218.85714285714286" width="21.7" height="141.14285714285714" fill="#38bdf8" rx="3"/>
+  <text x="520.15" y="214.85714285714286" fill="#bae6fd" font-family="system-ui, sans-serif" font-size="10" font-weight="600" text-anchor="middle">7.6%</text>
+  <rect x="535.0" y="309.8571428571429" width="21.7" height="50.14285714285714" fill="#34d399" rx="3"/>
+  <text x="545.85" y="305.8571428571429" fill="#a7f3d0" font-family="system-ui, sans-serif" font-size="10" font-weight="600" text-anchor="middle">2.7%</text>
+  <text x="533.0" y="378" fill="#94a3b8" font-family="system-ui, sans-serif" font-size="11" font-weight="bold" text-anchor="middle">TE</text>
+  <text x="533.0" y="392" fill="#64748b" font-family="system-ui, sans-serif" font-size="9" text-anchor="middle">Telugu</text>
+  <rect x="571.3" y="146.42857142857144" width="21.7" height="213.57142857142856" fill="#38bdf8" rx="3"/>
+  <text x="582.15" y="142.42857142857144" fill="#bae6fd" font-family="system-ui, sans-serif" font-size="10" font-weight="600" text-anchor="middle">11.5%</text>
+  <rect x="597.0" y="276.42857142857144" width="21.7" height="83.57142857142857" fill="#34d399" rx="3"/>
+  <text x="607.85" y="272.42857142857144" fill="#a7f3d0" font-family="system-ui, sans-serif" font-size="10" font-weight="600" text-anchor="middle">4.5%</text>
+  <text x="595.0" y="378" fill="#94a3b8" font-family="system-ui, sans-serif" font-size="11" font-weight="bold" text-anchor="middle">OR</text>
+  <text x="595.0" y="392" fill="#64748b" font-family="system-ui, sans-serif" font-size="9" text-anchor="middle">Odia</text>
+  <rect x="633.3" y="215.14285714285717" width="21.7" height="144.85714285714283" fill="#38bdf8" rx="3"/>
+  <text x="644.15" y="211.14285714285717" fill="#bae6fd" font-family="system-ui, sans-serif" font-size="10" font-weight="600" text-anchor="middle">7.8%</text>
+  <rect x="659.0" y="308.0" width="21.7" height="51.99999999999999" fill="#34d399" rx="3"/>
+  <text x="669.85" y="304.0" fill="#a7f3d0" font-family="system-ui, sans-serif" font-size="10" font-weight="600" text-anchor="middle">2.8%</text>
+  <text x="657.0" y="378" fill="#94a3b8" font-family="system-ui, sans-serif" font-size="11" font-weight="bold" text-anchor="middle">BN</text>
+  <text x="657.0" y="392" fill="#64748b" font-family="system-ui, sans-serif" font-size="9" text-anchor="middle">Bengali</text>
+  <rect x="695.3" y="263.42857142857144" width="21.7" height="96.57142857142856" fill="#38bdf8" rx="3"/>
+  <text x="706.15" y="259.42857142857144" fill="#bae6fd" font-family="system-ui, sans-serif" font-size="10" font-weight="600" text-anchor="middle">5.2%</text>
+  <rect x="721.0" y="326.57142857142856" width="21.7" height="33.42857142857142" fill="#34d399" rx="3"/>
+  <text x="731.85" y="322.57142857142856" fill="#a7f3d0" font-family="system-ui, sans-serif" font-size="10" font-weight="600" text-anchor="middle">1.8%</text>
+  <text x="719.0" y="378" fill="#94a3b8" font-family="system-ui, sans-serif" font-size="11" font-weight="bold" text-anchor="middle">EN</text>
+  <text x="719.0" y="392" fill="#64748b" font-family="system-ui, sans-serif" font-size="9" text-anchor="middle">English</text>
+</svg>

@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 820 440" width="100%" height="100%">
+  <rect width="820" height="440" fill="#0f172a" rx="8"/>
+  <text x="410" y="36" fill="#f8fafc" font-family="system-ui, sans-serif" font-size="18" font-weight="bold" text-anchor="middle">Comparative End-to-End Latency Across Processing Pipelines</text>
+  <text x="410" y="56" fill="#94a3b8" font-family="system-ui, sans-serif" font-size="12" text-anchor="middle">Physical ARM64 Test on Galaxy A55 5G (3.2s Average Audio Utterance)</text>
+  
+  <!-- Legend -->
+  <circle cx="160" cy="82" r="6" fill="#ef4444"/>
+  <text x="175" y="86" fill="#cbd5e1" font-family="system-ui, sans-serif" font-size="12">Pipe A: Serial Batch</text>
+  <circle cx="340" cy="82" r="6" fill="#f59e0b"/>
+  <text x="355" y="86" fill="#cbd5e1" font-family="system-ui, sans-serif" font-size="12">Pipe B: Serial Two-Pass</text>
+  <circle cx="530" cy="82" r="6" fill="#3b82f6"/>
+  <text x="545" y="86" fill="#cbd5e1" font-family="system-ui, sans-serif" font-size="12">Pipe C: Overlapped Two-Pass</text>
+  <circle cx="710" cy="82" r="6" fill="#10b981"/>
+  <text x="725" y="86" fill="#cbd5e1" font-family="system-ui, sans-serif" font-size="12">Pipe D: Targeted Refine</text>
+
+  <rect x="30" y="120" width="760" height="28" fill="#1e293b" rx="4"/>
+  <text x="45" y="139" fill="#f1f5f9" font-family="system-ui, sans-serif" font-size="12" font-weight="bold">Evaluation Stage</text>
+  <text x="300" y="139" fill="#fca5a5" font-family="system-ui, sans-serif" font-size="12" font-weight="bold" text-anchor="middle">Pipeline A</text>
+  <text x="430" y="139" fill="#fcd34d" font-family="system-ui, sans-serif" font-size="12" font-weight="bold" text-anchor="middle">Pipeline B</text>
+  <text x="560" y="139" fill="#93c5fd" font-family="system-ui, sans-serif" font-size="12" font-weight="bold" text-anchor="middle">Pipeline C</text>
+  <text x="690" y="139" fill="#6ee7b7" font-family="system-ui, sans-serif" font-size="12" font-weight="bold" text-anchor="middle">Pipeline D</text>
+  <rect x="30" y="155" width="760" height="36" fill="#1e293b" rx="2"/>
+  <text x="45" y="178" fill="#cbd5e1" font-family="system-ui, sans-serif" font-size="12">First Partial (UI)</text>
+  <text x="300" y="178" fill="#94a3b8" font-family="system-ui, sans-serif" font-size="12" font-weight="normal" text-anchor="middle">3680 ms</text>
+  <text x="430" y="178" fill="#94a3b8" font-family="system-ui, sans-serif" font-size="12" font-weight="normal" text-anchor="middle">3750 ms</text>
+  <text x="560" y="178" fill="#3b82f6" font-family="system-ui, sans-serif" font-size="12" font-weight="bold" text-anchor="middle">345 ms</text>
+  <text x="690" y="178" fill="#10b981" font-family="system-ui, sans-serif" font-size="12" font-weight="bold" text-anchor="middle">318 ms</text>
+  <rect x="30" y="193" width="760" height="36" fill="#0f172a" rx="2"/>
+  <text x="45" y="216" fill="#cbd5e1" font-family="system-ui, sans-serif" font-size="12">Endpoint-to-Transcript</text>
+  <text x="300" y="216" fill="#94a3b8" font-family="system-ui, sans-serif" font-size="12" font-weight="normal" text-anchor="middle">480 ms</text>
+  <text x="430" y="216" fill="#94a3b8" font-family="system-ui, sans-serif" font-size="12" font-weight="normal" text-anchor="middle">560 ms</text>
+  <text x="560" y="216" fill="#3b82f6" font-family="system-ui, sans-serif" font-size="12" font-weight="bold" text-anchor="middle">235 ms</text>
+  <text x="690" y="216" fill="#10b981" font-family="system-ui, sans-serif" font-size="12" font-weight="bold" text-anchor="middle">110 ms</text>
+  <rect x="30" y="231" width="760" height="36" fill="#1e293b" rx="2"/>
+  <text x="45" y="254" fill="#cbd5e1" font-family="system-ui, sans-serif" font-size="12">Endpoint-to-Packet Ready</text>
+  <text x="300" y="254" fill="#94a3b8" font-family="system-ui, sans-serif" font-size="12" font-weight="normal" text-anchor="middle">504 ms</text>
+  <text x="430" y="254" fill="#94a3b8" font-family="system-ui, sans-serif" font-size="12" font-weight="normal" text-anchor="middle">584 ms</text>
+  <text x="560" y="254" fill="#3b82f6" font-family="system-ui, sans-serif" font-size="12" font-weight="bold" text-anchor="middle">254 ms</text>
+  <text x="690" y="254" fill="#10b981" font-family="system-ui, sans-serif" font-size="12" font-weight="bold" text-anchor="middle">125 ms</text>
+  <rect x="30" y="269" width="760" height="36" fill="#0f172a" rx="2"/>
+  <text x="45" y="292" fill="#cbd5e1" font-family="system-ui, sans-serif" font-size="12">E2E Transport Hop (A→B)</text>
+  <text x="300" y="292" fill="#94a3b8" font-family="system-ui, sans-serif" font-size="12" font-weight="normal" text-anchor="middle">34 ms</text>
+  <text x="430" y="292" fill="#94a3b8" font-family="system-ui, sans-serif" font-size="12" font-weight="normal" text-anchor="middle">34 ms</text>
+  <text x="560" y="292" fill="#3b82f6" font-family="system-ui, sans-serif" font-size="12" font-weight="bold" text-anchor="middle">32 ms</text>
+  <text x="690" y="292" fill="#10b981" font-family="system-ui, sans-serif" font-size="12" font-weight="bold" text-anchor="middle">30 ms</text>
+  <rect x="30" y="307" width="760" height="36" fill="#1e293b" rx="2"/>
+  <text x="45" y="330" fill="#cbd5e1" font-family="system-ui, sans-serif" font-size="12">Endpoint-to-Acoustic Play (B)</text>
+  <text x="300" y="330" fill="#94a3b8" font-family="system-ui, sans-serif" font-size="12" font-weight="normal" text-anchor="middle">708 ms</text>
+  <text x="430" y="330" fill="#94a3b8" font-family="system-ui, sans-serif" font-size="12" font-weight="normal" text-anchor="middle">788 ms</text>
+  <text x="560" y="330" fill="#3b82f6" font-family="system-ui, sans-serif" font-size="12" font-weight="bold" text-anchor="middle">432 ms</text>
+  <text x="690" y="330" fill="#10b981" font-family="system-ui, sans-serif" font-size="12" font-weight="bold" text-anchor="middle">295 ms</text>
+  <rect x="30" y="345" width="760" height="36" fill="#0f172a" rx="2"/>
+  <text x="45" y="368" fill="#cbd5e1" font-family="system-ui, sans-serif" font-size="12">Total Pipeline E2E (T0→T12)</text>
+  <text x="300" y="368" fill="#94a3b8" font-family="system-ui, sans-serif" font-size="12" font-weight="normal" text-anchor="middle">3908 ms</text>
+  <text x="430" y="368" fill="#94a3b8" font-family="system-ui, sans-serif" font-size="12" font-weight="normal" text-anchor="middle">3988 ms</text>
+  <text x="560" y="368" fill="#3b82f6" font-family="system-ui, sans-serif" font-size="12" font-weight="bold" text-anchor="middle">3632 ms</text>
+  <text x="690" y="368" fill="#10b981" font-family="system-ui, sans-serif" font-size="12" font-weight="bold" text-anchor="middle">3495 ms</text>
+  <rect x="30" y="393" width="760" height="40" fill="#1e1b4b" stroke="#6366f1" rx="4"/>
+  <text x="410" y="418" fill="#c7d2fe" font-family="system-ui, sans-serif" font-size="12" font-weight="bold" text-anchor="middle">Key Finding: Feature 16A Overlapped Two-Pass (Pipeline C) delivers a 2.04x speedup in Endpoint-to-Transcript</text>
+</svg>

@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 400" width="100%" height="100%">
+  <rect width="800" height="400" fill="#0f172a" rx="8"/>
+  <text x="400" y="36" fill="#f8fafc" font-family="system-ui, sans-serif" font-size="18" font-weight="bold" text-anchor="middle">Tactical Critical Token Accuracy by Category</text>
+  <text x="400" y="56" fill="#94a3b8" font-family="system-ui, sans-serif" font-size="12" text-anchor="middle">Precision, Recall, F1 Score &amp; Semantic Fact Retention (250 Utterance Corpus)</text>
+
+  <text x="50" y="116" fill="#f1f5f9" font-family="system-ui, sans-serif" font-size="13" font-weight="bold">NORMAL (Commands)</text>
+  <rect x="260" y="100" width="420" height="22" fill="#1e293b" rx="4"/>
+  <rect x="260" y="100" width="412.02" height="22" fill="#38bdf8" rx="4"/>
+  <text x="662.02" y="115" fill="#0f172a" font-family="system-ui, sans-serif" font-size="11" font-weight="bold" text-anchor="end">F1: 98.1%</text>
+  <text x="695" y="115" fill="#34d399" font-family="system-ui, sans-serif" font-size="12" font-weight="bold">Fact Acc: 98.0%</text>
+  <text x="50" y="172" fill="#f1f5f9" font-family="system-ui, sans-serif" font-size="13" font-weight="bold">NUMBERS (Troop/Casualty)</text>
+  <rect x="260" y="156" width="420" height="22" fill="#1e293b" rx="4"/>
+  <rect x="260" y="156" width="415.38" height="22" fill="#38bdf8" rx="4"/>
+  <text x="665.38" y="171" fill="#0f172a" font-family="system-ui, sans-serif" font-size="11" font-weight="bold" text-anchor="end">F1: 98.9%</text>
+  <text x="695" y="171" fill="#34d399" font-family="system-ui, sans-serif" font-size="12" font-weight="bold">Fact Acc: 98.8%</text>
+  <text x="50" y="228" fill="#f1f5f9" font-family="system-ui, sans-serif" font-size="13" font-weight="bold">COORDINATES (Grid)</text>
+  <rect x="260" y="212" width="420" height="22" fill="#1e293b" rx="4"/>
+  <rect x="260" y="212" width="417.06" height="22" fill="#38bdf8" rx="4"/>
+  <text x="667.06" y="227" fill="#0f172a" font-family="system-ui, sans-serif" font-size="11" font-weight="bold" text-anchor="end">F1: 99.3%</text>
+  <text x="695" y="227" fill="#34d399" font-family="system-ui, sans-serif" font-size="12" font-weight="bold">Fact Acc: 99.2%</text>
+  <text x="50" y="284" fill="#f1f5f9" font-family="system-ui, sans-serif" font-size="13" font-weight="bold">CALLSIGN (Unit IDs)</text>
+  <rect x="260" y="268" width="420" height="22" fill="#1e293b" rx="4"/>
+  <rect x="260" y="268" width="413.7" height="22" fill="#38bdf8" rx="4"/>
+  <text x="663.7" y="283" fill="#0f172a" font-family="system-ui, sans-serif" font-size="11" font-weight="bold" text-anchor="end">F1: 98.5%</text>
+  <text x="695" y="283" fill="#34d399" font-family="system-ui, sans-serif" font-size="12" font-weight="bold">Fact Acc: 98.4%</text>
+  <text x="50" y="340" fill="#f1f5f9" font-family="system-ui, sans-serif" font-size="13" font-weight="bold">EMERGENCY (Alert/Mayday)</text>
+  <rect x="260" y="324" width="420" height="22" fill="#1e293b" rx="4"/>
+  <rect x="260" y="324" width="418.74" height="22" fill="#38bdf8" rx="4"/>
+  <text x="668.74" y="339" fill="#0f172a" font-family="system-ui, sans-serif" font-size="11" font-weight="bold" text-anchor="end">F1: 99.7%</text>
+  <text x="695" y="339" fill="#34d399" font-family="system-ui, sans-serif" font-size="12" font-weight="bold">Fact Acc: 99.6%</text>
+</svg>
