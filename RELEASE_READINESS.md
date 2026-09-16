@@ -30,7 +30,7 @@ The project has been transformed from an iterative development build into a dete
 2. **Semantic Base & Adaptive VBR Layer**: Tiered message representation (Compact Token -> Semantic Enhanced -> Full Neural Speech Chunks) enabling progressive degradation under poor channel conditions.
 3. **Shared Context & Confidence Engine**: Decentralized knowledge propagation with confidence scoring (`AUTHORITATIVE_THRESHOLD = 80`, `LOW_THRESHOLD = 40`) and automated time-to-live (TTL) expiration.
 4. **MANET / DTN Store-and-Forward Mesh**: Dual-mode mesh router (`ContextAwareRelayRouter`) with epidemic routing, duplicate suppression, buffer pressure management, and priority queueing for emergency distress packets.
-5. **Hybrid Transports**: Wi-Fi Direct / Local Multicast UDP Socket transport alongside Bluetooth Classic RFCOMM / BLE advertisement discovery.
+5. **Hybrid Transports**: Local Wi-Fi Multicast / UDP Broadcast (port 42888, via phone hotspot or local network) alongside Bluetooth Classic RFCOMM / SPP stream transport. (Note: Wi-Fi Direct is not currently implemented).
 
 ---
 
@@ -128,5 +128,5 @@ adb -s RF8N927PM9N shell monkey -p org.sih.itantra -c android.intent.category.LA
    - Idle State: ~45–65 MB RSS.
    - Active Speech Inference: ~180–280 MB RSS during active Sherpa-ONNX acoustic model decoding.
    - Recommended minimum device RAM: 3 GB.
-4. **Physical Range**: P2P Wi-Fi Direct and local multicast provide ~30–70 meters line-of-sight; Bluetooth Classic/BLE provides ~10–25 meters. Multi-hop relay capabilities extend coverage across intermediate node chains.
+4. **Physical Range**: Local Wi-Fi multicast (via phone hotspot) provides ~30–70 meters line-of-sight; Bluetooth Classic provides ~10–25 meters. Multi-hop relay capabilities extend coverage across intermediate node chains in simulation. (Note: Wi-Fi Direct is not currently implemented).
 5. **Operating Recommendation**: Devices deployed in the field should disable aggressive battery optimizations for `iTantra` to ensure `ManetNodeService` maintains continuous ad-hoc mesh connectivity during disaster response operations.

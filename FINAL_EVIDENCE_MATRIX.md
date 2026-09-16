@@ -1,4 +1,4 @@
-﻿# iTantra — Final Evidence Matrix
+# iTantra — Final Evidence Matrix
 
 **Project:** SIH26173 — iTantra (Indian Multilingual TTS & STT Aided Neural Transceiver Radio Access)  
 **Standard of Proof:** Authoritative Repository & Physical Testbed Artifacts Only  
@@ -36,7 +36,7 @@
 | **F22: Impairment Benchmark**| `core/benchmark/runner/NetworkImpairmentRunner.kt`| 16 tests (`NetworkResilienceTest`)| 903/903 Passed | 60 scenario runs executed | Evaluated via simulated channel | `feature22_results.json`, `feature22_results.csv` | `7fdb1f0` | Evaluated via simulated software channel harness (bandwidth, loss, jitter) |
 | **F23: Security Audit** | `security/` package | 62 tests (`SecurityAuditTest`, `PacketFuzzSafetyTest`, etc.)| 903/903 Passed | 500+ malformed fuzzing buffers | 62 adversarial tests executed | `FEATURE23_SECURITY_AUDIT_REPORT.md` | `d8edefb` | HMAC authentication ensures origin integrity, NOT encryption/confidentiality |
 | **F24: Resource Profiling** | `core/resourcebenchmark/` | 16 tests (`ResourceBenchmarkTest`) | 903/903 Passed | Synthetic load harness | **44 runs on Phone A & B** | `feature24_resource_results.json`, `feature24_resource_results.csv` | `0a659cc` | Profiling executed on Galaxy A55 5G (Android 16) & Note 10 Lite (Android 12) |
-| **F25: Physical Dual-Handset**| Core pipeline & physical radio transports | Complete regression suite + PTT integration | 903/903 Passed | Socket loopback simulation | **Direct 2-phone RF link (A & B)** | `docs/assets/demo/ad-astra-sih-2026-demo.mp4`, `RELEASE_READINESS.md`| `bec16b7` | Direct single-hop RF link verified; multi-hop intermediate relay is simulated |
+| **F25: Physical Dual-Handset**| Core pipeline & physical radio transports | Complete regression suite + PTT integration | 903/903 Passed | Socket loopback simulation | **Direct 2-phone RF link (A & B) via phone hotspot Wi-Fi & Bluetooth SPP** | `docs/assets/demo/ad-astra-sih-2026-demo.mp4`, `RELEASE_READINESS.md`| `bec16b7` | Direct single-hop RF link verified over phone hotspot Wi-Fi and Bluetooth Classic SPP; multi-hop intermediate relay is simulated. Wi-Fi Direct is not currently implemented or physically validated. |
 | **F26: Release Hardening & CI**| `.github/workflows/android.yml`, `build.gradle.kts`| Lint, unit regression, release signing | 903/903 Passed | Automated CI workflow | Release APK compiled (929.8 MB) | `RELEASE_READINESS.md`, `FINAL_BUILD_INFO.md` | `a583d2e` | Sideload install requires USB transfer or CI workflow artifact download |
 | **F27: SIH Documentation** | Root and `docs/` documentation suite | N/A (Documentation & Audit) | 903/903 Passed | Claim audit & matrix consistency | Comprehensive repository audit | `FINAL_FEATURE_STATUS.md`, `FINAL_ITANTRA_TECHNICAL_REPORT.md`, etc. | Current | Complete documentation consolidation; no code modifications |
 
@@ -53,3 +53,7 @@
 | **`DOCUMENTATION ONLY`** | **1** | Feature 27 (Final SIH Documentation, Evidence Consolidation & Claim Audit) |
 | **`PENDING PHYSICAL VALIDATION`** | **0** | All features implemented have verified automated, synthetic, or physical evidence tiers. |
 | **TOTAL** | **27** | **100% Accounted For** |
+
+> [!NOTE]
+> **Physical Transport Demarcation for Feature 25:**
+> Physical multi-device validation was conducted using **local Wi-Fi networking via a phone-generated mobile hotspot** (UDP multicast port 42888) and **Bluetooth Classic SPP**. Wi-Fi Direct (Wi-Fi P2P) is **not currently implemented or physically validated** in this release. All multi-hop relay claims are verified via simulation harnesses.

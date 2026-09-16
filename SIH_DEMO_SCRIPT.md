@@ -1,9 +1,9 @@
-﻿# iTantra — SIH 2026 Live Demonstration Script (~3 Minutes)
+# iTantra — SIH 2026 Live Demonstration Script (~3 Minutes)
 
 **Project:** SIH26173 — iTantra (Indian Multilingual TTS & STT Aided Neural Transceiver Radio Access)  
 **Team:** Ad Astra • **Evaluation Audience:** Smart India Hackathon Technical Jury  
 **Target Duration:** Exactly 3 Minutes (180 Seconds)  
-**Hardware Setup:** Two Android Handsets (Phone A: Samsung Galaxy A55 5G, Phone B: Samsung Galaxy Note 10 Lite) placed on the demo table in **Airplane Mode** (Wi-Fi and Bluetooth enabled; Cellular data & SIM disconnected).  
+**Hardware Setup:** Two Android Handsets (Phone A: Samsung Galaxy A55 5G, Phone B: Samsung Galaxy Note 10 Lite) placed on the demo table in **Airplane Mode** (Cellular data & SIM disconnected; connected to Phone A's local mobile hotspot, or paired over Bluetooth Classic).  
 
 ---
 
@@ -13,7 +13,7 @@ To ensure absolute transparency with hackathon evaluators, every component of th
 
 | Tag | Category | Explanation |
 |:---:|:---|:---|
-| **`[LIVE]`** | **Live Physical Execution** | Executed directly in front of judges on physical handsets (Phone A and Phone B) over physical ad-hoc RF links (Wi-Fi multicast or Bluetooth SPP). |
+| **`[LIVE]`** | **Live Physical Execution** | Executed directly in front of judges on physical handsets (Phone A and Phone B) over physical ad-hoc RF links (local Wi-Fi networking via phone hotspot, or Bluetooth Classic SPP). *(Note: Wi-Fi Direct is not currently implemented).* |
 | **`[RECORDED]`** | **Pre-Recorded Physical Evidence** | Supported by verified screen recordings and video artifacts archived in the repository (`docs/assets/demo/ad-astra-sih-2026-demo.mp4`). |
 | **`[SIMULATED]`** | **Deterministic Harness Simulation** | Executed via on-device mock channels or automated test harnesses to demonstrate large-scale multi-hop graphs or severe RF impairment conditions without requiring physical RF chambers. |
 

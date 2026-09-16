@@ -1,4 +1,4 @@
-﻿# iTantra — Documentation Claim Audit & Technical Boundary Qualification
+# iTantra — Documentation Claim Audit & Technical Boundary Qualification
 
 **Project:** SIH26173 — iTantra (Indian Multilingual TTS & STT Aided Neural Transceiver Radio Access)  
 **Evaluation Scope:** Scientific Rigor, Academic Truthfulness, and Claim Verification  
@@ -26,7 +26,8 @@ In accordance with strict hackathon integrity guidelines, this **Claim Audit** i
 | **Multi-Hop Scope** | *"Fully field-proven multi-hop mesh"* | **Simulated Multi-Hop + Physical Single-Hop**: Direct single-hop RF communication is physically verified between two physical Android devices (`ad-astra-sih-2026-demo.mp4`). Multi-hop relay chains ($\ge 2$ hops) are validated in comprehensive software test harnesses (`ContextAwareRelayTest.kt`). | `FINAL_FEATURE_STATUS.md`, `ContextAwareRelayTest.kt` |
 | **Speech Coverage** | *"Universal Indian language understanding"* | **10 Specific Regional Languages Benchmarked**: Evaluated across 10 official Indian languages using 250 standardized tactical utterances. Models achieve 7.6% WER under clear-to-moderate acoustic conditions; uncalibrated dialects and extreme acoustic noise ($> 100\text{ dB}$) are not claimed. | `FEATURE21_10_LANGUAGE_ACCURACY_LATENCY_REPORT.md` |
 | **Compression** | *"Lossless voice compression"* | **Lossy Semantic Representation**: Converting acoustic speech to text and synthesized voice is fundamentally lossy: voice timbre, speaker emotion, and background acoustic nuances are replaced by standardized neural TTS synthesis. | `FINAL_ITANTRA_TECHNICAL_REPORT.md` (Section 9) |
-| **RF Range** | *"Guaranteed long-range communication"* | **Antenna-Bounded Line-of-Sight Range**: Physical range is physically constrained by internal smartphone patch antennas: $30\text{--}70\text{ meters}$ on Wi-Fi multicast and $10\text{--}25\text{ meters}$ on Bluetooth. Operation over kilometers requires intermediate multi-hop nodes or external sub-GHz radio modems. | `RELEASE_READINESS.md` (Section 7) |
+| **RF Range** | *"Guaranteed long-range communication"* | **Antenna-Bounded Line-of-Sight Range**: Physical range is physically constrained by internal smartphone patch antennas: $30\text{--}70\text{ meters}$ on phone hotspot Wi-Fi and $10\text{--}25\text{ meters}$ on Bluetooth. Operation over kilometers requires intermediate multi-hop nodes or external sub-GHz radio modems. | `RELEASE_READINESS.md` (Section 7) |
+| **Wireless Transport** | *"Physically validated Wi-Fi Direct P2P"* | **Local Wi-Fi Networking via Phone Hotspot & Bluetooth SPP**: Physical Wi-Fi was tested over a phone-generated mobile hotspot (`WifiTransport` UDP multicast on port 42888) and Bluetooth Classic SPP (`BluetoothTransport`). **Wi-Fi Direct (Wi-Fi P2P) is NOT implemented or physically validated** in the current codebase. | `WifiTransport.kt`, `BluetoothTransport.kt`, `RELEASE_READINESS.md` |
 
 ---
 
@@ -45,5 +46,9 @@ In accordance with strict hackathon integrity guidelines, this **Claim Audit** i
 - **Kernel Mesh (802.11s):** Hardware-layer packet relaying at the MAC layer. Standard Android kernels do not expose 802.11s without custom ROMs and root access.
 
 ### 3.4 Physical Evidence vs. Simulation Harness Evidence
-- **Physical Evidence:** Handsets Phone A (`SM-A556E`) and Phone B (`SM-N770F`) physically communicating over physical RF links, physical optical camera QR scanning, physical CPU/RAM/battery monitoring.
+- **Physical Evidence:** Handsets Phone A (`SM-A556E`) and Phone B (`SM-N770F`) physically communicating over physical RF links (phone hotspot Wi-Fi and Bluetooth Classic SPP), physical optical camera QR scanning, physical CPU/RAM/battery monitoring.
 - **Simulation Harness:** Multi-hop forwarding logic, network impairment injection (bandwidth limits, artificial jitter, dropped packets), and adversarial fuzzing executed through programmatic test harnesses without physical RF attenuation chambers.
+
+### 3.5 Local Wi-Fi (Phone Hotspot) vs. Wi-Fi Direct (P2P Group Formation)
+- **What iTantra Implements:** `WifiTransport` binds to local UDP multicast/broadcast on port `42888`. For physical multi-phone testing without existing router infrastructure, one handset hosts a local Android Personal Hotspot (with cellular data disabled), and the other handset joins that local subnet (`192.168.43.x`). Packets travel directly between the handsets over local RF.
+- **What iTantra Does NOT Implement:** Native Wi-Fi Direct (`android.net.wifi.p2p.WifiP2pManager`). Wi-Fi Direct group negotiation requires 10–25 seconds of discovery, custom P2P permission prompts, and often fails on heterogeneous chipsets. Wi-Fi Direct is not present in the codebase and has never been physically validated. Any prior references to Wi-Fi Direct in early drafts were architectural aspirational notes, not implemented reality.

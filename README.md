@@ -1,4 +1,4 @@
-﻿<div align="center">
+<div align="center">
 
 # AD ASTRA
 
@@ -93,7 +93,7 @@ Standard push-to-talk radios and cellular voice streams transmit raw or compress
                                 ▼
   ┌───────────────────────────────────────────────────────────┐
   │ 5. Hybrid Physical Transports                             │
-  │    • Wi-Fi Direct / Local Multicast UDP (Port 42888)      │
+  │    • Local Wi-Fi UDP Multicast (Port 42888 via Hotspot)   │
   │    • Bluetooth Classic RFCOMM / SPP Stream                │
   └─────────────────────────────┬─────────────────────────────┘
                                 │
@@ -202,6 +202,7 @@ In strict adherence to truthful engineering principles:
 2. **Confidentiality:** HMAC-SHA256 provides message authenticity and tamper integrity, but **not payload confidentiality**; over-the-air packets are not encrypted with an asymmetric or stream cipher.
 3. **Multi-Hop Validation:** Multi-hop relay routing is thoroughly validated in simulation harnesses (up to 7 hops with partition recovery); physical hardware validation was conducted on a dual-handset testbed (1 hop direct RF link).
 4. **Release APK Size (~929 MB):** An intentional engineering trade-off to bundle high-accuracy quantized neural acoustic models directly in the APK, eliminating all post-install internet download requirements.
+5. **Wi-Fi Direct Status:** Wi-Fi Direct (Wi-Fi P2P) is **not currently implemented or physically validated** in this release. Physical Wi-Fi operation currently utilizes phone-generated local mobile hotspot networking or connection to a local Wi-Fi subnet alongside Bluetooth Classic RFCOMM/SPP.
 
 ---
 

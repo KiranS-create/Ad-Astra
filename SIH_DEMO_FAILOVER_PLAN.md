@@ -1,4 +1,4 @@
-﻿# iTantra — SIH 2026 Live Demonstration Failover & Contingency Plan
+# iTantra — SIH 2026 Live Demonstration Failover & Contingency Plan
 
 **Project:** SIH26173 — iTantra (Indian Multilingual TTS & STT Aided Neural Transceiver Radio Access)  
 **Target:** Live Demonstration Robustness & Technical Risk Mitigation  
@@ -40,7 +40,8 @@ In live technical evaluations, physical RF environments (hallway Wi-Fi interfere
 ### Scenario 3: Bluetooth Unavailable (Hardware Crash / Discovery Timeout)
 - **Root Risk:** Bluetooth daemon on target handset stalls or fails to complete discovery.
 - **Existing Fallback Capability:**
-  - **Ad-Hoc Wi-Fi Direct / Local Handset Hotspot:**
+  - **Local Handset Hotspot (Phone-Generated Local Wi-Fi):**
+    *(Note: Wi-Fi Direct is not currently implemented; physical Wi-Fi testing utilizes an ad-hoc local phone hotspot).*
     1. Turn on Android **Personal Hotspot** on Phone A (no internet/cellular required).
     2. Connect Phone B to Phone A's local Wi-Fi hotspot.
     3. Both devices are now on the same zero-infrastructure local subnet (`192.168.43.x`).
@@ -106,7 +107,7 @@ In live technical evaluations, physical RF environments (hallway Wi-Fi interfere
 | What Could Go Wrong | Automatic / Fallback Mechanism | Operator Fix Time |
 |:---|:---|:---:|
 | Wi-Fi blocked by venue | Bluetooth Classic RFCOMM transport | $< 5\text{ seconds}$ |
-| Bluetooth disconnected | Wi-Fi Direct / Local hotspot multicast | $< 10\text{ seconds}$ |
+| Bluetooth disconnected | Local handset hotspot Wi-Fi multicast | $< 10\text{ seconds}$ |
 | Camera fails / denied | Manual Code / Paste Dialog fallback | $< 5\text{ seconds}$ |
 | Only 1 phone on table | "TEST PACKET" loopback mode | Instant ($0\text{ s}$) |
 | RF completely dead | DTN queue + Simulated MANET topology | Instant ($0\text{ s}$) |

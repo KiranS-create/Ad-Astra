@@ -1,4 +1,4 @@
-﻿# iTantra — SIH 2026 Judge Technical Quick Reference
+# iTantra — SIH 2026 Judge Technical Quick Reference
 
 **Problem Statement:** `SIH26173` • **Team:** Ad Astra • **Project:** iTantra  
 **Purpose:** Fast, authoritative, technically precise answers to evaluator and jury inquiries during technical review.
@@ -104,22 +104,23 @@ Across the 250-utterance standardized tactical benchmark (Feature 21):
 ### 14. What latency was empirically measured?
 - **Endpoint-to-Transcript:** **235.0 ms** via Overlapped Two-Pass Pipeline (**2.04x faster** than 480.0 ms batch baseline).
 - **Streaming First Partial:** **345.0 ms** from speech onset.
-- **Wi-Fi Multicast Airtime:** **8.5 ms (median)**.
+- **Local Wi-Fi Multicast (via Phone Hotspot) Airtime:** **8.5 ms (median)**.
 - **Bluetooth RFCOMM Airtime:** **24.0 ms (median)**.
 - **Neural TTS Synthesis:** Real-Time Factor (RTF) of **0.18–0.24** on ARM64 ($180\text{ ms}$ compute for $1\text{ second}$ of audio).
+*(Note: No physical latency is claimed for Wi-Fi Direct as it is not implemented).*
 
 ---
 
 ### 15. What physical hardware was tested?
 - **Phone A:** Samsung Galaxy A55 5G (`SM-A556E`), Android 16 (API 36), Exynos 1480, 8 GB RAM.
 - **Phone B:** Samsung Galaxy Note 10 Lite (`SM-N770F`), Android 12 (API 31), Exynos 9810, 6 GB RAM.
-- **Verified on Hardware:** Physical Wi-Fi multicast UDP (port 42888), Bluetooth SPP sockets, CameraX optical QR scanning, on-device Whisper INT8 STT, Piper VITS playback, and physical CPU/RAM/Battery profiling (Feature 24).
+- **Verified on Hardware:** Local Wi-Fi networking (via phone hotspot) with UDP multicast (port 42888), Bluetooth Classic SPP sockets, CameraX optical QR scanning, on-device Whisper INT8 STT, Piper VITS playback, and physical CPU/RAM/Battery profiling (Feature 24).
 
 ---
 
 ### 16. What is physically validated vs. simulated?
 - **Physically Validated on Hardware:**
-  - Dual-phone direct RF link (PTT voice capture $\to$ transmission $\to$ neural playback).
+  - Dual-phone direct RF link over local Wi-Fi networking (via phone hotspot) and Bluetooth Classic SPP (PTT voice capture $\to$ transmission $\to$ neural playback).
   - Optical CameraX QR scanner node pairing.
   - On-device CPU, RAM, battery, and thermal profiling across 44 phases.
   - Emergency SOS siren preemption.
@@ -131,9 +132,10 @@ Across the 250-utterance standardized tactical benchmark (Feature 21):
 ---
 
 ### 17. What are the known limitations?
-1. **RF Line-of-Sight Range:** Smartphone antennas provide $30\text{--}70\text{ m}$ on Wi-Fi multicast and $10\text{--}25\text{ m}$ on Bluetooth. Operating over kilometers requires intermediate relay hops or external sub-GHz RF modems.
+1. **RF Line-of-Sight Range:** Smartphone antennas provide $30\text{--}70\text{ m}$ on phone hotspot Wi-Fi and $10\text{--}25\text{ m}$ on Bluetooth. Operating over kilometers requires intermediate relay hops or external sub-GHz RF modems.
 2. **Confidentiality:** Over-the-air packets are authenticated (HMAC-SHA256) but **unencrypted**. Anyone with an RF monitor on the channel can inspect plaintext payloads.
 3. **Application Layer Routing:** Relaying occurs in Android user space, not at native 802.11s kernel/firmware layers.
+4. **Wi-Fi Direct Status:** Wi-Fi Direct (Wi-Fi P2P) is **not implemented or physically validated** in the current release. Physical Wi-Fi operation relies on a local mobile hotspot or connection to a local Wi-Fi subnet.
 
 ---
 

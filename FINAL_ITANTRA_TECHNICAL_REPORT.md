@@ -1,4 +1,4 @@
-﻿# iTantra — Final Technical Engineering Report
+# iTantra — Final Technical Engineering Report
 
 **Project:** SIH26173 — iTantra (Indian Multilingual TTS & STT Aided Neural Transceiver Radio Access for Low Bitrate Links)  
 **Team:** Ad Astra  
@@ -88,7 +88,7 @@ iTantra decouples acoustic generation from radio transmission through a four-sta
                     │                                      │
 ┌───────────────────▼──────────────────────────────────────▼──────────────────┐
 │                         PHYSICAL RADIO TRANSPORTS                           │
-│     [Wi-Fi Direct / Local Multicast (42888)]      [Bluetooth SPP / RFCOMM]  │
+│     [Wi-Fi Local UDP (Port 42888)]               [Bluetooth SPP / RFCOMM]  │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -211,10 +211,10 @@ Under channel congestion, Queue 2 is throttled or dropped first, preserving link
 
 iTantra operates across two simultaneous zero-infrastructure wireless transports:
 
-1. **Wi-Fi Multicast / UDP Broadcast:**
+1. **Wi-Fi Multicast / UDP Broadcast (via Phone Hotspot / Local Network):**
    - Socket: Bound to `239.255.42.88` / `0.0.0.0`, port `42888`.
-   - Mode: Ad-hoc local subnet broadcast and multicast without requiring router/DHCP infrastructure. Supports Wi-Fi Direct peer-to-peer groups.
-   - Throughput: High bandwidth, range $30\text{--}70\text{ meters}$ line-of-sight.
+   - Mode: Local subnet broadcast and multicast via phone hotspot or local network without requiring external internet or cloud servers. (Note: Wi-Fi Direct is not currently implemented or physically validated; it represents a potential future routerless P2P transport).
+   - Range: Line-of-sight range over phone hotspot Wi-Fi is approximately $30\text{--}70\text{ meters}$.
 2. **Bluetooth Classic RFCOMM / SPP:**
    - Protocol: Serial Port Profile (SPP) with UUID `00001101-0000-1000-8000-00805F9B34FB`.
    - Mode: Point-to-point stream sockets between paired or discovered Bluetooth nodes.
@@ -313,7 +313,7 @@ End-to-end speech latency was characterized across pipeline configurations:
 - **Baseline Batch Pipeline (Pipeline A):** Operator speech recorded to completion $\to$ batch ASR inference $\to$ transmit. Endpoint-to-Transcript latency: **480.0 ms**.
 - **Overlapped Two-Pass Pipeline (Pipeline C):** Pass 1 streaming ASR overlaps speech capture $\to$ zero-wait release splicing. Endpoint-to-Transcript latency: **235.0 ms** (**2.04x speedup**).
 - **First Streaming Partial ($T_2$):** Emitted within **345.0 ms** of speech onset.
-- **Airtime Traversal ($T_5 \to T_6$):** Over physical Wi-Fi Direct: **8.5 ms (median)**, **9.0 ms (P95)**. Over Bluetooth RFCOMM: **24.0 ms (median)**.
+- **Airtime Traversal ($T_5 \to T_6$):** Over local Wi-Fi networking (via phone hotspot): **8.5 ms (median)**, **9.0 ms (P95)**. Over Bluetooth RFCOMM: **24.0 ms (median)**. (Note: No physical latency is claimed for Wi-Fi Direct as it is not implemented).
 - **Local TTS Synthesis:** Piper VITS synthesizes response audio with a Real-Time Factor (RTF) of **0.18–0.24** on ARM64 ($180\text{ ms}$ compute time for $1.0\text{ s}$ of acoustic voice).
 
 ---
@@ -375,6 +375,7 @@ Physical dual-handset testing was conducted using:
 2. **Confidentiality:** Current protocol authenticates packet origin and verifies payload integrity via HMAC-SHA256, but does not encrypt text over the air. Anyone with an 802.11 monitor interface on the same channel can inspect raw packet payloads.
 3. **Application-Layer MANET:** Relaying occurs in the Android user space application layer; it is not a native kernel 802.11s mesh or firmware-level ad-hoc routing protocol.
 4. **Odia STT:** Relies on Android OS speech recognition rather than an embedded Sherpa-ONNX model.
+5. **Wi-Fi Direct Status:** Wi-Fi Direct (P2P group negotiation) is **not currently implemented or physically validated** in this release. Physical Wi-Fi operation currently relies on a phone-generated local mobile hotspot or connection to a local Wi-Fi network.
 
 ---
 
@@ -404,3 +405,4 @@ Physical dual-handset testing was conducted using:
 3. **Multilingual Inclusivity:** Full support for 10 regional Indian languages ensures seamless communication across diverse operational commands.
 4. **Resilient Under Fire:** Built-in DTN store-and-forward queues, anti-replay sliding windows, and deterministic emergency siren preemption ensure critical messages survive severe channel degradation and link partitions.
 5. **Truthful Engineering:** Every benchmark number, resource curve, and hardware test in this report is backed by reproducible repository code, recorded JSON artifacts, and verified video evidence.
+
