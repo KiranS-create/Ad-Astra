@@ -1,5 +1,15 @@
 package org.sih.itantra.presentation.components
 
+import android.os.Handler
+import android.os.Looper
+import android.view.ViewGroup
+import androidx.camera.core.Camera
+import androidx.camera.core.CameraSelector
+import androidx.camera.core.ImageAnalysis
+import androidx.camera.core.ImageProxy
+import androidx.camera.core.Preview
+import androidx.camera.lifecycle.ProcessCameraProvider
+import androidx.camera.view.PreviewView
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -29,15 +39,15 @@ import androidx.compose.material.icons.filled.ContentPaste
 import androidx.compose.material.icons.filled.FlashOff
 import androidx.compose.material.icons.filled.FlashOn
 import androidx.compose.material.icons.filled.Keyboard
-import androidx.compose.material.icons.filled.QrCodeScanner
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -52,21 +62,36 @@ import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.viewinterop.AndroidView
+import androidx.core.content.ContextCompat
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import com.google.zxing.BarcodeFormat
+import com.google.zxing.BinaryBitmap
+import com.google.zxing.DecodeHintType
+import com.google.zxing.LuminanceSource
+import com.google.zxing.MultiFormatReader
+import com.google.zxing.NotFoundException
+import com.google.zxing.PlanarYUVLuminanceSource
+import com.google.zxing.common.HybridBinarizer
 import org.sih.itantra.presentation.theme.LocalRadioColors
+import java.util.concurrent.Executors
 
 /**
  * Tactical QR Scanner View.
  *
  * Implements:
- * - HUD target reticle with corner brackets.
- * - Animated laser scan line.
- * - Torch toggle affordance.
+ * - Live CameraX video preview feed.
+ * - 100% offline real-time QR decoding with ZXing frame analyzer.
+ * - Hardware camera torch toggle affordance.
+ * - HUD target reticle with corner brackets and animated laser scan line.
  * - Manual text / paste fallback drawer for development, testing, and dark environments.
+ * - Defensive lifecycle binding and executor cleanup preventing memory/camera leaks.
  */
 @Composable
 fun QrScannerView(
@@ -74,9 +99,16 @@ fun QrScannerView(
     onClose: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val radioColors = LocalRadioColors.current
+    val context = LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
+
     var isTorchOn by remember { mutableStateOf(false) }
     var showManualInputDialog by remember { mutableStateOf(false) }
+    var camera by remember { mutableStateOf<Camera?>(null) }
+    var cameraErrorMessage by remember { mutableStateOf<String?>(null) }
+
+    val cameraExecutor = remember { Executors.newSingleThreadExecutor() }
+    var previewViewInstance by remember { mutableStateOf<PreviewView?>(null) }
 
     // Laser scanning animation
     val infiniteTransition = rememberInfiniteTransition(label = "laser")
@@ -90,12 +122,165 @@ fun QrScannerView(
         label = "laser_progress"
     )
 
+    // CameraX setup and lifecycle binding
+    LaunchedEffect(previewViewInstance, lifecycleOwner) {
+        val pv = previewViewInstance ?: return@LaunchedEffect
+        val cameraProviderFuture = ProcessCameraProvider.getInstance(context)
+
+        cameraProviderFuture.addListener({
+            try {
+                val cameraProvider = cameraProviderFuture.get()
+
+                val preview = Preview.Builder().build().also {
+                    it.setSurfaceProvider(pv.surfaceProvider)
+                }
+
+                val imageAnalysis = ImageAnalysis.Builder()
+                    .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
+                    .build()
+
+                var lastScannedTimestamp = 0L
+                val multiFormatReader = MultiFormatReader().apply {
+                    val hints = mapOf(
+                        DecodeHintType.POSSIBLE_FORMATS to listOf(BarcodeFormat.QR_CODE),
+                        DecodeHintType.CHARACTER_SET to "UTF-8"
+                    )
+                    setHints(hints)
+                }
+
+                imageAnalysis.setAnalyzer(cameraExecutor) { imageProxy ->
+                    try {
+                        val now = System.currentTimeMillis()
+                        // 1.2s debounce to prevent duplicate firing on the same code
+                        if (now - lastScannedTimestamp > 1200L) {
+                            val luminanceSource = extractLuminanceSource(imageProxy)
+                            if (luminanceSource != null) {
+                                val binaryBitmap = BinaryBitmap(HybridBinarizer(luminanceSource))
+                                try {
+                                    val result = multiFormatReader.decodeWithState(binaryBitmap)
+                                    val text = result.text
+                                    if (!text.isNullOrBlank()) {
+                                        lastScannedTimestamp = now
+                                        Handler(Looper.getMainLooper()).post {
+                                            onQrCodeDetected(text)
+                                        }
+                                    }
+                                } catch (_: NotFoundException) {
+                                    // Normal condition when no QR code is in viewfinder
+                                } finally {
+                                    multiFormatReader.reset()
+                                }
+                            }
+                        }
+                    } catch (_: Exception) {
+                        // Ignore transient frame analysis errors
+                    } finally {
+                        imageProxy.close()
+                    }
+                }
+
+                val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
+
+                cameraProvider.unbindAll()
+                camera = cameraProvider.bindToLifecycle(
+                    lifecycleOwner,
+                    cameraSelector,
+                    preview,
+                    imageAnalysis
+                )
+                cameraErrorMessage = null
+            } catch (e: Exception) {
+                cameraErrorMessage = "Camera initialization error: ${e.message ?: "hardware unavailable"}"
+            }
+        }, ContextCompat.getMainExecutor(context))
+    }
+
+    // Hardware torch control synchronization
+    LaunchedEffect(isTorchOn, camera) {
+        try {
+            val cam = camera
+            if (cam != null && cam.cameraInfo.hasFlashUnit()) {
+                cam.cameraControl.enableTorch(isTorchOn)
+            }
+        } catch (_: Exception) {
+            // Flash not supported or permission issue
+        }
+    }
+
+    // Clean up camera use-cases and executor on dispose
+    DisposableEffect(lifecycleOwner) {
+        onDispose {
+            try {
+                val cameraProviderFuture = ProcessCameraProvider.getInstance(context)
+                if (cameraProviderFuture.isDone) {
+                    cameraProviderFuture.get().unbindAll()
+                }
+            } catch (_: Exception) {
+                // Ignore cleanup errors
+            }
+            cameraExecutor.shutdown()
+        }
+    }
+
     Box(
         modifier = modifier
             .fillMaxSize()
             .background(Color.Black)
     ) {
-        // Tactical Viewfinder HUD Overlay
+        // 1. Live Camera Preview View (fills background)
+        AndroidView(
+            factory = { ctx ->
+                PreviewView(ctx).apply {
+                    this.scaleType = PreviewView.ScaleType.FILL_CENTER
+                    layoutParams = ViewGroup.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                        ViewGroup.LayoutParams.MATCH_PARENT
+                    )
+                    implementationMode = PreviewView.ImplementationMode.COMPATIBLE
+                    previewViewInstance = this
+                }
+            },
+            modifier = Modifier.fillMaxSize()
+        )
+
+        // 2. Camera Error Notice (if camera fails to initialize)
+        cameraErrorMessage?.let { error ->
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black.copy(alpha = 0.85f))
+                    .padding(32.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(
+                        text = "CAMERA HARDWARE UNAVAILABLE",
+                        color = Color(0xFFEF5350),
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Bold,
+                        fontFamily = FontFamily.Monospace,
+                        textAlign = TextAlign.Center
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = error,
+                        color = Color.White.copy(alpha = 0.7f),
+                        fontSize = 11.sp,
+                        textAlign = TextAlign.Center,
+                        fontFamily = FontFamily.SansSerif
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text(
+                        text = "Use the manual code fallback button below to enter or paste node identity.",
+                        color = Color.White.copy(alpha = 0.6f),
+                        fontSize = 11.sp,
+                        textAlign = TextAlign.Center
+                    )
+                }
+            }
+        }
+
+        // 3. Tactical Viewfinder HUD Overlay (Drawn on top of preview)
         Canvas(modifier = Modifier.fillMaxSize()) {
             val canvasWidth = size.width
             val canvasHeight = size.height
@@ -105,13 +290,13 @@ fun QrScannerView(
             val right = left + boxSize
             val bottom = top + boxSize
 
-            // Dark semi-transparent scrim
+            // Dark semi-transparent scrim around reticle
             drawRect(
-                color = Color.Black.copy(alpha = 0.65f),
+                color = Color.Black.copy(alpha = 0.55f),
                 size = size
             )
 
-            // Transparent cut-out viewport for target
+            // Transparent cut-out viewport for target reticle
             drawRoundRect(
                 color = Color.Transparent,
                 topLeft = Offset(left, top),
@@ -122,7 +307,7 @@ fun QrScannerView(
 
             // Viewfinder Border
             drawRoundRect(
-                color = Color.White.copy(alpha = 0.25f),
+                color = Color.White.copy(alpha = 0.35f),
                 topLeft = Offset(left, top),
                 size = Size(boxSize, boxSize),
                 cornerRadius = CornerRadius(16.dp.toPx(), 16.dp.toPx()),
@@ -148,19 +333,19 @@ fun QrScannerView(
 
             // Bottom-Right
             drawLine(bracketColor, Offset(right, bottom), Offset(right - bracketLen, bottom), strokeW)
-            drawLine(bracketColor, Offset(right, bottom), Offset(right, bottom - bracketLen), strokeW)
+            drawLine(bracketColor, Offset(right, bottom), Offset(right, bottom + bracketLen), strokeW)
 
             // Sweeping Laser Scan Line
             val laserY = top + (boxSize * laserProgress)
             drawLine(
-                color = Color(0xFFD84315).copy(alpha = 0.85f),
+                color = Color(0xFFD84315).copy(alpha = 0.90f),
                 start = Offset(left + 8.dp.toPx(), laserY),
                 end = Offset(right - 8.dp.toPx(), laserY),
                 strokeWidth = 2.5.dp.toPx()
             )
         }
 
-        // Top Toolbar: Close & Torch
+        // 4. Top Toolbar: Close & Torch
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -201,7 +386,7 @@ fun QrScannerView(
             }
         }
 
-        // Bottom Controls: Instruction and Manual Fallback Action
+        // 5. Bottom Controls: Instruction and Manual Fallback Action
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -270,8 +455,98 @@ fun QrScannerView(
     }
 }
 
+/**
+ * Extracts Y-plane luminance from an [ImageProxy] and rotates it according to sensor orientation.
+ */
+private fun extractLuminanceSource(imageProxy: ImageProxy): LuminanceSource? {
+    val plane = imageProxy.planes.getOrNull(0) ?: return null
+    val buffer = plane.buffer
+    val width = imageProxy.width
+    val height = imageProxy.height
+    val rowStride = plane.rowStride
+    val pixelStride = plane.pixelStride
+
+    val ySize = width * height
+    val yData = ByteArray(ySize)
+
+    val remaining = buffer.remaining()
+    if (rowStride == width && pixelStride == 1 && remaining >= ySize) {
+        val originalPos = buffer.position()
+        buffer.get(yData, 0, ySize)
+        buffer.position(originalPos)
+    } else {
+        val originalPos = buffer.position()
+        val rowBuffer = ByteArray(rowStride)
+        var outOffset = 0
+        for (row in 0 until height) {
+            val length = minOf(rowStride, buffer.remaining())
+            buffer.get(rowBuffer, 0, length)
+            for (col in 0 until width) {
+                val idx = col * pixelStride
+                if (idx < length) {
+                    yData[outOffset + col] = rowBuffer[idx]
+                }
+            }
+            outOffset += width
+        }
+        buffer.position(originalPos)
+    }
+
+    val rotationDegrees = imageProxy.imageInfo.rotationDegrees
+    val (rotatedData, rotatedDims) = rotateYData(yData, width, height, rotationDegrees)
+    return PlanarYUVLuminanceSource(
+        rotatedData,
+        rotatedDims.first,
+        rotatedDims.second,
+        0,
+        0,
+        rotatedDims.first,
+        rotatedDims.second,
+        false
+    )
+}
+
+/**
+ * Rotates a 1-byte-per-pixel grayscale byte array by the specified rotation angle.
+ */
+private fun rotateYData(
+    data: ByteArray,
+    width: Int,
+    height: Int,
+    rotationDegrees: Int
+): Pair<ByteArray, Pair<Int, Int>> {
+    return when (rotationDegrees) {
+        90 -> {
+            val rotated = ByteArray(data.size)
+            for (y in 0 until height) {
+                for (x in 0 until width) {
+                    rotated[x * height + (height - y - 1)] = data[y * width + x]
+                }
+            }
+            rotated to Pair(height, width)
+        }
+        180 -> {
+            val rotated = ByteArray(data.size)
+            for (i in data.indices) {
+                rotated[data.size - 1 - i] = data[i]
+            }
+            rotated to Pair(width, height)
+        }
+        270 -> {
+            val rotated = ByteArray(data.size)
+            for (y in 0 until height) {
+                for (x in 0 until width) {
+                    rotated[(width - x - 1) * height + y] = data[y * width + x]
+                }
+            }
+            rotated to Pair(height, width)
+        }
+        else -> data to Pair(width, height)
+    }
+}
+
 @Composable
-private fun ManualQrInputDialog(
+internal fun ManualQrInputDialog(
     onConfirm: (String) -> Unit,
     onDismiss: () -> Unit
 ) {

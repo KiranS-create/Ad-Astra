@@ -26,6 +26,10 @@
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
 
+    <!-- Optical QR Code Scanner for Tactical Contact Pairing -->
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-feature android:name="android.hardware.camera" android:required="false" />
+
     <!--
         Foreground Service — MANET Node Mode
         FOREGROUND_SERVICE: required to call startForeground() on any API level.
