@@ -171,7 +171,7 @@ fun MainTransceiverScreen(
                 .clip(RoundedCornerShape(10.dp))
                 .background(radioColors.surface.copy(alpha = 0.5f))
                 .border(1.dp, radioColors.border.copy(alpha = 0.35f), RoundedCornerShape(10.dp))
-                .padding(8.dp)
+                .padding(10.dp)
         ) {
             // Live Radio Traffic Header
             Row(
@@ -185,7 +185,7 @@ fun MainTransceiverScreen(
                     Text(
                         text = "LIVE RADIO TRAFFIC",
                         color = if (radioColors.isDark) radioColors.sage else radioColors.forest,
-                        fontSize = 11.sp,
+                        fontSize = 13.sp,
                         fontWeight = FontWeight.Bold,
                         fontFamily = FontFamily.Monospace,
                         letterSpacing = 0.8.sp
@@ -193,14 +193,14 @@ fun MainTransceiverScreen(
                     Spacer(modifier = Modifier.width(6.dp))
                     Box(
                         modifier = Modifier
-                            .clip(RoundedCornerShape(3.dp))
+                            .clip(RoundedCornerShape(4.dp))
                             .background((if (radioColors.isDark) radioColors.sage else radioColors.forest).copy(alpha = 0.15f))
-                            .padding(horizontal = 4.dp, vertical = 1.dp)
+                            .padding(horizontal = 5.dp, vertical = 2.dp)
                     ) {
                         Text(
                             text = "REAL-TIME",
                             color = if (radioColors.isDark) radioColors.sage else radioColors.forest,
-                            fontSize = 8.5.sp,
+                            fontSize = 10.sp,
                             fontWeight = FontWeight.Bold,
                             fontFamily = FontFamily.Monospace
                         )
@@ -209,7 +209,7 @@ fun MainTransceiverScreen(
                 Text(
                     text = if (history.isEmpty()) "CH-1 IDLE" else "${history.size} MSG${if (history.size > 1) "S" else ""}",
                     color = radioColors.textTertiary,
-                    fontSize = 10.sp,
+                    fontSize = 11.5.sp,
                     fontFamily = FontFamily.Monospace
                 )
             }
@@ -227,7 +227,7 @@ fun MainTransceiverScreen(
                         Text(
                             text = "NO RADIO MESSAGES RECEIVED YET",
                             color = radioColors.textTertiary,
-                            fontSize = 11.sp,
+                            fontSize = 13.sp,
                             fontWeight = FontWeight.Bold,
                             fontFamily = FontFamily.Monospace,
                             letterSpacing = 0.5.sp,
@@ -237,7 +237,7 @@ fun MainTransceiverScreen(
                         Text(
                             text = "Hold PTT or send a test packet to transmit",
                             color = radioColors.textTertiary,
-                            fontSize = 10.sp,
+                            fontSize = 11.5.sp,
                             fontFamily = FontFamily.Monospace,
                             textAlign = androidx.compose.ui.text.style.TextAlign.Center
                         )
@@ -259,7 +259,7 @@ fun MainTransceiverScreen(
 
         Spacer(modifier = Modifier.height(6.dp))
 
-        // 6. Central Large Circular PTT Control
+        // 6. Compact Rectangular PTT Control (Refined from legacy Central Large Circular PTT)
         RadioPttControl(
             pttState = pttState,
             isContinuousMode = isContinuous,

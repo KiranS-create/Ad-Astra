@@ -87,7 +87,7 @@ fun RadioTranscriptRow(
                 .clip(RoundedCornerShape(10.dp))
                 .background(cardBackground)
                 .border(1.dp, borderColor, RoundedCornerShape(10.dp))
-                .padding(horizontal = 11.dp, vertical = 8.dp)
+                .padding(horizontal = 12.dp, vertical = 9.dp)
         ) {
             Column(modifier = Modifier.fillMaxWidth()) {
                 // 1. Header: Direction Badge + Peer + Language + Emergency Badge + Time
@@ -104,32 +104,32 @@ fun RadioTranscriptRow(
                                 .background(
                                     if (isSent) radioColors.sage.copy(alpha = 0.22f) else Color(0xFF0288D1).copy(alpha = 0.22f)
                                 )
-                                .padding(horizontal = 5.dp, vertical = 2.dp)
+                                .padding(horizontal = 6.dp, vertical = 2.dp)
                         ) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Icon(
                                     imageVector = if (isSent) Icons.AutoMirrored.Filled.ArrowForward else Icons.AutoMirrored.Filled.ArrowBack,
                                     contentDescription = if (isSent) "Transmitted" else "Received",
                                     tint = if (isSent) (if (radioColors.isDark) radioColors.sage else radioColors.forest) else Color(0xFF0288D1),
-                                    modifier = Modifier.size(10.dp)
+                                    modifier = Modifier.size(12.dp)
                                 )
                                 Spacer(modifier = Modifier.width(3.dp))
                                 Text(
                                     text = if (isSent) "TX" else "RX",
                                     color = if (isSent) (if (radioColors.isDark) radioColors.sage else radioColors.forest) else Color(0xFF0288D1),
-                                    fontSize = 10.sp,
+                                    fontSize = 11.5.sp,
                                     fontWeight = FontWeight.Bold,
                                     fontFamily = FontFamily.Monospace
                                 )
                             }
                         }
 
-                        Spacer(modifier = Modifier.width(6.dp))
+                        Spacer(modifier = Modifier.width(7.dp))
 
                         Text(
                             text = record.peer.ifEmpty { if (isSent) "Broadcast" else "Peer" },
                             color = radioColors.textSecondary,
-                            fontSize = 11.sp,
+                            fontSize = 12.5.sp,
                             fontWeight = FontWeight.Medium,
                             fontFamily = FontFamily.Monospace
                         )
@@ -140,7 +140,7 @@ fun RadioTranscriptRow(
                         Text(
                             text = "• ${record.language.displayName}",
                             color = radioColors.textTertiary,
-                            fontSize = 10.sp,
+                            fontSize = 11.5.sp,
                             fontWeight = FontWeight.Medium
                         )
                     }
@@ -151,13 +151,13 @@ fun RadioTranscriptRow(
                                 imageVector = Icons.Default.WarningAmber,
                                 contentDescription = "Distress Alert",
                                 tint = radioColors.alert,
-                                modifier = Modifier.size(13.dp)
+                                modifier = Modifier.size(14.dp)
                             )
                             Spacer(modifier = Modifier.width(3.dp))
                             Text(
                                 text = if (record.priority == MessagePriority.DISTRESS) "DISTRESS" else "ALERT",
                                 color = radioColors.alert,
-                                fontSize = 10.sp,
+                                fontSize = 11.5.sp,
                                 fontWeight = FontWeight.Bold,
                                 fontFamily = FontFamily.Monospace
                             )
@@ -167,7 +167,7 @@ fun RadioTranscriptRow(
                         Text(
                             text = formattedTime,
                             color = radioColors.textTertiary,
-                            fontSize = 10.sp,
+                            fontSize = 11.sp,
                             fontFamily = FontFamily.Monospace
                         )
                     }
@@ -189,13 +189,13 @@ fun RadioTranscriptRow(
                                 imageVector = Icons.Default.WarningAmber,
                                 contentDescription = null,
                                 tint = radioColors.alert,
-                                modifier = Modifier.size(12.dp)
+                                modifier = Modifier.size(13.dp)
                             )
                             Spacer(modifier = Modifier.width(4.dp))
                             Text(
                                 text = "🚨 DISTRESS • P3 ${if (record.location != null) "(LOCATION ATTACHED)" else "(NO GPS)"}",
                                 color = radioColors.alert,
-                                fontSize = 10.5.sp,
+                                fontSize = 12.sp,
                                 fontWeight = FontWeight.Bold,
                                 fontFamily = FontFamily.Monospace
                             )
@@ -222,7 +222,7 @@ fun RadioTranscriptRow(
                             Text(
                                 text = "SEMANTIC: ${record.semanticSummary}",
                                 color = if (radioColors.isDark) radioColors.sage else radioColors.forest,
-                                fontSize = 10.5.sp,
+                                fontSize = 12.sp,
                                 fontWeight = FontWeight.Bold,
                                 fontFamily = FontFamily.Monospace
                             )
@@ -230,7 +230,7 @@ fun RadioTranscriptRow(
                                 Text(
                                     text = "SAVED: ${savings}B",
                                     color = radioColors.success,
-                                    fontSize = 9.5.sp,
+                                    fontSize = 10.5.sp,
                                     fontWeight = FontWeight.Bold,
                                     fontFamily = FontFamily.Monospace
                                 )
@@ -244,9 +244,9 @@ fun RadioTranscriptRow(
                 Text(
                     text = record.text,
                     color = radioColors.textPrimary,
-                    fontSize = 14.5.sp,
+                    fontSize = 16.sp,
                     fontWeight = FontWeight.SemiBold,
-                    lineHeight = 19.sp
+                    lineHeight = 22.sp
                 )
 
                 // 5. Location Metadata Box with Open Map Action (if attached)
@@ -274,7 +274,7 @@ fun RadioTranscriptRow(
                                 Text(
                                     text = "LOCATION: $latStr, $lonStr",
                                     color = radioColors.alert,
-                                    fontSize = 10.5.sp,
+                                    fontSize = 11.5.sp,
                                     fontWeight = FontWeight.Bold,
                                     fontFamily = FontFamily.Monospace
                                 )
@@ -299,7 +299,7 @@ fun RadioTranscriptRow(
                                     Text(
                                         text = "OPEN MAP",
                                         color = radioColors.alert,
-                                        fontSize = 9.sp,
+                                        fontSize = 10.sp,
                                         fontWeight = FontWeight.Bold,
                                         fontFamily = FontFamily.Monospace
                                     )
@@ -313,14 +313,14 @@ fun RadioTranscriptRow(
                                 Text(
                                     text = "ACCURACY: ±${loc.accuracy.toInt()}m${if (loc.altitude != null) " · ALT: ${loc.altitude.toInt()}m" else ""}",
                                     color = radioColors.textTertiary,
-                                    fontSize = 9.5.sp,
+                                    fontSize = 10.sp,
                                     fontFamily = FontFamily.Monospace
                                 )
                                 if (record.hopCount > 0) {
                                     Text(
                                         text = "HOPS: ${record.hopCount}",
                                         color = radioColors.textTertiary,
-                                        fontSize = 9.5.sp,
+                                        fontSize = 10.sp,
                                         fontFamily = FontFamily.Monospace
                                     )
                                 }
@@ -354,7 +354,7 @@ fun RadioTranscriptRow(
                                 Text(
                                     text = record.authStatus ?: "AUTH ✓",
                                     color = if (radioColors.isDark) radioColors.sage else radioColors.forest,
-                                    fontSize = 8.5.sp,
+                                    fontSize = 9.5.sp,
                                     fontWeight = FontWeight.Bold,
                                     fontFamily = FontFamily.Monospace
                                 )
@@ -370,7 +370,7 @@ fun RadioTranscriptRow(
                                 Text(
                                     text = "UNVERIFIED",
                                     color = radioColors.warning,
-                                    fontSize = 8.5.sp,
+                                    fontSize = 9.5.sp,
                                     fontWeight = FontWeight.Bold,
                                     fontFamily = FontFamily.Monospace
                                 )
@@ -384,7 +384,7 @@ fun RadioTranscriptRow(
                                 Text(
                                     text = ackStr,
                                     color = radioColors.success,
-                                    fontSize = 9.sp,
+                                    fontSize = 10.sp,
                                     fontWeight = FontWeight.Bold,
                                     fontFamily = FontFamily.Monospace
                                 )
@@ -393,7 +393,7 @@ fun RadioTranscriptRow(
                                 Text(
                                     text = "PENDING",
                                     color = radioColors.warning,
-                                    fontSize = 9.sp,
+                                    fontSize = 10.sp,
                                     fontWeight = FontWeight.Bold,
                                     fontFamily = FontFamily.Monospace
                                 )
@@ -402,7 +402,7 @@ fun RadioTranscriptRow(
                                 Text(
                                     text = "TIMEOUT",
                                     color = radioColors.alert,
-                                    fontSize = 9.sp,
+                                    fontSize = 10.sp,
                                     fontWeight = FontWeight.Bold,
                                     fontFamily = FontFamily.Monospace
                                 )
@@ -412,7 +412,7 @@ fun RadioTranscriptRow(
                                 Text(
                                     text = "SENDING ($count frags)",
                                     color = if (radioColors.isDark) radioColors.sage else radioColors.forest,
-                                    fontSize = 9.sp,
+                                    fontSize = 10.sp,
                                     fontWeight = FontWeight.Bold,
                                     fontFamily = FontFamily.Monospace
                                 )
@@ -426,7 +426,7 @@ fun RadioTranscriptRow(
                             Text(
                                 text = fragLabel,
                                 color = radioColors.textTertiary,
-                                fontSize = 9.sp,
+                                fontSize = 10.sp,
                                 fontFamily = FontFamily.Monospace
                             )
                         }
@@ -479,7 +479,7 @@ fun RadioTranscriptRow(
                                 Text(
                                     text = label,
                                     color = modeColor,
-                                    fontSize = 8.sp,
+                                    fontSize = 9.sp,
                                     fontWeight = FontWeight.Bold,
                                     fontFamily = FontFamily.Monospace
                                 )
@@ -503,7 +503,7 @@ fun RadioTranscriptRow(
                             Text(
                                 text = pText,
                                 color = pColor,
-                                fontSize = 8.sp,
+                                fontSize = 9.sp,
                                 fontWeight = FontWeight.Bold,
                                 fontFamily = FontFamily.Monospace
                             )
@@ -513,7 +513,7 @@ fun RadioTranscriptRow(
                         Text(
                             text = "${record.packetSizeBytes}B",
                             color = radioColors.textTertiary,
-                            fontSize = 9.5.sp,
+                            fontSize = 10.sp,
                             fontFamily = FontFamily.Monospace
                         )
 
@@ -522,7 +522,7 @@ fun RadioTranscriptRow(
                             Text(
                                 text = "${record.measuredLatencyMs.toInt()}ms",
                                 color = if (radioColors.isDark) radioColors.sage else radioColors.forest,
-                                fontSize = 9.5.sp,
+                                fontSize = 10.sp,
                                 fontWeight = FontWeight.Bold,
                                 fontFamily = FontFamily.Monospace
                             )

@@ -399,4 +399,58 @@ class SihUiRefinementTest {
         assertTrue("Settings must have onOpenSihDemo callback", settingsContent.contains("onOpenSihDemo"))
         assertTrue("Settings must contain OPEN SIH DEMO action", settingsContent.contains("OPEN SIH DEMO"))
     }
+
+    // =========================================================================
+    // E. Rectangular PTT Button & Refined Traffic Sizing
+    // =========================================================================
+
+    @Test
+    fun testCompactRectangularPttButtonAttributes() {
+        val pttFile = File("src/main/java/org/sih/itantra/presentation/components/RadioPttControl.kt")
+        assertTrue("RadioPttControl.kt must exist", pttFile.exists())
+        val content = pttFile.readText()
+
+        // Rectangular attributes
+        assertTrue("Must be horizontally oriented with fillMaxWidth()", content.contains("fillMaxWidth()"))
+        assertTrue("Must be compact height around 58dp (not 180dp/190dp circle)", content.contains("height(58.dp)"))
+        assertTrue("Must use RoundedCornerShape (not CircleShape outer)", content.contains("RoundedCornerShape(buttonCornerRadius)") || content.contains("RoundedCornerShape(12.dp)"))
+        assertFalse("Must NOT use size(190.dp) outer concentric circle", content.contains("size(190.dp)"))
+
+        // Preserved functionality & gestures
+        assertTrue("Must preserve detectTapGestures", content.contains("detectTapGestures("))
+        assertTrue("Must preserve onPressStart", content.contains("onPressStart()"))
+        assertTrue("Must preserve onPressRelease", content.contains("onPressRelease()"))
+        assertTrue("Must preserve tryAwaitRelease", content.contains("tryAwaitRelease()"))
+        assertTrue("Must preserve haptic feedback", content.contains("performHapticFeedback("))
+
+        // State coverage
+        assertTrue("Must handle IDLE state text", content.contains("PRESS TO TALK"))
+        assertTrue("Must handle RECORDING / LISTENING", content.contains("RECORDING AUDIO (VAD)"))
+        assertTrue("Must handle PROCESSING", content.contains("STT PROCESSING"))
+        assertTrue("Must handle TRANSMITTING", content.contains("TRANSMITTING TO MESH"))
+        assertTrue("Must handle RECEIVING", content.contains("RECEIVING AUDIO"))
+        assertTrue("Must handle DISTRESS", content.contains("EMERGENCY DISTRESS"))
+    }
+
+    @Test
+    fun testLiveRadioTrafficModestSizeIncrease() {
+        val radioScreenFile = File("src/main/java/org/sih/itantra/presentation/screens/MainTransceiverScreen.kt")
+        assertTrue("MainTransceiverScreen.kt must exist", radioScreenFile.exists())
+        val radioContent = radioScreenFile.readText()
+
+        // Verify increased header size
+        assertTrue("Header LIVE RADIO TRAFFIC must be 13sp (up from 11sp)", radioContent.contains("fontSize = 13.sp"))
+        assertTrue("REAL-TIME badge must be 10sp (up from 8.5sp)", radioContent.contains("fontSize = 10.sp"))
+        assertTrue("Message counter badge must be 11.5sp (up from 10sp)", radioContent.contains("fontSize = 11.5.sp"))
+
+        val rowFile = File("src/main/java/org/sih/itantra/presentation/components/RadioTranscriptRow.kt")
+        assertTrue("RadioTranscriptRow.kt must exist", rowFile.exists())
+        val rowContent = rowFile.readText()
+
+        // Verify increased message row sizes
+        assertTrue("Message primary text must be 16sp (up from 14.5sp)", rowContent.contains("fontSize = 16.sp"))
+        assertTrue("Message primary text lineHeight must be 22sp (up from 19sp)", rowContent.contains("lineHeight = 22.sp"))
+        assertTrue("Direction TX/RX badge must be 11.5sp (up from 10sp)", rowContent.contains("fontSize = 11.5.sp"))
+        assertTrue("Peer text must be 12.5sp (up from 11sp)", rowContent.contains("fontSize = 12.5.sp"))
+    }
 }
