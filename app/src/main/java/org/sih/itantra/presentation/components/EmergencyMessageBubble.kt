@@ -32,6 +32,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -39,6 +40,7 @@ import androidx.compose.ui.unit.sp
 import org.sih.itantra.core.chat.MessageRetentionPolicy
 import org.sih.itantra.core.common.MessagePriority
 import org.sih.itantra.core.emergency.EmergencyUiMapper
+import org.sih.itantra.core.emergency.MapLauncher
 import org.sih.itantra.core.message.MessageTechnicalInspectorMapper
 import org.sih.itantra.core.message.RadioMessageStateMapper
 import org.sih.itantra.core.persistence.MessageDirection
@@ -230,12 +232,30 @@ fun EmergencyMessageBubble(
 
                 // 4. Attached Location Status & Coordinates
                 if (record.location != null) {
+                    val isValidLocation = remember(record.location.latitude, record.location.longitude) {
+                        MapLauncher.isValidCoordinates(record.location.latitude, record.location.longitude)
+                    }
+                    val context = LocalContext.current
+
                     Spacer(modifier = Modifier.height(6.dp))
                     Box(
                         modifier = Modifier
                             .clip(RoundedCornerShape(6.dp))
-                            .background(radioColors.warning.copy(alpha = 0.15f))
+                            .background(radioColors.warning.copy(alpha = if (isValidLocation) 0.20f else 0.15f))
                             .border(0.5.dp, radioColors.warning, RoundedCornerShape(6.dp))
+                            .then(
+                                if (isValidLocation) {
+                                    Modifier.clickable {
+                                        MapLauncher.launch(
+                                            context = context,
+                                            latitude = record.location.latitude,
+                                            longitude = record.location.longitude
+                                        )
+                                    }
+                                } else {
+                                    Modifier
+                                }
+                            )
                             .padding(horizontal = 8.dp, vertical = 3.dp)
                     ) {
                         Text(
