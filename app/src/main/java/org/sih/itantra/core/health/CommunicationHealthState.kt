@@ -117,4 +117,7 @@ data class CommunicationHealthState(
     val qosHealth: QosHealthState,
     val recentEvents: List<CommunicationEventItem>,
     val timestampMs: Long = System.currentTimeMillis()
-)
+) {
+    val activeTransports: List<TransportHealthItem>
+        get() = transports.filter { it.state == TransportState.CONNECTED || it.state == TransportState.LISTENING }
+}
