@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import org.sih.itantra.core.common.IndicLanguage
@@ -517,45 +518,53 @@ class TransceiverViewModel(application: Application) : AndroidViewModel(applicat
     // Communication Health Panel (Feature 13)
     // -------------------------------------------------------------------------
 
-    val communicationHealthState: StateFlow<CommunicationHealthState> = kotlinx.coroutines.flow.combine(
+    private data class CommunicationHealthPartial(
+        val diag: org.sih.itantra.core.diagnostics.DiagnosticsState,
+        val topo: org.sih.itantra.core.mesh.MeshTopologySnapshot,
+        val history: List<org.sih.itantra.core.persistence.MessageRecord>,
+        val wifiState: org.sih.itantra.core.transport.TransportState,
+        val btState: org.sih.itantra.core.transport.TransportState
+    )
+
+    val communicationHealthState: StateFlow<CommunicationHealthState> = combine(
         diagnosticsState,
         meshTopologySnapshot,
         messageHistory,
         coordinator.transportManager.wifiTransport.state,
-        bluetoothTransportState,
-        wifiDirectTransportState
-    ) { args: Array<Any?> ->
-        val diag = args[0] as org.sih.itantra.core.diagnostics.DiagnosticsState
-        val topo = args[1] as org.sih.itantra.core.mesh.MeshTopologySnapshot
-        @Suppress("UNCHECKED_CAST")
-        val history = args[2] as List<org.sih.itantra.core.persistence.MessageRecord>
-        val wifiState = args[3] as org.sih.itantra.core.transport.TransportState
-        val btState = args[4] as org.sih.itantra.core.transport.TransportState
-        val wdState = args[5] as org.sih.itantra.core.transport.TransportState
+        bluetoothTransportState
+    ) { diag, topo, history, wifiState, btState ->
+        CommunicationHealthPartial(
+            diag = diag,
+            topo = topo,
+            history = history,
+            wifiState = wifiState,
+            btState = btState
+        )
+    }.combine(wifiDirectTransportState) { partial, wdState ->
         CommunicationHealthMapper.map(
             localNodeId = coordinator.manetRouter.localNodeId,
-            diagnostics = diag,
-            topology = topo,
-            messageHistory = history,
-            wifiState = wifiState,
+            diagnostics = partial.diag,
+            topology = partial.topo,
+            messageHistory = partial.history,
+            wifiState = partial.wifiState,
             wifiPeers = coordinator.transportManager.wifiTransport.connectedPeers.value,
-            bluetoothState = btState,
+            bluetoothState = partial.btState,
             bluetoothPeers = coordinator.transportManager.bluetoothTransport.connectedPeers.value,
             wifiDirectState = wdState,
             wifiDirectPeers = coordinator.transportManager.wifiDirectTransport.connectedPeers.value,
             preferredTransport = _activeTransportType.value,
             isRelayEnabled = coordinator.relayRouter.isRelayEnabled.value,
             dtnQueueSize = coordinator.manetRouter.dtnStore.size(),
-            qosQueuedPackets = diag.queuedPackets,
-            qosCongestion = when (diag.congestionState) {
+            qosQueuedPackets = partial.diag.queuedPackets,
+            qosCongestion = when (partial.diag.congestionState) {
                 "CONGESTED" -> org.sih.itantra.core.qos.CongestionState.CONGESTED
                 "BUSY"      -> org.sih.itantra.core.qos.CongestionState.BUSY
                 else        -> org.sih.itantra.core.qos.CongestionState.NORMAL
             },
-            qosDistress = diag.queuedDistress,
-            qosAlert = diag.queuedAlert,
-            qosImportant = diag.queuedImportant,
-            qosNormal = diag.queuedNormal
+            qosDistress = partial.diag.queuedDistress,
+            qosAlert = partial.diag.queuedAlert,
+            qosImportant = partial.diag.queuedImportant,
+            qosNormal = partial.diag.queuedNormal
         )
     }.stateIn(
         viewModelScope,
