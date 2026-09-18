@@ -151,10 +151,11 @@ class SherpaOnnxSpeechRecognizer(
                     tailPaddings = -1
                 }
 
+                val optimalThreads = Runtime.getRuntime().availableProcessors().coerceIn(2, 4)
                 val modelConfig = OfflineModelConfig().apply {
                     whisper = whisperConfig
                     tokens = modelAssetManager.whisperTokensFile.absolutePath
-                    numThreads = 2
+                    numThreads = optimalThreads
                     debug = false
                     provider = "cpu"
                 }
