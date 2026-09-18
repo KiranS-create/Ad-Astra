@@ -1,7 +1,7 @@
-﻿# iTantra — Final Build & Release Information
+# iTantra — Final Build & Release Information
 
 **Project:** SIH26173 — iTantra (Indian Multilingual TTS & STT Aided Neural Transceiver Radio Access)  
-**Release Target:** SIH Production Release Candidate `v1.0.0`  
+**Release Target:** Pre-UI Overhaul Repository Preservation Checkpoint `v1.2.0-pre-ui-overhaul`  
 **Application ID:** `org.sih.itantra` • **Version Code:** `1` • **Version Name:** `1.0.0`  
 **Date:** September 2026  
 
@@ -13,20 +13,18 @@
 |---|---|
 | **Repository** | `https://github.com/KiranS-create/Ad-Astra.git` |
 | **Current Branch** | `main` |
-| **Commit Hash** | `343ba26ecd065ba3d9fdfcc18be2cbaf61829c7a` |
-| **Commit Message** | `fix(qr): repair camera scanner initialization` |
-| **Release Tag** | `v1.0.0` (`f8e6db40b36f706beb24567b30441e30715b14b0`) |
-| **Remote Sync Status** | `origin/main` is identical to local `main` (`HEAD = 343ba26`) |
-| **Working Tree Status** | Clean (documentation changes tracked) |
+| **Checkpoint Tag** | `v1.2.0-pre-ui-overhaul` |
+| **Historical Release Tags** | `v1.0.0` (`f8e6db4`), `v1.1.0-rc1` (`88b2063`), `v1.1.0-rc2` (`b0ade9a`) |
+| **Working Tree Status** | Clean |
 
 ---
 
 ## 2. Compiled Application Artifacts
 
-| Artifact | Relative Path | File Size (Bytes) | File Size (MB) | Build Timestamp | Status |
-|---|---|:---:|:---:|:---:|:---:|
-| **Debug APK** | `app/build/outputs/apk/debug/app-debug.apk` | 989,213,632 | **943.39 MB** | 16-09-2026 07:16:45 | Verified |
-| **Release APK** | `app/build/outputs/apk/release/app-release.apk` | 974,982,208 | **929.82 MB** | 16-09-2026 07:39:02 | Verified |
+| Artifact | Relative Path | File Size (Bytes) | File Size (MB) | Build Status |
+|---|---|:---:|:---:|:---:|
+| **Debug APK** | `app/build/outputs/apk/debug/app-debug.apk` | 982,553,843 | **937.04 MB** | Verified (BUILD SUCCESSFUL) |
+| **Release APK** | `app/build/outputs/apk/release/app-release.apk` | 975,031,448 | **929.86 MB** | Verified (BUILD SUCCESSFUL) |
 
 ### Size Justification:
 The ~929 MB release artifact is intentional and strictly necessary. It packages all on-device machine learning model assets within `assets/models/`:
@@ -61,21 +59,20 @@ This eliminates any requirement for runtime internet connectivity or post-instal
 
 ### 4.1 Automated JVM Unit Test Suite
 - **Command:** `.\gradlew.bat testDebugUnitTest`
-- **Result:** **`BUILD SUCCESSFUL in 31s`**
+- **Result:** **`BUILD SUCCESSFUL in 36s`**
 - **Test Metrics:**
-  - **Total Test Suites:** 72 test classes
-  - **Total Tests Executed:** **903**
-  - **Passed:** **903 (100.0%)**
+  - **Total Tests Executed:** **966**
+  - **Passed:** **966 (100.0%)**
   - **Failed:** **0**
   - **Skipped:** **0**
 
 ### 4.2 Debug Build Compilation
 - **Command:** `.\gradlew.bat assembleDebug`
-- **Result:** **`BUILD SUCCESSFUL in 30s`**
+- **Result:** **`BUILD SUCCESSFUL in 15s`**
 
 ### 4.3 Release Build Compilation
 - **Command:** `.\gradlew.bat assembleRelease`
-- **Result:** **`BUILD SUCCESSFUL in 5m 20s`**
+- **Result:** **`BUILD SUCCESSFUL in 24s`**
 - **Optimizations:** R8 full-mode shrinking, dead code elimination, resource shrinking, signing with debug key for immediate evaluation sideloading.
 
 ---
