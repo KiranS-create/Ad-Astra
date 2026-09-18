@@ -1,4 +1,4 @@
-﻿# iTantra — Final Feature Status Matrix (Features 1–27)
+# iTantra — Final Feature Status Matrix (Features 1–27)
 
 **Project:** SIH26173 — iTantra (Indian Multilingual TTS & STT Aided Neural Transceiver Radio Access for Low Bitrate Links)  
 **Team:** Ad Astra • **Platform:** Android 10+ (API 29+, Target API 35) • **Architecture:** `arm64-v8a`  
@@ -51,6 +51,8 @@ Every feature in iTantra is strictly classified into exactly one of six authorit
 | **25** | Physical Dual-Handset Mesh Validation | `IMPLEMENTED + PHYSICAL VALIDATION` | Integration test suite + live PTT radio test | Passed (903/903) | **Direct 2-phone RF link (A & B)** | `ad-astra-sih-2026-demo.mp4`, `RELEASE_READINESS.md` | `bec16b7` | Direct single-hop RF link verified; multi-hop intermediate relay is simulated |
 | **26** | Release Hardening, Production & CI | `IMPLEMENTED + AUTOMATED ONLY` | Lint, unit regression, release signing, CI | Passed (903/903) | Release APK generated (929.8 MB) | `RELEASE_READINESS.md`, `.github/workflows/android.yml` | `a583d2e` | Requires manual sideload or CI workflow dispatch |
 | **27** | Final SIH Documentation & Audit | `DOCUMENTATION ONLY` | N/A (Documentation Suite) | Passed (903/903) | Audit of all 27 features | `FINAL_FEATURE_STATUS.md`, `FINAL_ITANTRA_TECHNICAL_REPORT.md`, etc. | Current | Comprehensive documentation audit; no code modifications |
+| **28** | Routerless Wi-Fi Direct P2P Transport | `IMPLEMENTED + PHYSICAL VALIDATION` | 14 tests (`WifiDirectTransportTest`, `P2pGroupTest`) | Passed | **Physically verified on Phone A & B** | `docs/feature-reports/FEATURE28_WIFI_DIRECT_P2P_REPORT.md` | `b0ade9a` | Autonomous Android Wi-Fi P2P transport on port 42889 without routers/hotspots |
+| **29** | End-to-End Multi-Hop Relay & Failover | `IMPLEMENTED + SYNTHETIC VALIDATION` (Multi-Hop) / `PHYSICAL VALIDATION` (Failover) | 15 tests (`Feature29MultiHopRelayTest`) | Passed | **Physically verified failover on Phone A & B** | `docs/feature-reports/FEATURE29_MULTI_HOP_FAILOVER_REPORT.md`, `docs/benchmark/FEATURE29_NETWORK_IMPAIRMENT_REPORT.md` | Current | 3-node/4-node relay validated via deterministic automated tests; failover verified on hardware |
 
 ---
 

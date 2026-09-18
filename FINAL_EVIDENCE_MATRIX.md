@@ -39,6 +39,8 @@
 | **F25: Physical Dual-Handset**| Core pipeline & physical radio transports | Complete regression suite + PTT integration | 903/903 Passed | Socket loopback simulation | **Direct 2-phone RF link (A & B) via phone hotspot Wi-Fi & Bluetooth SPP** | `docs/assets/demo/ad-astra-sih-2026-demo.mp4`, `RELEASE_READINESS.md`| `bec16b7` | Direct single-hop RF link verified over phone hotspot Wi-Fi and Bluetooth Classic SPP; multi-hop intermediate relay is simulated. Wi-Fi Direct is not currently implemented or physically validated. |
 | **F26: Release Hardening & CI**| `.github/workflows/android.yml`, `build.gradle.kts`| Lint, unit regression, release signing | 903/903 Passed | Automated CI workflow | Release APK compiled (929.8 MB) | `RELEASE_READINESS.md`, `FINAL_BUILD_INFO.md` | `a583d2e` | Sideload install requires USB transfer or CI workflow artifact download |
 | **F27: SIH Documentation** | Root and `docs/` documentation suite | N/A (Documentation & Audit) | 903/903 Passed | Claim audit & matrix consistency | Comprehensive repository audit | `FINAL_FEATURE_STATUS.md`, `FINAL_ITANTRA_TECHNICAL_REPORT.md`, etc. | Current | Complete documentation consolidation; no code modifications |
+| **F28: Wi-Fi Direct P2P** | `core/transport/wifidirect/` | 14 tests (`WifiDirectTransportTest`) | Passed | P2P group mock harness | **Direct 2-phone link (A & B) via Wi-Fi Direct P2P** | `docs/feature-reports/FEATURE28_WIFI_DIRECT_P2P_REPORT.md` | `b0ade9a` | Autonomous routerless P2P transport on port 42889 |
+| **F29: Multi-Hop Relay & Failover** | `core/network/`, `core/mesh/` | 15 tests (`Feature29MultiHopRelayTest`) | Passed | 3-node & 4-node deterministic relay tests + 90-scenario impairment benchmark | **Direct physical transport failover & DTN recovery on Phone A & B** | `docs/feature-reports/FEATURE29_MULTI_HOP_FAILOVER_REPORT.md`, `docs/benchmark/FEATURE29_NETWORK_IMPAIRMENT_REPORT.md` | Current | Multi-hop verified in simulation harness; single-hop failover verified on hardware |
 
 ---
 
@@ -46,14 +48,14 @@
 
 | Evidence Tier | Number of Features | Features Included |
 |:---|:---:|:---|
-| **`IMPLEMENTED + PHYSICAL VALIDATION`** | **4** | Feature 10 (QR Pairing), Feature 24 (Resource Profiling), Feature 25 (Physical Dual-Handset Validation), Core Base Transceiver & PTT Radio (Wave 1 / Stage 3) |
-| **`IMPLEMENTED + SYNTHETIC VALIDATION`** | **4** | Feature 16A (Two-Pass STT Pipeline), Feature 20 (Context-Aware Multi-Hop Relay), Feature 21 (10-Language Speech Benchmark), Feature 22 (Network Impairment Benchmark) |
+| **`IMPLEMENTED + PHYSICAL VALIDATION`** | **6** | Feature 10 (QR Pairing), Feature 24 (Resource Profiling), Feature 25 (Physical Dual-Handset Validation), Feature 28 (Wi-Fi Direct P2P Transport), Feature 29 (Physical Failover & Recovery), Core Base Transceiver & PTT Radio |
+| **`IMPLEMENTED + SYNTHETIC VALIDATION`** | **5** | Feature 16A (Two-Pass STT Pipeline), Feature 20 (Context-Aware Multi-Hop Relay), Feature 21 (10-Language Speech Benchmark), Feature 22 (Network Impairment Benchmark), Feature 29 (3-Node / 4-Node Multi-Hop Relay Tests & Impairment Simulation) |
 | **`IMPLEMENTED + AUTOMATED ONLY`** | **2** | Feature 23 (Security Audit & Adversarial Negative Testing), Feature 26 (Release Hardening, Production Readiness & CI) |
 | **`IMPLEMENTED + UNIT TESTED`** | **16** | Features 1–9, Feature 11, Feature 12, Feature 13, Feature 14, Feature 15, Feature 16B, Feature 17, Feature 18, Feature 19 |
 | **`DOCUMENTATION ONLY`** | **1** | Feature 27 (Final SIH Documentation, Evidence Consolidation & Claim Audit) |
 | **`PENDING PHYSICAL VALIDATION`** | **0** | All features implemented have verified automated, synthetic, or physical evidence tiers. |
-| **TOTAL** | **27** | **100% Accounted For** |
+| **TOTAL** | **29** | **100% Accounted For** |
 
 > [!NOTE]
-> **Physical Transport Demarcation for Feature 25:**
-> Physical multi-device validation was conducted using **local Wi-Fi networking via a phone-generated mobile hotspot** (UDP multicast port 42888) and **Bluetooth Classic SPP**. Wi-Fi Direct (Wi-Fi P2P) is **not currently implemented or physically validated** in this release. All multi-hop relay claims are verified via simulation harnesses.
+> **Physical Transport Demarcation:**
+> Physical multi-device validation was conducted using **local Wi-Fi networking via a phone-generated mobile hotspot** (UDP multicast port 42888), **Bluetooth Classic SPP**, and **Routerless Wi-Fi Direct P2P** (port 42889). All multi-hop relay claims across $\ge 3$ nodes are verified via deterministic simulation harnesses.
