@@ -387,7 +387,6 @@ class MainActivity : ComponentActivity() {
                 val targetNodeId = intent?.getIntExtra("target_node_id", -1) ?: -1
                 val targetNodeStr = intent?.getStringExtra("target_node_id")?.toIntOrNull() ?: targetNodeId
                 if (targetNodeStr > 0) {
-                    viewModel.setTransport(org.sih.itantra.core.transport.TransportType.WIFI_DIRECT)
                     viewModel.connectWifiDirect(targetNodeStr)
                 }
             }

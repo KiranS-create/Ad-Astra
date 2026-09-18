@@ -101,9 +101,6 @@ class TransportManager(
     }
 
     suspend fun switchTransport(type: TransportType) {
-        _activeTransport.value.stop()
-
-        preferredTransportType = type
         val next = when (type) {
             TransportType.WIFI -> wifiTransport
             TransportType.BLUETOOTH -> bluetoothTransport
@@ -112,6 +109,12 @@ class TransportManager(
             TransportType.WIFI_DIRECT -> wifiDirectTransport
         }
 
+        if (_activeTransport.value == next) {
+            return
+        }
+
+        _activeTransport.value.stop()
+        preferredTransportType = type
         _activeTransport.value = next
         next.start()
     }
