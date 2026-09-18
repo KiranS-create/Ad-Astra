@@ -20,6 +20,9 @@ object SentenceFinalizer {
         // Suppress repetitive loop artifacts common in CTC decoding under noisy conditions
         trimmed = cleanRepetitiveLoops(trimmed)
 
+        // Feature 30: Tactical domain vocabulary biasing and reranking
+        trimmed = TacticalDomainReranker.rerank(trimmed, language)
+
         val lastChar = trimmed.last()
         val hasTerminator = lastChar in TERMINATORS
 

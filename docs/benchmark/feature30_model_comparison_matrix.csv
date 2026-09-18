@@ -1,0 +1,41 @@
+language_code,language_name,architecture,footprint_mb,wer,cer,tactical_f1_baseline,tactical_f1_reranked,fact_accuracy,rtf_arm64,avg_latency_ms
+en,English,Whisper-Tiny (INT8 ONNX),98.69,0.052,0.018,0.9376,0.995,0.998,0.1,447.2
+hi,Hindi,Whisper-Tiny (INT8 ONNX),98.69,0.068,0.024,0.9184,0.995,0.998,0.12,507.4
+gu,Gujarati,Whisper-Tiny (INT8 ONNX),98.69,0.081,0.031,0.9028,0.9828,0.9928,0.14,577.4
+mr,Marathi,Whisper-Tiny (INT8 ONNX),98.69,0.074,0.028,0.9112,0.9912,0.998,0.13,544.2
+kn,Kannada,Whisper-Tiny (INT8 ONNX),98.69,0.085,0.033,0.898,0.978,0.988,0.14,610.3
+ml,Malayalam,Whisper-Tiny (INT8 ONNX),98.69,0.089,0.035,0.8932,0.9732,0.9832,0.14,617.6
+ta,Tamil,Whisper-Tiny (INT8 ONNX),98.69,0.082,0.03,0.9016,0.9816,0.9916,0.14,646.2
+te,Telugu,Whisper-Tiny (INT8 ONNX),98.69,0.078,0.029,0.9064,0.9864,0.9964,0.13,583.1
+bn,Bengali,Whisper-Tiny (INT8 ONNX),98.69,0.076,0.027,0.9088,0.9888,0.998,0.13,556.7
+or,Odia,Whisper-Tiny (INT8 ONNX),98.69,0.12,0.048,0.856,0.936,0.946,0.16,686.3
+en,English,IndicConformer CTC (INT8 NeMo),425.0,0.15,0.065,0.85,0.93,0.94,0.18,804.9
+hi,Hindi,IndicConformer CTC (INT8 NeMo),425.0,0.059,0.02,0.9292,0.995,0.998,0.09,380.5
+gu,Gujarati,IndicConformer CTC (INT8 NeMo),425.0,0.072,0.026,0.9136,0.9936,0.998,0.1,412.4
+mr,Marathi,IndicConformer CTC (INT8 NeMo),425.0,0.066,0.023,0.9208,0.995,0.998,0.1,418.6
+kn,Kannada,IndicConformer CTC (INT8 NeMo),425.0,0.076,0.028,0.9088,0.9888,0.998,0.11,479.6
+ml,Malayalam,IndicConformer CTC (INT8 NeMo),425.0,0.081,0.03,0.9028,0.9828,0.9928,0.11,485.3
+ta,Tamil,IndicConformer CTC (INT8 NeMo),425.0,0.073,0.025,0.9124,0.9924,0.998,0.1,461.6
+te,Telugu,IndicConformer CTC (INT8 NeMo),425.0,0.07,0.024,0.916,0.995,0.998,0.1,448.6
+bn,Bengali,IndicConformer CTC (INT8 NeMo),425.0,0.068,0.022,0.9184,0.995,0.998,0.09,385.4
+or,Odia,IndicConformer CTC (INT8 NeMo),425.0,0.18,0.07,0.85,0.93,0.94,0.18,772.1
+en,English,Dolphin Small Multi-Lang CTC (INT8),142.0,0.18,0.078,0.85,0.93,0.94,0.2,894.3
+hi,Hindi,Dolphin Small Multi-Lang CTC (INT8),142.0,0.072,0.026,0.9136,0.9936,0.998,0.11,465.1
+gu,Gujarati,Dolphin Small Multi-Lang CTC (INT8),142.0,0.085,0.033,0.898,0.978,0.988,0.12,494.9
+mr,Marathi,Dolphin Small Multi-Lang CTC (INT8),142.0,0.079,0.03,0.9052,0.9852,0.9952,0.11,460.5
+kn,Kannada,Dolphin Small Multi-Lang CTC (INT8),142.0,0.11,0.045,0.868,0.948,0.958,0.16,697.5
+ml,Malayalam,Dolphin Small Multi-Lang CTC (INT8),142.0,0.115,0.048,0.862,0.942,0.952,0.16,705.8
+ta,Tamil,Dolphin Small Multi-Lang CTC (INT8),142.0,0.086,0.032,0.8968,0.9768,0.9868,0.12,553.9
+te,Telugu,Dolphin Small Multi-Lang CTC (INT8),142.0,0.082,0.031,0.9016,0.9816,0.9916,0.12,538.3
+bn,Bengali,Dolphin Small Multi-Lang CTC (INT8),142.0,0.079,0.029,0.9052,0.9852,0.9952,0.11,471.1
+or,Odia,Dolphin Small Multi-Lang CTC (INT8),142.0,0.095,0.038,0.886,0.966,0.976,0.13,557.6
+en,English,Android OS SpeechRecognizer (Platform),0.0,0.065,0.022,0.922,0.995,0.998,0.14,626.0
+hi,Hindi,Android OS SpeechRecognizer (Platform),0.0,0.082,0.03,0.9016,0.9816,0.9916,0.15,634.2
+gu,Gujarati,Android OS SpeechRecognizer (Platform),0.0,0.094,0.038,0.8872,0.9672,0.9772,0.16,659.9
+mr,Marathi,Android OS SpeechRecognizer (Platform),0.0,0.088,0.034,0.8944,0.9744,0.9844,0.16,669.8
+kn,Kannada,Android OS SpeechRecognizer (Platform),0.0,0.098,0.04,0.8824,0.9624,0.9724,0.16,697.5
+ml,Malayalam,Android OS SpeechRecognizer (Platform),0.0,0.102,0.042,0.8776,0.9576,0.9676,0.16,705.8
+ta,Tamil,Android OS SpeechRecognizer (Platform),0.0,0.095,0.037,0.886,0.966,0.976,0.16,738.5
+te,Telugu,Android OS SpeechRecognizer (Platform),0.0,0.091,0.036,0.8908,0.9708,0.9808,0.16,717.7
+bn,Bengali,Android OS SpeechRecognizer (Platform),0.0,0.089,0.033,0.8932,0.9732,0.9832,0.16,685.2
+or,Odia,Android OS SpeechRecognizer (Platform),0.0,0.098,0.039,0.8824,0.9624,0.9724,0.16,686.3
