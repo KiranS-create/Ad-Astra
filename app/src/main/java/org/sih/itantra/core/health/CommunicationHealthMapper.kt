@@ -205,9 +205,13 @@ object CommunicationHealthMapper {
         )
 
         // 6. Overall Status Determination
+        val totalDirectPeers = wifiPeers.size + bluetoothPeers.size + wifiDirectPeers.size
+        val hasAnyPeers = reachableNodes.isNotEmpty() || totalDirectPeers > 0
+        val activeTransportCount = (if (isWifiUp) 1 else 0) + (if (isBtUp) 1 else 0) + (if (isWifiDirectUp) 1 else 0)
+
         val (overallStatus, overallBadge, overallSummary) = when {
             // All transports disconnected/error
-            !isWifiUp && !isBtUp && !isWifiDirectUp -> {
+            activeTransportCount == 0 -> {
                 Triple(
                     OverallHealthStatus.OFFLINE,
                     "0 TRANSPORTS UP",
@@ -222,22 +226,29 @@ object CommunicationHealthMapper {
                     "Network queue backpressure detected. Packets are buffering or experiencing delivery timeouts."
                 )
             }
-            // Single transport or no reachable peers while listening
-            (!isWifiUp && !isBtUp && !isWifiDirectUp) && reachableNodes.isEmpty() -> {
+            // Single transport active with no peers
+            activeTransportCount < 2 && !hasAnyPeers -> {
+                val badge = when {
+                    isWifiUp -> "WI-FI ONLY (NO PEERS)"
+                    isBtUp -> "BT ONLY (NO PEERS)"
+                    isWifiDirectUp -> "WI-FI DIRECT ONLY (NO PEERS)"
+                    else -> "STANDBY (NO PEERS)"
+                }
                 Triple(
                     OverallHealthStatus.LIMITED,
-                    "STANDBY (NO PEERS)",
-                    "Operating in standby mode without confirmed direct peers. Listening for broadcasts."
+                    badge,
+                    "Operating in single-transport mode without confirmed direct peers. Listening for broadcasts."
                 )
             }
             // Healthy operation
             else -> {
-                val transportCount = (if (isWifiUp) 1 else 0) + (if (isBtUp) 1 else 0) + (if (isWifiDirectUp) 1 else 0)
                 Triple(
                     OverallHealthStatus.HEALTHY,
-                    "$transportCount TRANSPORT${if (transportCount > 1) "S" else ""} READY",
+                    "$activeTransportCount TRANSPORT${if (activeTransportCount > 1) "S" else ""} READY",
                     if (reachableNodes.isNotEmpty()) {
                         "Mesh routing active with ${reachableNodes.size} reachable peer${if (reachableNodes.size > 1) "s" else ""}. Zero queue congestion."
+                    } else if (totalDirectPeers > 0) {
+                        "Mesh routing active with $totalDirectPeers direct connected peer${if (totalDirectPeers > 1) "s" else ""}. Zero queue congestion."
                     } else {
                         "Radio transports active and listening. Ready for tactical mesh traffic."
                     }
