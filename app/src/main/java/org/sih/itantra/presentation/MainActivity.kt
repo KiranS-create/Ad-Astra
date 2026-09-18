@@ -376,6 +376,24 @@ class MainActivity : ComponentActivity() {
             "stop_node_mode" -> {
                 viewModel.stopNodeMode()
             }
+            "set_transport_wifidirect", "wifidirect_listen", "listen_wifidirect" -> {
+                viewModel.setTransport(org.sih.itantra.core.transport.TransportType.WIFI_DIRECT)
+            }
+            "refresh_wifidirect", "scan_wifidirect" -> {
+                viewModel.setTransport(org.sih.itantra.core.transport.TransportType.WIFI_DIRECT)
+                viewModel.refreshWifiDirect()
+            }
+            "connect_wifidirect" -> {
+                val targetNodeId = intent?.getIntExtra("target_node_id", -1) ?: -1
+                val targetNodeStr = intent?.getStringExtra("target_node_id")?.toIntOrNull() ?: targetNodeId
+                if (targetNodeStr > 0) {
+                    viewModel.setTransport(org.sih.itantra.core.transport.TransportType.WIFI_DIRECT)
+                    viewModel.connectWifiDirect(targetNodeStr)
+                }
+            }
+            "disconnect_wifidirect" -> {
+                viewModel.disconnectWifiDirect()
+            }
             else -> {
                 if (btAddr != null) {
                     viewModel.setTransport(TransportType.BLUETOOTH)
