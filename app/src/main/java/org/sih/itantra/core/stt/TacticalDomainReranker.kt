@@ -226,7 +226,7 @@ object TacticalDomainReranker {
         // Suppress repeating single word / token stutter >= 3 times: e.g. "ert ert ert" -> "ert"
         cleaned = cleaned.replace(Regex("(?i)(\\b[\\w.-]+\\b)(?:\\s+\\1){2,}"), "$1")
         // Suppress repeating decimal zeros or numbers: e.g. "1.0.0.0.0.0.0" -> "1.0"
-        cleaned = cleaned.replace(Regex("(\\d+(?:\\.\\d+)?)(?:\\.\\d+){2,}"), "$1")
+        cleaned = cleaned.replace(Regex("(\\d+\\.\\d+)(?:\\.0+)+"), "$1")
         return cleaned
     }
 }
