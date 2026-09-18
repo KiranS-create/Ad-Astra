@@ -24,7 +24,7 @@ class WifiDirectIntegrationTest {
 
     @Before
     fun setUp() {
-        DiagnosticsRepository.reset()
+        DiagnosticsRepository.resetForTesting()
     }
 
     @Test
@@ -62,7 +62,7 @@ class WifiDirectIntegrationTest {
         val health = CommunicationHealthMapper.map(
             localNodeId = 209071,
             diagnostics = DiagnosticsRepository.state.value,
-            topology = MeshTopologySnapshot(emptyList(), emptyList()),
+            topology = MeshTopologySnapshot(),
             messageHistory = emptyList(),
             wifiState = TransportState.DISCONNECTED,
             bluetoothState = TransportState.DISCONNECTED,
@@ -80,7 +80,7 @@ class WifiDirectIntegrationTest {
         )
 
         assertEquals(OverallHealthStatus.HEALTHY, health.overallStatus)
-        val wdItem = health.activeTransports.find { it.type == TransportType.WIFI_DIRECT }
+        val wdItem = health.transports.find { it.type == TransportType.WIFI_DIRECT }
         assertNotNull(wdItem)
         assertEquals(TransportState.CONNECTED, wdItem!!.state)
         assertEquals("CONNECTED (1)", wdItem.displayState)

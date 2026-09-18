@@ -129,6 +129,7 @@ class WifiDirectFramingTest {
 
         assertTrue(deserialized.isAuthenticated)
         val verifyStatus = PacketAuthenticator.verify(deserialized, testKey)
-        assertEquals(org.sih.itantra.core.crypto.AuthStatus.VALID, verifyStatus)
+        assertEquals(org.sih.itantra.core.crypto.AuthStatus.VALID, verifyStatus.status)
+        assertTrue(verifyStatus.isValid)
     }
 }

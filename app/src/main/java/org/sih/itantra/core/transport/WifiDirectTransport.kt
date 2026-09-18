@@ -223,10 +223,9 @@ class WifiDirectTransport(
             registerReceiver()
             isRunning.set(true)
 
-            // 3. Register DNS-SD Service and Start Discovery
+            // 3. Register DNS-SD Service (which triggers startDiscovery upon completion)
             setupDnsSdListeners()
             registerDnsSdService()
-            startDiscovery()
 
             // 4. Start periodic peer cleanup (TTL)
             startPeerCleanup()
@@ -320,14 +319,26 @@ class WifiDirectTransport(
                 manager.addLocalService(channel, localServiceInfo, object : WifiP2pManager.ActionListener {
                     override fun onSuccess() {
                         Log.i(tag, "DNS-SD local service registered: $serviceName ($SERVICE_TYPE)")
+                        startDiscovery()
                     }
                     override fun onFailure(reason: Int) {
                         Log.w(tag, "Failed to register DNS-SD local service: reason $reason")
+                        startDiscovery()
                     }
                 })
             }
             override fun onFailure(reason: Int) {
                 Log.w(tag, "Failed to clear local services: reason $reason")
+                manager.addLocalService(channel, localServiceInfo, object : WifiP2pManager.ActionListener {
+                    override fun onSuccess() {
+                        Log.i(tag, "DNS-SD local service registered after clear failure: $serviceName ($SERVICE_TYPE)")
+                        startDiscovery()
+                    }
+                    override fun onFailure(reason: Int) {
+                        Log.w(tag, "Failed to add local service: reason $reason")
+                        startDiscovery()
+                    }
+                })
             }
         })
     }

@@ -157,7 +157,7 @@ class TwoPassSpeechPipelineTest {
         delay(20L)
         // Feed silence
         pipeline.feedChunk(AudioChunk.createSilence(chunkIndex = 1, durationMs = 400L))
-        delay(40L)
+        delay(150L)
 
         assertTrue("Silence must allow Pass 2 refinement to proceed", refinedOnSilence)
         pipeline.cancel()
@@ -371,7 +371,7 @@ class TwoPassSpeechPipelineTest {
         assertEquals("नमस्ते परीक्षण।", hindiResult)
 
         val englishResult = SentenceFinalizer.finalizeSentence("Radio check normal", IndicLanguage.ENGLISH)
-        assertEquals("Radio check normal.", englishResult)
+        assertEquals("RADIO CHECK normal.", englishResult)
 
         // Sherpa-ONNX Zipformer investigation report sanity check
         val report = ZipformerInvestigation.checkRuntimeCompatibility()

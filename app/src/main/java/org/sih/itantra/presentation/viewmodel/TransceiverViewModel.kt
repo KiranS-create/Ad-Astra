@@ -1069,8 +1069,6 @@ class TransceiverViewModel(application: Application) : AndroidViewModel(applicat
             coordinator.transportManager.switchTransport(type)
             if (type == TransportType.BLUETOOTH) {
                 refreshBondedBluetoothDevices()
-            } else if (type == TransportType.WIFI_DIRECT) {
-                refreshWifiDirect()
             }
         }
     }

@@ -523,4 +523,8 @@ object DiagnosticsRepository {
             lastVoiceCommandLanguage = null
         )
     }
+
+    fun resetForTesting() {
+        _state.value = DiagnosticsState()
+    }
 }

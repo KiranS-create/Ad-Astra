@@ -197,6 +197,7 @@ class TransceiverCoordinator(
     private var tAudioCaptureStart: Long = 0L
 
     init {
+        transportManager.wifiDirectTransport.localNodeId = localDeviceId
         setupVadCallbacks()
         setupRxPipeline()
     }
