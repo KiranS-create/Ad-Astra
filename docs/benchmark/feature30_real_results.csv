@@ -1,0 +1,11 @@
+language_code,language_name,actual_model,model_size_mb,raw_wer,post_wer,raw_cer,post_cer,raw_tactical_f1,post_tactical_f1,semantic_fact_accuracy,mean_rtf,mean_latency_ms
+en,English,Whisper-Tiny INT8 (Sherpa-ONNX),98.69,0.3514,0.3457,0.2379,0.2345,0.7,0.708,0.944,0.285,801.3
+hi,Hindi,Whisper-Tiny INT8 (Sherpa-ONNX),98.69,1.1072,1.1072,1.5207,1.5207,0.0,0.0,0.878,0.254,794.2
+gu,Gujarati,Whisper-Tiny INT8 (Sherpa-ONNX),98.69,1.0,1.0,1.0,1.0,0.0,0.0,0.85,0.183,753.0
+mr,Marathi,Whisper-Tiny INT8 (Sherpa-ONNX),98.69,1.0715,1.0715,1.3818,1.3818,0.0,0.0,0.865,0.58,1702.3
+kn,Kannada,Whisper-Tiny INT8 (Sherpa-ONNX),98.69,1.0,1.0,1.0,1.0,0.0,0.0,0.85,0.238,1038.9
+ml,Malayalam,Whisper-Tiny INT8 (Sherpa-ONNX),98.69,1.2073,1.2073,1.4757,1.4795,0.0,0.0,0.868,0.371,1476.5
+ta,Tamil,Whisper-Tiny INT8 (Sherpa-ONNX),98.69,1.01,1.01,0.9063,0.9063,0.0,0.0,0.85,0.35,1616.2
+te,Telugu,Whisper-Tiny INT8 (Sherpa-ONNX),98.69,1.1512,1.1512,1.5577,1.5577,0.0,0.0,0.859,0.712,2560.4
+bn,Bengali,Whisper-Tiny INT8 (Sherpa-ONNX),98.69,1.0248,1.0248,1.2469,1.2469,0.0,0.0,0.856,1.127,2912.4
+or,Odia,Android OS SpeechRecognizer (OS Fallback),0.0,1.0,1.0,1.0,1.0,0.0,0.0,0.85,0.185,794.5
