@@ -37,6 +37,8 @@ object CommunicationHealthMapper {
         wifiPeers: List<PeerDevice> = emptyList(),
         bluetoothState: TransportState,
         bluetoothPeers: List<PeerDevice> = emptyList(),
+        wifiDirectState: TransportState = TransportState.DISCONNECTED,
+        wifiDirectPeers: List<PeerDevice> = emptyList(),
         preferredTransport: TransportType = TransportType.WIFI,
         isRelayEnabled: Boolean = true,
         dtnQueueSize: Int = diagnostics.dtnQueueSize,
@@ -93,6 +95,7 @@ object CommunicationHealthMapper {
         // 2. Transport Health Items
         val isWifiUp = wifiState == TransportState.CONNECTED || wifiState == TransportState.LISTENING
         val isBtUp = bluetoothState == TransportState.CONNECTED || bluetoothState == TransportState.LISTENING
+        val isWifiDirectUp = wifiDirectState == TransportState.CONNECTED || wifiDirectState == TransportState.LISTENING
 
         val wifiDisplayState = when (wifiState) {
             TransportState.CONNECTED   -> "CONNECTED"
@@ -105,6 +108,14 @@ object CommunicationHealthMapper {
         val btDisplayState = when (bluetoothState) {
             TransportState.CONNECTED   -> "CONNECTED (${bluetoothPeers.size})"
             TransportState.LISTENING   -> "LISTENING"
+            TransportState.CONNECTING  -> "CONNECTING"
+            TransportState.DISCONNECTED-> "DISCONNECTED"
+            TransportState.ERROR       -> "ERROR"
+        }
+
+        val wifiDirectDisplayState = when (wifiDirectState) {
+            TransportState.CONNECTED   -> "CONNECTED (${wifiDirectPeers.size})"
+            TransportState.LISTENING   -> "DISCOVERING"
             TransportState.CONNECTING  -> "CONNECTING"
             TransportState.DISCONNECTED-> "DISCONNECTED"
             TransportState.ERROR       -> "ERROR"
@@ -130,6 +141,16 @@ object CommunicationHealthMapper {
                 details = if (bluetoothPeers.isNotEmpty()) "RFCOMM SPP Active" else "RFCOMM Standby",
                 signalDbm = "NOT MEASURED",
                 isPrimary = preferredTransport == TransportType.BLUETOOTH
+            ),
+            TransportHealthItem(
+                name = "Wi-Fi Direct P2P",
+                type = TransportType.WIFI_DIRECT,
+                state = wifiDirectState,
+                displayState = wifiDirectDisplayState,
+                connectedPeerCount = wifiDirectPeers.size,
+                details = "Port 42889 · Routerless P2P",
+                signalDbm = "NOT MEASURED",
+                isPrimary = preferredTransport == TransportType.WIFI_DIRECT
             )
         )
 
@@ -185,12 +206,12 @@ object CommunicationHealthMapper {
 
         // 6. Overall Status Determination
         val (overallStatus, overallBadge, overallSummary) = when {
-            // Both transports disconnected/error
-            !isWifiUp && !isBtUp -> {
+            // All transports disconnected/error
+            !isWifiUp && !isBtUp && !isWifiDirectUp -> {
                 Triple(
                     OverallHealthStatus.OFFLINE,
                     "0 TRANSPORTS UP",
-                    "Both Wi-Fi and Bluetooth transports are inactive or disconnected. Radio pipeline is off-grid."
+                    "All radio transports (Wi-Fi, Bluetooth, Wi-Fi Direct) are inactive or disconnected. Radio pipeline is off-grid."
                 )
             }
             // Congestion or high DTN buffer
@@ -202,16 +223,16 @@ object CommunicationHealthMapper {
                 )
             }
             // Single transport or no reachable peers while listening
-            (!isWifiUp || !isBtUp) && reachableNodes.isEmpty() -> {
+            (!isWifiUp && !isBtUp && !isWifiDirectUp) && reachableNodes.isEmpty() -> {
                 Triple(
                     OverallHealthStatus.LIMITED,
-                    if (isWifiUp) "WI-FI ONLY (NO PEERS)" else "BT ONLY (NO PEERS)",
-                    "Operating in single-transport mode without confirmed direct peers. Listening for broadcasts."
+                    "STANDBY (NO PEERS)",
+                    "Operating in standby mode without confirmed direct peers. Listening for broadcasts."
                 )
             }
             // Healthy operation
             else -> {
-                val transportCount = (if (isWifiUp) 1 else 0) + (if (isBtUp) 1 else 0)
+                val transportCount = (if (isWifiUp) 1 else 0) + (if (isBtUp) 1 else 0) + (if (isWifiDirectUp) 1 else 0)
                 Triple(
                     OverallHealthStatus.HEALTHY,
                     "$transportCount TRANSPORT${if (transportCount > 1) "S" else ""} READY",

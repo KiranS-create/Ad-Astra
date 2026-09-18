@@ -76,6 +76,8 @@ fun SettingsScreen(
     val activeTransport by viewModel.activeTransportType.collectAsState()
     val btState by viewModel.bluetoothTransportState.collectAsState()
     val bondedPeers by viewModel.bondedBluetoothDevices.collectAsState()
+    val wifiDirectState by viewModel.wifiDirectP2pState.collectAsState()
+    val wifiDirectPeers by viewModel.wifiDirectDiscoveredPeers.collectAsState()
     val isAutoFailover by viewModel.isAutoFailoverEnabled.collectAsState()
 
     var distressHolding by remember { mutableStateOf(false) }
@@ -160,6 +162,14 @@ fun SettingsScreen(
                 icon = Icons.Default.Bluetooth,
                 isSelected = activeTransport == TransportType.BLUETOOTH,
                 onClick = { viewModel.setTransport(TransportType.BLUETOOTH) },
+                modifier = Modifier.weight(1f)
+            )
+            TransportOptionCard(
+                name = "Wi-Fi Direct",
+                subtitle = "P2P Routerless",
+                icon = Icons.Default.Sensors,
+                isSelected = activeTransport == TransportType.WIFI_DIRECT,
+                onClick = { viewModel.setTransport(TransportType.WIFI_DIRECT) },
                 modifier = Modifier.weight(1f)
             )
         }
@@ -284,6 +294,118 @@ fun SettingsScreen(
                                         fontFamily = FontFamily.Monospace
                                     )
                                 }
+                            }
+                            Spacer(modifier = Modifier.height(4.dp))
+                        }
+                    }
+                }
+            }
+        }
+
+        // Wi-Fi Direct Peer Details if active
+        if (activeTransport == TransportType.WIFI_DIRECT) {
+            Spacer(modifier = Modifier.height(10.dp))
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(radioColors.surface)
+                    .border(1.dp, radioColors.border.copy(alpha = 0.5f), RoundedCornerShape(12.dp))
+                    .padding(12.dp)
+            ) {
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "P2P State: ${wifiDirectState.name}",
+                            color = when (wifiDirectState) {
+                                org.sih.itantra.core.transport.WifiDirectState.CONNECTED -> radioColors.success
+                                org.sih.itantra.core.transport.WifiDirectState.CONNECTING -> Color(0xFF0288D1)
+                                org.sih.itantra.core.transport.WifiDirectState.DISCOVERING,
+                                org.sih.itantra.core.transport.WifiDirectState.PEERS_FOUND -> radioColors.sage
+                                else -> radioColors.alert
+                            },
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold,
+                            fontFamily = FontFamily.Monospace
+                        )
+
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(6.dp))
+                                .clickable { viewModel.refreshWifiDirect() }
+                                .padding(horizontal = 6.dp, vertical = 2.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Refresh,
+                                contentDescription = "Refresh",
+                                tint = if (radioColors.isDark) radioColors.sage else radioColors.forest,
+                                modifier = Modifier.size(14.dp)
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(
+                                text = "Scan P2P",
+                                color = if (radioColors.isDark) radioColors.sage else radioColors.forest,
+                                fontSize = 11.sp,
+                                fontFamily = FontFamily.Monospace
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    if (wifiDirectPeers.isEmpty()) {
+                        Text(
+                            text = "No Wi-Fi Direct peers discovered yet. Scanning for nearby iTantra devices over _itantra._tcp...",
+                            color = radioColors.textSecondary,
+                            fontSize = 11.sp
+                        )
+                    } else {
+                        Text(
+                            text = "Discovered iTantra P2P Nodes (Tap to connect):",
+                            color = radioColors.textSecondary,
+                            fontSize = 11.sp,
+                            fontFamily = FontFamily.Monospace
+                        )
+                        Spacer(modifier = Modifier.height(6.dp))
+                        wifiDirectPeers.forEach { peer ->
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clip(RoundedCornerShape(8.dp))
+                                    .background(radioColors.capsule)
+                                    .border(1.dp, radioColors.border.copy(alpha = 0.4f), RoundedCornerShape(8.dp))
+                                    .clickable { viewModel.connectWifiDirect(peer.nodeId) }
+                                    .padding(horizontal = 10.dp, vertical = 8.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Column {
+                                    Text(
+                                        text = "${peer.callsign} (Node #${peer.nodeId})",
+                                        color = radioColors.textPrimary,
+                                        fontSize = 12.sp,
+                                        fontWeight = FontWeight.SemiBold
+                                    )
+                                    Text(
+                                        text = "${peer.deviceName} · ${peer.capabilities.joinToString()}",
+                                        color = radioColors.textSecondary,
+                                        fontSize = 10.sp,
+                                        fontFamily = FontFamily.Monospace
+                                    )
+                                }
+
+                                Text(
+                                    text = "CONNECT",
+                                    color = if (radioColors.isDark) radioColors.sage else radioColors.forest,
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    fontFamily = FontFamily.Monospace
+                                )
                             }
                             Spacer(modifier = Modifier.height(4.dp))
                         }

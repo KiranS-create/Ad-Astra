@@ -50,15 +50,36 @@ fun ActiveTransportsCard(
 
         Spacer(modifier = Modifier.height(6.dp))
 
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            transports.forEach { item ->
-                TransportSubCard(
-                    item = item,
-                    modifier = Modifier.weight(1f)
-                )
+        if (transports.size <= 2) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                transports.forEach { item ->
+                    TransportSubCard(
+                        item = item,
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+            }
+        } else {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                transports.chunked(2).forEach { chunk ->
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        chunk.forEach { item ->
+                            TransportSubCard(
+                                item = item,
+                                modifier = Modifier.weight(1f)
+                            )
+                        }
+                        if (chunk.size == 1) {
+                            Spacer(modifier = Modifier.weight(1f))
+                        }
+                    }
+                }
             }
         }
     }

@@ -122,7 +122,7 @@ fun TopRadioHeader(
                 }
 
                 // 2. Wi-Fi Status Item
-                val isWifiActive = activeTransport == TransportType.WIFI
+                val isWifiActive = activeTransport == TransportType.WIFI || activeTransport == TransportType.WIFI_DIRECT
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier

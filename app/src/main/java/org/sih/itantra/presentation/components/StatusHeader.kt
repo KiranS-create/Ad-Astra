@@ -1,4 +1,4 @@
-﻿package org.sih.itantra.presentation.components
+package org.sih.itantra.presentation.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -87,6 +87,7 @@ fun StatusHeader(
                 TransportType.BLUETOOTH -> "BT SPP"
                 TransportType.LOOPBACK -> "LOOPBACK"
                 TransportType.EMBEDDED_RADIO -> "RADIO"
+                TransportType.WIFI_DIRECT -> "WI-FI P2P"
             },
             color = SignalBlue,
             fontSize = 11.sp,

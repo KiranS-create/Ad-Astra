@@ -24,6 +24,7 @@ class TransportManager(
     val bluetoothTransport by lazy { BluetoothTransport() }
     val loopbackTransport by lazy { LoopbackTransport() }
     val embeddedRadioTransport by lazy { EmbeddedRadioTransport() }
+    val wifiDirectTransport by lazy { WifiDirectTransport(context) }
 
     private val _activeTransport = MutableStateFlow<Transport>(wifiTransport)
     val activeTransport: StateFlow<Transport> = _activeTransport.asStateFlow()
@@ -57,7 +58,7 @@ class TransportManager(
     }
 
     init {
-        // In auto failover mode, listen to both Wi-Fi and Bluetooth so no incoming packets are missed
+        // In auto failover mode, listen to Wi-Fi, Bluetooth, and Wi-Fi Direct so no incoming packets are missed
         scope.launch {
             wifiTransport.receivedPackets.collect { packet ->
                 if ((_isAutoFailoverEnabled.value || _activeTransport.value == wifiTransport) && !isDuplicateTransportPacket(packet)) {
@@ -68,6 +69,13 @@ class TransportManager(
         scope.launch {
             bluetoothTransport.receivedPackets.collect { packet ->
                 if ((_isAutoFailoverEnabled.value || _activeTransport.value == bluetoothTransport) && !isDuplicateTransportPacket(packet)) {
+                    _receivedPackets.emit(packet)
+                }
+            }
+        }
+        scope.launch {
+            wifiDirectTransport.receivedPackets.collect { packet ->
+                if ((_isAutoFailoverEnabled.value || _activeTransport.value == wifiDirectTransport) && !isDuplicateTransportPacket(packet)) {
                     _receivedPackets.emit(packet)
                 }
             }
@@ -101,6 +109,7 @@ class TransportManager(
             TransportType.BLUETOOTH -> bluetoothTransport
             TransportType.LOOPBACK -> loopbackTransport
             TransportType.EMBEDDED_RADIO -> embeddedRadioTransport
+            TransportType.WIFI_DIRECT -> wifiDirectTransport
         }
 
         _activeTransport.value = next
@@ -114,24 +123,36 @@ class TransportManager(
         if (!_isAutoFailoverEnabled.value) {
             val success = _activeTransport.value.send(packet)
             if (success) {
-                val tName = if (_activeTransport.value == bluetoothTransport) "BT" else "WIFI"
+                val tName = when (_activeTransport.value) {
+                    bluetoothTransport -> "BT"
+                    wifiDirectTransport -> "WIFI_DIRECT"
+                    else -> "WIFI"
+                }
                 org.sih.itantra.core.diagnostics.DiagnosticsRepository.recordTransportSent(tName)
             }
             return success
         }
 
-        // Automatic Bluetooth <-> Wi-Fi failover
-        val (primary, secondary, pName, sName) = if (preferredTransportType == TransportType.BLUETOOTH) {
-            listOf(bluetoothTransport, wifiTransport, "BT", "WIFI")
-        } else {
-            listOf(wifiTransport, bluetoothTransport, "WIFI", "BT")
+        // Automatic 3-way Wi-Fi UDP <-> Wi-Fi Direct <-> Bluetooth failover
+        val candidates: List<Pair<Transport, String>> = when (preferredTransportType) {
+            TransportType.BLUETOOTH -> listOf(
+                Pair(bluetoothTransport, "BT"),
+                Pair(wifiTransport, "WIFI"),
+                Pair(wifiDirectTransport, "WIFI_DIRECT")
+            )
+            TransportType.WIFI_DIRECT -> listOf(
+                Pair(wifiDirectTransport, "WIFI_DIRECT"),
+                Pair(wifiTransport, "WIFI"),
+                Pair(bluetoothTransport, "BT")
+            )
+            else -> listOf(
+                Pair(wifiTransport, "WIFI"),
+                Pair(wifiDirectTransport, "WIFI_DIRECT"),
+                Pair(bluetoothTransport, "BT")
+            )
         }
 
-        val primaryTransport = primary as Transport
-        val secondaryTransport = secondary as Transport
-        val primaryLabel = pName as String
-        val secondaryLabel = sName as String
-
+        val (primaryTransport, primaryLabel) = candidates[0]
         var primarySent = false
         try {
             primarySent = primaryTransport.send(packet)
@@ -141,27 +162,30 @@ class TransportManager(
 
         if (primarySent) {
             if (lastUsedTransport != null && lastUsedTransport != primaryLabel) {
-                Log.i(tag, "BT_RECOVERY: recovered to primary transport '$primaryLabel' from '$lastUsedTransport', seq=${packet.sequenceNumber}, bytes=${packet.payload.size}")
+                Log.i(tag, "TRANSPORT_RECOVERY: recovered to primary transport '$primaryLabel' from '$lastUsedTransport', seq=${packet.sequenceNumber}, bytes=${packet.payload.size}")
             }
             lastUsedTransport = primaryLabel
             org.sih.itantra.core.diagnostics.DiagnosticsRepository.recordTransportSent(primaryLabel)
             return true
         }
 
-        // Primary transport failed or unavailable: Attempt fallback transport
-        var secondarySent = false
-        try {
-            secondarySent = secondaryTransport.send(packet)
-        } catch (_: Exception) {
-            secondarySent = false
-        }
+        // Primary transport failed or unavailable: Attempt fallback transports in order
+        for (i in 1 until candidates.size) {
+            val (fallbackTransport, fallbackLabel) = candidates[i]
+            var fallbackSent = false
+            try {
+                fallbackSent = fallbackTransport.send(packet)
+            } catch (_: Exception) {
+                fallbackSent = false
+            }
 
-        if (secondarySent) {
-            Log.i(tag, "BT_FAILOVER: failed over from primary '$primaryLabel' to secondary '$secondaryLabel', seq=${packet.sequenceNumber}, bytes=${packet.payload.size}")
-            lastUsedTransport = secondaryLabel
-            org.sih.itantra.core.diagnostics.DiagnosticsRepository.recordTransportFailover(from = primaryLabel, to = secondaryLabel)
-            org.sih.itantra.core.diagnostics.DiagnosticsRepository.recordTransportSent(secondaryLabel)
-            return true
+            if (fallbackSent) {
+                Log.i(tag, "TRANSPORT_FAILOVER: failed over from primary '$primaryLabel' to fallback '$fallbackLabel', seq=${packet.sequenceNumber}, bytes=${packet.payload.size}")
+                lastUsedTransport = fallbackLabel
+                org.sih.itantra.core.diagnostics.DiagnosticsRepository.recordTransportFailover(from = primaryLabel, to = fallbackLabel)
+                org.sih.itantra.core.diagnostics.DiagnosticsRepository.recordTransportSent(fallbackLabel)
+                return true
+            }
         }
 
         return false
@@ -181,5 +205,17 @@ class TransportManager(
 
     fun getBondedBluetoothDevices(): List<PeerDevice> {
         return bluetoothTransport.getBondedDevices()
+    }
+
+    suspend fun connectWifiDirect(targetNodeId: Int): Boolean {
+        return wifiDirectTransport.connect(targetNodeId)
+    }
+
+    fun disconnectWifiDirect() {
+        wifiDirectTransport.disconnectP2pGroup()
+    }
+
+    fun getDiscoveredWifiDirectPeers(): List<WifiDirectDiscoveredPeer> {
+        return wifiDirectTransport.discoveredPeers.value
     }
 }

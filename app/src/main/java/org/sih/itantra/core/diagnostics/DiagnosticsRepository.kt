@@ -51,9 +51,19 @@ data class DiagnosticsState(
     // Transport Failover counters
     val transportBtSent: Long = 0L,
     val transportWifiSent: Long = 0L,
+    val transportWifiDirectSent: Long = 0L,
     val failoverBtToWifi: Long = 0L,
     val failoverWifiToBt: Long = 0L,
     val activeTransportName: String = "BT / WIFI (AUTO)",
+    // Wi-Fi Direct Telemetry
+    val wifiDirectDiscoveryStarted: Long = 0L,
+    val wifiDirectPeersFound: Long = 0L,
+    val wifiDirectConnectingCount: Long = 0L,
+    val wifiDirectConnectedCount: Long = 0L,
+    val wifiDirectDisconnectedCount: Long = 0L,
+    val wifiDirectFailedCount: Long = 0L,
+    val lastWifiDirectEvent: String? = null,
+    val wifiDirectState: String = "DISCONNECTED",
     // Adaptive Routing metrics
     val lastRouteQualityLabel: String = "GOOD",
     // Fragmentation & Reassembly counters
@@ -241,11 +251,71 @@ object DiagnosticsRepository {
 
     fun recordTransportSent(type: String) {
         val current = _state.value
-        _state.value = if (type.contains("BT", ignoreCase = true)) {
-            current.copy(transportBtSent = current.transportBtSent + 1)
-        } else {
-            current.copy(transportWifiSent = current.transportWifiSent + 1)
+        _state.value = when {
+            type.contains("DIRECT", ignoreCase = true) || type.contains("P2P", ignoreCase = true) -> {
+                current.copy(transportWifiDirectSent = current.transportWifiDirectSent + 1)
+            }
+            type.contains("BT", ignoreCase = true) -> {
+                current.copy(transportBtSent = current.transportBtSent + 1)
+            }
+            else -> {
+                current.copy(transportWifiSent = current.transportWifiSent + 1)
+            }
         }
+    }
+
+    fun recordWifiDirectDiscoveryStarted() {
+        val current = _state.value
+        _state.value = current.copy(
+            wifiDirectDiscoveryStarted = current.wifiDirectDiscoveryStarted + 1,
+            lastWifiDirectEvent = "WIFI_DIRECT_DISCOVERY_STARTED",
+            wifiDirectState = "DISCOVERING"
+        )
+    }
+
+    fun recordWifiDirectPeerFound(peerInfo: String = "") {
+        val current = _state.value
+        _state.value = current.copy(
+            wifiDirectPeersFound = current.wifiDirectPeersFound + 1,
+            lastWifiDirectEvent = if (peerInfo.isNotEmpty()) "WIFI_DIRECT_PEER_FOUND: $peerInfo" else "WIFI_DIRECT_PEER_FOUND",
+            wifiDirectState = "PEERS_FOUND"
+        )
+    }
+
+    fun recordWifiDirectConnecting(peerInfo: String = "") {
+        val current = _state.value
+        _state.value = current.copy(
+            wifiDirectConnectingCount = current.wifiDirectConnectingCount + 1,
+            lastWifiDirectEvent = if (peerInfo.isNotEmpty()) "WIFI_DIRECT_CONNECTING: $peerInfo" else "WIFI_DIRECT_CONNECTING",
+            wifiDirectState = "CONNECTING"
+        )
+    }
+
+    fun recordWifiDirectConnected(peerInfo: String = "") {
+        val current = _state.value
+        _state.value = current.copy(
+            wifiDirectConnectedCount = current.wifiDirectConnectedCount + 1,
+            lastWifiDirectEvent = if (peerInfo.isNotEmpty()) "WIFI_DIRECT_CONNECTED: $peerInfo" else "WIFI_DIRECT_CONNECTED",
+            wifiDirectState = "CONNECTED"
+        )
+    }
+
+    fun recordWifiDirectDisconnected(reason: String = "") {
+        val current = _state.value
+        _state.value = current.copy(
+            wifiDirectDisconnectedCount = current.wifiDirectDisconnectedCount + 1,
+            lastWifiDirectEvent = if (reason.isNotEmpty()) "WIFI_DIRECT_DISCONNECTED: $reason" else "WIFI_DIRECT_DISCONNECTED",
+            wifiDirectState = "DISCONNECTED"
+        )
+    }
+
+    fun recordWifiDirectFailed(reason: String = "") {
+        val current = _state.value
+        _state.value = current.copy(
+            wifiDirectFailedCount = current.wifiDirectFailedCount + 1,
+            lastWifiDirectEvent = if (reason.isNotEmpty()) "WIFI_DIRECT_FAILED: $reason" else "WIFI_DIRECT_FAILED",
+            wifiDirectState = "FAILED"
+        )
     }
 
     fun recordTransportFailover(from: String, to: String) {

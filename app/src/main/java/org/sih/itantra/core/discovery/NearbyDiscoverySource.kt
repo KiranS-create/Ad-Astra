@@ -24,6 +24,8 @@ import kotlinx.coroutines.withContext
 import org.sih.itantra.core.common.IndicLanguage
 import org.sih.itantra.core.mesh.NeighborEntry
 import org.sih.itantra.core.mesh.TopologyRoute
+import org.sih.itantra.core.transport.WifiDirectState
+import org.sih.itantra.core.transport.WifiDirectTransport
 import java.util.concurrent.ConcurrentHashMap
 
 /**
@@ -33,6 +35,7 @@ enum class DiscoverySourceType(val displayName: String, val badgeText: String) {
     BLE("Bluetooth Low Energy", "BLE"),
     UWB("Ultra-Wideband", "UWB"),
     WIFI_LOCAL("Local Wi-Fi Multicast", "Wi-Fi"),
+    WIFI_DIRECT("Wi-Fi Direct P2P", "P2P"),
     MESH_TOPOLOGY("MANET Mesh Topology", "MESH"),
     MANUAL("Manual / Bonded Fallback", "MANUAL")
 }
@@ -427,3 +430,95 @@ class MeshTopologyDiscoverySource(
         }
     }
 }
+
+/**
+ * Bridges native Android Wi-Fi Direct (Wi-Fi P2P) discovered peers into the Nearby Device discovery experience.
+ */
+class WifiDirectDiscoverySource(
+    private val transport: WifiDirectTransport,
+    private val dispatcher: CoroutineDispatcher = Dispatchers.IO
+) : NearbyDiscoverySource {
+
+    override val sourceType = DiscoverySourceType.WIFI_DIRECT
+
+    private val _status = MutableStateFlow(DiscoverySourceStatus.STANDBY)
+    override val status: StateFlow<DiscoverySourceStatus> = _status.asStateFlow()
+
+    private val _isScanning = MutableStateFlow(false)
+    override val isScanning: StateFlow<Boolean> = _isScanning.asStateFlow()
+
+    private val _discoveredDevices = MutableStateFlow<List<DiscoveredRawDevice>>(emptyList())
+    override val discoveredDevices: StateFlow<List<DiscoveredRawDevice>> = _discoveredDevices.asStateFlow()
+
+    private val scope = CoroutineScope(dispatcher)
+    private var observeJob: kotlinx.coroutines.Job? = null
+
+    init {
+        observeTransport()
+    }
+
+    private fun observeTransport() {
+        observeJob?.cancel()
+        observeJob = scope.launch {
+            launch {
+                transport.p2pState.collect { p2pState ->
+                    _status.value = when (p2pState) {
+                        WifiDirectState.UNAVAILABLE -> DiscoverySourceStatus.UNAVAILABLE
+                        WifiDirectState.PERMISSION_REQUIRED -> DiscoverySourceStatus.PERMISSION_REQUIRED
+                        WifiDirectState.DISABLED -> DiscoverySourceStatus.DISABLED
+                        WifiDirectState.DISCOVERING,
+                        WifiDirectState.PEERS_FOUND,
+                        WifiDirectState.CONNECTING,
+                        WifiDirectState.CONNECTED -> DiscoverySourceStatus.ACTIVE
+                        WifiDirectState.FAILED,
+                        WifiDirectState.DISCONNECTED -> DiscoverySourceStatus.STANDBY
+                    }
+                    _isScanning.value = p2pState == WifiDirectState.DISCOVERING
+                }
+            }
+
+            launch {
+                transport.discoveredPeers.collect { peers ->
+                    val connectedNodeIds = transport.connectedPeers.value.mapNotNull {
+                        it.id.removePrefix("WIFI_DIRECT-").toIntOrNull()
+                    }.toSet()
+
+                    _discoveredDevices.value = peers.map { peer ->
+                        val isConnected = peer.nodeId in connectedNodeIds || transport.p2pState.value == WifiDirectState.CONNECTED
+                        DiscoveredRawDevice(
+                            deviceId = "WIFI_DIRECT-${peer.nodeId}",
+                            nodeId = peer.nodeId,
+                            name = peer.displayName,
+                            callsign = peer.callsign,
+                            sourceType = DiscoverySourceType.WIFI_DIRECT,
+                            rssi = null,
+                            timestampMs = peer.lastSeenMs,
+                            transportCapabilities = if (isConnected) {
+                                listOf("Wi-Fi Direct: CONNECTED")
+                            } else {
+                                listOf("Wi-Fi Direct: AVAILABLE")
+                            },
+                            supportedLanguages = peer.supportedLanguages.mapNotNull { langCode ->
+                                IndicLanguage.entries.find { it.isoCode.equals(langCode, ignoreCase = true) }
+                            }.ifEmpty { listOf(IndicLanguage.HINDI, IndicLanguage.ENGLISH) },
+                            batteryPct = null,
+                            hopCount = 1
+                        )
+                    }
+                }
+            }
+        }
+    }
+
+    override fun isSupported(): Boolean = true
+
+    override suspend fun startScan(): Boolean {
+        transport.startDiscovery()
+        return true
+    }
+
+    override suspend fun stopScan() {
+        transport.stopDiscovery()
+    }
+}
+

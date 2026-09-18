@@ -57,6 +57,7 @@ import org.sih.itantra.core.discovery.MeshTopologyDiscoverySource
 import org.sih.itantra.core.discovery.NearbyDevice
 import org.sih.itantra.core.discovery.NearbyDeviceRepository
 import org.sih.itantra.core.discovery.UwbDiscoverySource
+import org.sih.itantra.core.discovery.WifiDirectDiscoverySource
 import org.sih.itantra.core.search.LocalSearchRepository
 import org.sih.itantra.core.search.SearchContactItem
 import org.sih.itantra.core.search.SearchIndex
@@ -101,6 +102,9 @@ class TransceiverViewModel(application: Application) : AndroidViewModel(applicat
     val bondedBluetoothDevices: StateFlow<List<PeerDevice>> = _bondedBluetoothDevices.asStateFlow()
 
     val bluetoothTransportState: StateFlow<TransportState> = coordinator.transportManager.bluetoothTransport.state
+    val wifiDirectTransportState: StateFlow<TransportState> = coordinator.transportManager.wifiDirectTransport.state
+    val wifiDirectP2pState: StateFlow<org.sih.itantra.core.transport.WifiDirectState> = coordinator.transportManager.wifiDirectTransport.p2pState
+    val wifiDirectDiscoveredPeers: StateFlow<List<org.sih.itantra.core.transport.WifiDirectDiscoveredPeer>> = coordinator.transportManager.wifiDirectTransport.discoveredPeers
     val isAutoFailoverEnabled: StateFlow<Boolean> = coordinator.transportManager.isAutoFailoverEnabled
 
     fun setAutoFailoverEnabled(enabled: Boolean) {
@@ -518,8 +522,16 @@ class TransceiverViewModel(application: Application) : AndroidViewModel(applicat
         meshTopologySnapshot,
         messageHistory,
         coordinator.transportManager.wifiTransport.state,
-        bluetoothTransportState
-    ) { diag, topo, history, wifiState, btState ->
+        bluetoothTransportState,
+        wifiDirectTransportState
+    ) { args: Array<Any?> ->
+        val diag = args[0] as org.sih.itantra.core.diagnostics.DiagnosticsState
+        val topo = args[1] as org.sih.itantra.core.mesh.MeshTopologySnapshot
+        @Suppress("UNCHECKED_CAST")
+        val history = args[2] as List<org.sih.itantra.core.persistence.MessageRecord>
+        val wifiState = args[3] as org.sih.itantra.core.transport.TransportState
+        val btState = args[4] as org.sih.itantra.core.transport.TransportState
+        val wdState = args[5] as org.sih.itantra.core.transport.TransportState
         CommunicationHealthMapper.map(
             localNodeId = coordinator.manetRouter.localNodeId,
             diagnostics = diag,
@@ -529,6 +541,8 @@ class TransceiverViewModel(application: Application) : AndroidViewModel(applicat
             wifiPeers = coordinator.transportManager.wifiTransport.connectedPeers.value,
             bluetoothState = btState,
             bluetoothPeers = coordinator.transportManager.bluetoothTransport.connectedPeers.value,
+            wifiDirectState = wdState,
+            wifiDirectPeers = coordinator.transportManager.wifiDirectTransport.connectedPeers.value,
             preferredTransport = _activeTransportType.value,
             isRelayEnabled = coordinator.relayRouter.isRelayEnabled.value,
             dtnQueueSize = coordinator.manetRouter.dtnStore.size(),
@@ -552,7 +566,8 @@ class TransceiverViewModel(application: Application) : AndroidViewModel(applicat
             topology = _meshTopologySnapshot.value,
             messageHistory = messageHistory.value,
             wifiState = coordinator.transportManager.wifiTransport.state.value,
-            bluetoothState = coordinator.transportManager.bluetoothTransport.state.value
+            bluetoothState = coordinator.transportManager.bluetoothTransport.state.value,
+            wifiDirectState = coordinator.transportManager.wifiDirectTransport.state.value
         )
     )
 
@@ -572,8 +587,17 @@ class TransceiverViewModel(application: Application) : AndroidViewModel(applicat
             localNodeId = coordinator.manetRouter.localNodeId,
             neighborTableProvider = { coordinator.manetRouter.neighborTable.liveNeighbors() },
             routeTableProvider = { _meshTopologySnapshot.value.routes }
-        )
+        ),
+        wifiDirectSource = WifiDirectDiscoverySource(coordinator.transportManager.wifiDirectTransport)
     )
+
+    init {
+        viewModelScope.launch {
+            coordinator.transportManager.wifiDirectTransport.discoveredPeers.collect { peers ->
+                nearbyDeviceRepository.ingestWifiDirectPeers(peers)
+            }
+        }
+    }
 
     fun addContactFromNearby(device: NearbyDevice): Boolean {
         val identity = ContactIdentity(
@@ -1036,8 +1060,25 @@ class TransceiverViewModel(application: Application) : AndroidViewModel(applicat
             coordinator.transportManager.switchTransport(type)
             if (type == TransportType.BLUETOOTH) {
                 refreshBondedBluetoothDevices()
+            } else if (type == TransportType.WIFI_DIRECT) {
+                refreshWifiDirect()
             }
         }
+    }
+
+    fun refreshWifiDirect() {
+        coordinator.transportManager.wifiDirectTransport.localNodeId = coordinator.manetRouter.localNodeId
+        coordinator.transportManager.wifiDirectTransport.startDiscovery()
+    }
+
+    fun connectWifiDirect(targetNodeId: Int) {
+        viewModelScope.launch {
+            coordinator.transportManager.connectWifiDirect(targetNodeId)
+        }
+    }
+
+    fun disconnectWifiDirect() {
+        coordinator.transportManager.disconnectWifiDirect()
     }
 
     private val _distressStatus = MutableStateFlow<String?>(null)

@@ -1,4 +1,4 @@
-﻿package org.sih.itantra.core.transport
+package org.sih.itantra.core.transport
 
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -16,7 +16,8 @@ enum class TransportType(val displayName: String) {
     WIFI("Wi-Fi Direct / Local Mesh"),
     BLUETOOTH("Bluetooth RFCOMM SPP"),
     LOOPBACK("Loopback (Single-Phone Test)"),
-    EMBEDDED_RADIO("Embedded Radio / LoRa / SDR")
+    EMBEDDED_RADIO("Embedded Radio / LoRa / SDR"),
+    WIFI_DIRECT("Wi-Fi Direct P2P")
 }
 
 data class PeerDevice(

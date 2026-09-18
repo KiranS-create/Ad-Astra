@@ -30,6 +30,7 @@ class NearbyDeviceRepository(
     val bleSource: NearbyDiscoverySource? = null,
     val uwbSource: NearbyDiscoverySource? = null,
     val meshSource: NearbyDiscoverySource? = null,
+    val wifiDirectSource: NearbyDiscoverySource? = null,
     private val dispatcher: CoroutineDispatcher = Dispatchers.IO
 ) {
 
@@ -65,7 +66,8 @@ class NearbyDeviceRepository(
         observationJob = scope.launch {
             val flows = listOfNotNull(
                 bleSource?.discoveredDevices,
-                meshSource?.discoveredDevices
+                meshSource?.discoveredDevices,
+                wifiDirectSource?.discoveredDevices
             )
 
             if (flows.isEmpty()) return@launch
@@ -77,6 +79,27 @@ class NearbyDeviceRepository(
                 ingestRawDevices(rawList)
             }
         }
+    }
+
+    /**
+     * Ingests discovered Wi-Fi Direct P2P peers into the repository.
+     */
+    fun ingestWifiDirectPeers(peers: List<org.sih.itantra.core.transport.WifiDirectDiscoveredPeer>) {
+        val rawList = peers.map { peer ->
+            DiscoveredRawDevice(
+                deviceId = "WIFI_DIRECT-${peer.nodeId}",
+                nodeId = peer.nodeId,
+                name = peer.displayName,
+                callsign = peer.callsign,
+                sourceType = DiscoverySourceType.WIFI_DIRECT,
+                rssi = null, // Signal explicitly NOT MEASURED
+                timestampMs = peer.lastSeenMs,
+                transportCapabilities = peer.capabilities.ifEmpty { listOf("Wi-Fi Direct P2P") },
+                supportedLanguages = peer.supportedLanguages.map { IndicLanguage.fromIsoCode(it) },
+                hopCount = 1
+            )
+        }
+        ingestRawDevices(rawList)
     }
 
     /**
@@ -104,6 +127,7 @@ class NearbyDeviceRepository(
                 raw.sourceType == DiscoverySourceType.MESH_TOPOLOGY && raw.hopCount == 1 -> MeshReachabilityState.DIRECT_NEIGHBOR
                 raw.sourceType == DiscoverySourceType.MESH_TOPOLOGY && raw.hopCount > 1 -> MeshReachabilityState.MULTI_HOP_RELAY
                 raw.sourceType == DiscoverySourceType.WIFI_LOCAL -> MeshReachabilityState.DIRECT_NEIGHBOR
+                raw.sourceType == DiscoverySourceType.WIFI_DIRECT -> MeshReachabilityState.DIRECT_NEIGHBOR
                 raw.sourceType == DiscoverySourceType.BLE && rawNodeId != null && devicesMap.containsKey(rawNodeId) -> {
                     devicesMap[rawNodeId]?.network?.meshReachability ?: MeshReachabilityState.NOT_IN_MESH
                 }
