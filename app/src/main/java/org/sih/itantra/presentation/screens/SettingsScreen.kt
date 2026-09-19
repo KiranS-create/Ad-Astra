@@ -54,10 +54,17 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.material3.MaterialTheme
 import org.sih.itantra.core.transport.TransportState
 import org.sih.itantra.core.transport.TransportType
+import org.sih.itantra.presentation.components.tactical.TacticalCard
+import org.sih.itantra.presentation.components.tactical.TacticalSectionHeader
+import org.sih.itantra.presentation.components.tactical.TacticalStatusChip
+import org.sih.itantra.presentation.components.tactical.TacticalBadge
 import org.sih.itantra.presentation.theme.AppThemeMode
 import org.sih.itantra.presentation.theme.LocalRadioColors
+import org.sih.itantra.presentation.theme.TacticalShapeTokens
+import org.sih.itantra.presentation.theme.TacticalType
 import org.sih.itantra.presentation.viewmodel.TransceiverViewModel
 
 @Composable
@@ -144,33 +151,30 @@ fun SettingsScreen(
         SectionHeader(title = "ACTIVE TRANSPORT LINK")
         Spacer(modifier = Modifier.height(8.dp))
 
-        Row(
+        Column(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             TransportOptionCard(
                 name = "Wi-Fi Multicast",
-                subtitle = "UDP 224.0.0.251",
+                subtitle = "UDP 224.0.0.251 • Zero-Config Local Mesh",
                 icon = Icons.Default.Wifi,
                 isSelected = activeTransport == TransportType.WIFI,
-                onClick = { viewModel.setTransport(TransportType.WIFI) },
-                modifier = Modifier.weight(1f)
+                onClick = { viewModel.setTransport(TransportType.WIFI) }
             )
             TransportOptionCard(
                 name = "Bluetooth SPP",
-                subtitle = "RFCOMM Classic",
+                subtitle = "RFCOMM Classic • Low-Power Fallback",
                 icon = Icons.Default.Bluetooth,
                 isSelected = activeTransport == TransportType.BLUETOOTH,
-                onClick = { viewModel.setTransport(TransportType.BLUETOOTH) },
-                modifier = Modifier.weight(1f)
+                onClick = { viewModel.setTransport(TransportType.BLUETOOTH) }
             )
             TransportOptionCard(
                 name = "Wi-Fi Direct",
-                subtitle = "P2P Routerless",
+                subtitle = "P2P Routerless • High-Bandwidth Mesh",
                 icon = Icons.Default.Sensors,
                 isSelected = activeTransport == TransportType.WIFI_DIRECT,
-                onClick = { viewModel.setTransport(TransportType.WIFI_DIRECT) },
-                modifier = Modifier.weight(1f)
+                onClick = { viewModel.setTransport(TransportType.WIFI_DIRECT) }
             )
         }
 
@@ -1190,15 +1194,7 @@ fun SettingsScreen(
 
 @Composable
 private fun SectionHeader(title: String) {
-    val radioColors = LocalRadioColors.current
-    Text(
-        text = title,
-        color = radioColors.textSecondary,
-        fontSize = 11.sp,
-        fontWeight = FontWeight.Bold,
-        fontFamily = FontFamily.Monospace,
-        letterSpacing = 1.sp
-    )
+    TacticalSectionHeader(title = title)
 }
 
 @Composable
@@ -1214,15 +1210,15 @@ private fun ThemeOptionCard(
 
     Box(
         modifier = modifier
-            .clip(RoundedCornerShape(10.dp))
+            .clip(TacticalShapeTokens.Card)
             .background(if (isSelected) radioColors.surfaceHighlight else radioColors.surface)
             .border(
                 1.5.dp,
                 if (isSelected) accent else radioColors.border.copy(alpha = 0.4f),
-                RoundedCornerShape(10.dp)
+                TacticalShapeTokens.Card
             )
             .clickable { onClick() }
-            .padding(vertical = 10.dp, horizontal = 8.dp),
+            .padding(vertical = 12.dp, horizontal = 8.dp),
         contentAlignment = Alignment.Center
     ) {
         Column(
@@ -1235,11 +1231,11 @@ private fun ThemeOptionCard(
                 tint = if (isSelected) accent else radioColors.textSecondary,
                 modifier = Modifier.size(20.dp)
             )
-            Spacer(modifier = Modifier.height(4.dp))
+            Spacer(modifier = Modifier.height(6.dp))
             Text(
                 text = title,
                 color = if (isSelected) radioColors.textPrimary else radioColors.textSecondary,
-                fontSize = 11.sp,
+                style = MaterialTheme.typography.labelMedium,
                 fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
             )
         }
@@ -1260,50 +1256,73 @@ private fun TransportOptionCard(
 
     Box(
         modifier = modifier
-            .clip(RoundedCornerShape(10.dp))
+            .fillMaxWidth()
+            .clip(TacticalShapeTokens.Card)
             .background(if (isSelected) radioColors.surfaceHighlight else radioColors.surface)
             .border(
-                1.5.dp,
-                if (isSelected) accent else radioColors.border.copy(alpha = 0.4f),
-                RoundedCornerShape(10.dp)
+                width = if (isSelected) 1.5.dp else 1.dp,
+                color = if (isSelected) accent else radioColors.border.copy(alpha = 0.4f),
+                shape = TacticalShapeTokens.Card
             )
             .clickable { onClick() }
-            .padding(12.dp)
+            .padding(horizontal = 14.dp, vertical = 12.dp)
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Box(
-                modifier = Modifier
-                    .size(32.dp)
-                    .background(
-                        if (isSelected) accent.copy(alpha = 0.15f) else radioColors.capsule,
-                        CircleShape
-                    ),
-                contentAlignment = Alignment.Center
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.weight(1f)
             ) {
-                Icon(
-                    imageVector = icon,
-                    contentDescription = name,
-                    tint = if (isSelected) accent else radioColors.textSecondary,
-                    modifier = Modifier.size(18.dp)
-                )
+                Box(
+                    modifier = Modifier
+                        .size(36.dp)
+                        .background(
+                            if (isSelected) accent.copy(alpha = 0.18f) else radioColors.capsule,
+                            CircleShape
+                        )
+                        .border(
+                            1.dp,
+                            if (isSelected) accent.copy(alpha = 0.5f) else radioColors.border.copy(alpha = 0.3f),
+                            CircleShape
+                        ),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = icon,
+                        contentDescription = name,
+                        tint = if (isSelected) accent else radioColors.textSecondary,
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
+
+                Spacer(modifier = Modifier.width(12.dp))
+
+                Column {
+                    Text(
+                        text = name,
+                        color = if (isSelected) radioColors.textPrimary else radioColors.textSecondary,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
+                    )
+                    Spacer(modifier = Modifier.height(2.dp))
+                    Text(
+                        text = subtitle,
+                        color = radioColors.textTertiary,
+                        style = TacticalType.telemetryCode
+                    )
+                }
             }
 
-            Spacer(modifier = Modifier.width(10.dp))
-
-            Column {
-                Text(
-                    text = name,
-                    color = if (isSelected) radioColors.textPrimary else radioColors.textSecondary,
-                    fontSize = 12.sp,
-                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
-                )
-                Text(
-                    text = subtitle,
-                    color = radioColors.textTertiary,
-                    fontSize = 10.sp,
-                    fontFamily = FontFamily.Monospace
-                )
-            }
+            TacticalStatusChip(
+                label = if (isSelected) "ACTIVE" else "STANDBY",
+                dotColor = if (isSelected) radioColors.success else radioColors.textTertiary,
+                textColor = if (isSelected) radioColors.success else radioColors.textTertiary,
+                backgroundColor = if (isSelected) radioColors.success.copy(alpha = 0.12f) else radioColors.capsule.copy(alpha = 0.5f),
+                borderColor = if (isSelected) radioColors.success.copy(alpha = 0.4f) else radioColors.border.copy(alpha = 0.3f)
+            )
         }
     }
 }
