@@ -113,6 +113,8 @@ fun ITantraTheme(
     CompositionLocalProvider(LocalRadioColors provides radioColors) {
         MaterialTheme(
             colorScheme = colorScheme,
+            typography = TacticalTypography,
+            shapes = TacticalShapes,
             content = content
         )
     }
