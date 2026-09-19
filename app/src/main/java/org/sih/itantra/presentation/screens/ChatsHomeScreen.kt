@@ -18,6 +18,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import org.sih.itantra.presentation.theme.TacticalShapeTokens
+import org.sih.itantra.presentation.theme.TacticalType
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AddComment
 import androidx.compose.material.icons.filled.Close
@@ -126,9 +128,9 @@ fun ChatsHomeScreen(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clip(RoundedCornerShape(6.dp))
+                    .clip(TacticalShapeTokens.Chip)
                     .background(radioColors.surface.copy(alpha = 0.5f))
-                    .border(0.5.dp, radioColors.border.copy(alpha = 0.3f), RoundedCornerShape(6.dp))
+                    .border(0.5.dp, radioColors.border.copy(alpha = 0.3f), TacticalShapeTokens.Chip)
                     .padding(horizontal = 10.dp, vertical = 4.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
@@ -190,7 +192,7 @@ fun ChatsHomeScreen(
             onClick = { showNewChatDialog = true },
             containerColor = if (radioColors.isDark) radioColors.sage else radioColors.forest,
             contentColor = Color.White,
-            shape = RoundedCornerShape(16.dp),
+            shape = TacticalShapeTokens.Modal,
             modifier = Modifier
                 .align(Alignment.BottomEnd)
                 .padding(bottom = 16.dp, end = 16.dp)
@@ -275,7 +277,7 @@ private fun ChatsHeader(
                 // Mesh Telemetry Pill
                 Box(
                     modifier = Modifier
-                        .clip(RoundedCornerShape(12.dp))
+                        .clip(TacticalShapeTokens.Pill)
                         .background(
                             if (activeNodeCount > 0)
                                 if (radioColors.isDark) radioColors.forest.copy(alpha = 0.4f) else radioColors.sage.copy(alpha = 0.15f)
@@ -284,7 +286,7 @@ private fun ChatsHeader(
                         .border(
                             1.dp,
                             if (activeNodeCount > 0) radioColors.sage.copy(alpha = 0.6f) else radioColors.border,
-                            RoundedCornerShape(12.dp)
+                            TacticalShapeTokens.Pill
                         )
                         .padding(horizontal = 8.dp, vertical = 2.dp)
                 ) {
@@ -427,7 +429,7 @@ private fun ChatsSearchBar(
             }
         },
         singleLine = true,
-        shape = RoundedCornerShape(12.dp),
+        shape = TacticalShapeTokens.Input,
         colors = OutlinedTextFieldDefaults.colors(
             focusedBorderColor = if (radioColors.isDark) radioColors.sage else radioColors.forest,
             unfocusedBorderColor = radioColors.border.copy(alpha = 0.6f),
@@ -474,9 +476,9 @@ private fun ConversationCard(
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(14.dp))
+            .clip(TacticalShapeTokens.Card)
             .background(cardBg)
-            .border(1.dp, cardBorderColor, RoundedCornerShape(14.dp))
+            .border(1.dp, cardBorderColor, TacticalShapeTokens.Card)
             .clickable { onClick() }
             .padding(horizontal = 14.dp, vertical = 12.dp)
     ) {
@@ -496,7 +498,7 @@ private fun ConversationCard(
                         Box(
                             modifier = Modifier
                                 .size(34.dp)
-                                .clip(RoundedCornerShape(10.dp))
+                                .clip(TacticalShapeTokens.Button)
                                 .background(
                                     if (conversation.isEmergency) radioColors.alert.copy(alpha = 0.2f)
                                     else radioColors.capsule
@@ -504,7 +506,7 @@ private fun ConversationCard(
                                 .border(
                                     1.dp,
                                     if (conversation.isEmergency) radioColors.alert else radioColors.border.copy(alpha = 0.5f),
-                                    RoundedCornerShape(10.dp)
+                                    TacticalShapeTokens.Button
                                 ),
                             contentAlignment = Alignment.Center
                         ) {

@@ -33,6 +33,8 @@ import androidx.compose.ui.unit.sp
 import org.sih.itantra.core.transport.TransportState
 import org.sih.itantra.core.transport.TransportType
 import org.sih.itantra.presentation.theme.LocalRadioColors
+import org.sih.itantra.presentation.theme.TacticalShapeTokens
+import org.sih.itantra.presentation.theme.TacticalType
 
 /**
  * Top Telemetry Header for iTantra Field Radio.
@@ -81,8 +83,8 @@ fun TopRadioHeader(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(radioColors.capsule, RoundedCornerShape(24.dp))
-                .border(1.dp, radioColors.border.copy(alpha = 0.5f), RoundedCornerShape(24.dp))
+                .background(radioColors.capsule, TacticalShapeTokens.Pill)
+                .border(1.dp, radioColors.border.copy(alpha = 0.5f), TacticalShapeTokens.Pill)
                 .padding(horizontal = 14.dp, vertical = 6.dp)
         ) {
             Row(
@@ -157,7 +159,7 @@ fun TopRadioHeader(
 
                 Box(
                     modifier = Modifier
-                        .clip(RoundedCornerShape(12.dp))
+                        .clip(TacticalShapeTokens.Chip)
                         .background(chipBg)
                         .clickable { onModelClick() }
                         .padding(horizontal = 9.dp, vertical = 5.dp),
@@ -173,10 +175,7 @@ fun TopRadioHeader(
                         androidx.compose.material3.Text(
                             text = voiceStatus.label,
                             color = chipText,
-                            fontSize = 11.sp,
-                            fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
-                            fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace,
-                            letterSpacing = 0.5.sp
+                            style = TacticalType.badgeLabel
                         )
                     }
                 }
@@ -195,9 +194,7 @@ fun TopRadioHeader(
                     androidx.compose.material3.Text(
                         text = if (isRelayEnabled) "CH-1 • RELAY" else "CH-1",
                         color = if (isRelayEnabled) (if (radioColors.isDark) radioColors.sage else radioColors.forest) else radioColors.textSecondary,
-                        fontSize = 11.sp,
-                        fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
-                        fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace
+                        style = TacticalType.badgeLabel
                     )
                 }
             }

@@ -11,12 +11,14 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import org.sih.itantra.presentation.theme.TacticalShapeTokens
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.GpsFixed
@@ -81,9 +83,9 @@ fun EmergencyComposer(
                     .border(
                         width = 1.dp,
                         color = radioColors.alert,
-                        shape = RoundedCornerShape(8.dp)
+                        shape = TacticalShapeTokens.Button
                     )
-                    .background(radioColors.alert.copy(alpha = 0.12f), RoundedCornerShape(8.dp))
+                    .background(radioColors.alert.copy(alpha = 0.12f), TacticalShapeTokens.Button)
                     .padding(horizontal = 12.dp, vertical = 8.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
@@ -126,9 +128,9 @@ fun EmergencyComposer(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clip(RoundedCornerShape(8.dp))
+                    .clip(TacticalShapeTokens.Card)
                     .background(radioColors.surface)
-                    .border(1.dp, radioColors.border, RoundedCornerShape(8.dp))
+                    .border(1.dp, radioColors.border, TacticalShapeTokens.Card)
                     .padding(12.dp)
             ) {
                 Row(
@@ -162,9 +164,9 @@ fun EmergencyComposer(
                     }
                     Box(
                         modifier = Modifier
-                            .clip(RoundedCornerShape(4.dp))
+                            .clip(TacticalShapeTokens.Tag)
                             .background(if (uiState.gpsFixAvailable) radioColors.sage.copy(alpha = 0.15f) else radioColors.capsule)
-                            .border(1.dp, if (uiState.gpsFixAvailable) radioColors.sage else radioColors.border, RoundedCornerShape(4.dp))
+                            .border(1.dp, if (uiState.gpsFixAvailable) radioColors.sage else radioColors.border, TacticalShapeTokens.Tag)
                             .padding(horizontal = 6.dp, vertical = 2.dp)
                     ) {
                         Text(
@@ -224,7 +226,7 @@ fun EmergencyComposer(
                     focusedContainerColor = radioColors.surface,
                     unfocusedContainerColor = radioColors.surface
                 ),
-                shape = RoundedCornerShape(8.dp)
+                shape = TacticalShapeTokens.Input
             )
 
             Spacer(modifier = Modifier.weight(1f, fill = false))
@@ -233,6 +235,7 @@ fun EmergencyComposer(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
+                    .navigationBarsPadding()
                     .padding(vertical = 8.dp),
                 horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
@@ -241,9 +244,9 @@ fun EmergencyComposer(
                     modifier = Modifier
                         .weight(1f)
                         .height(48.dp)
-                        .clip(RoundedCornerShape(12.dp))
+                        .clip(TacticalShapeTokens.Button)
                         .background(radioColors.surface)
-                        .border(1.dp, radioColors.border, RoundedCornerShape(12.dp))
+                        .border(1.dp, radioColors.border, TacticalShapeTokens.Button)
                         .clickable { onDismiss() },
                     contentAlignment = Alignment.Center
                 ) {
@@ -261,7 +264,7 @@ fun EmergencyComposer(
                     modifier = Modifier
                         .weight(1.4f)
                         .height(48.dp)
-                        .clip(RoundedCornerShape(12.dp))
+                        .clip(TacticalShapeTokens.Button)
                         .background(radioColors.alert)
                         .clickable(enabled = uiState.canSend) { onRequestConfirmation() },
                     contentAlignment = Alignment.Center

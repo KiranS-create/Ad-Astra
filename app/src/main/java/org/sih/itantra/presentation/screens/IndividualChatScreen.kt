@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -26,6 +27,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import org.sih.itantra.presentation.theme.TacticalShapeTokens
+import org.sih.itantra.presentation.theme.TacticalType
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ExpandLess
@@ -436,7 +439,7 @@ private fun IndividualChatHeader(
             Box(
                 modifier = Modifier
                     .size(36.dp)
-                    .clip(RoundedCornerShape(10.dp))
+                    .clip(TacticalShapeTokens.Button)
                     .background(
                         if (headerState.isEmergency) radioColors.alert.copy(alpha = 0.2f)
                         else radioColors.capsule
@@ -444,7 +447,7 @@ private fun IndividualChatHeader(
                     .border(
                         1.dp,
                         if (headerState.isEmergency) radioColors.alert else radioColors.border.copy(alpha = 0.6f),
-                        RoundedCornerShape(10.dp)
+                        TacticalShapeTokens.Button
                     ),
                 contentAlignment = Alignment.Center
             ) {
@@ -519,9 +522,9 @@ private fun IndividualChatHeader(
         // Feature 15: Tactical Local Retention Badge
         Box(
             modifier = Modifier
-                .clip(RoundedCornerShape(6.dp))
+                .clip(TacticalShapeTokens.Tag)
                 .background(radioColors.sage.copy(alpha = 0.12f))
-                .border(1.dp, radioColors.sage.copy(alpha = 0.3f), RoundedCornerShape(6.dp))
+                .border(1.dp, radioColors.sage.copy(alpha = 0.3f), TacticalShapeTokens.Tag)
                 .padding(horizontal = 6.dp, vertical = 3.dp)
         ) {
             Text(
@@ -724,26 +727,18 @@ private fun ChatMessageBubble(
         horizontalAlignment = alignment
     ) {
         // Main Bubble Container
+        val bubbleShape = RoundedCornerShape(
+            topStart = 12.dp,
+            topEnd = 12.dp,
+            bottomStart = if (isOutgoing) 12.dp else 2.dp,
+            bottomEnd = if (isOutgoing) 2.dp else 12.dp
+        )
         Box(
             modifier = Modifier
                 .fillMaxWidth(0.86f)
-                .clip(RoundedCornerShape(
-                    topStart = 14.dp,
-                    topEnd = 14.dp,
-                    bottomStart = if (isOutgoing) 14.dp else 2.dp,
-                    bottomEnd = if (isOutgoing) 2.dp else 14.dp
-                ))
+                .clip(bubbleShape)
                 .background(bubbleBg)
-                .border(
-                    1.dp,
-                    bubbleBorderColor,
-                    RoundedCornerShape(
-                        topStart = 14.dp,
-                        topEnd = 14.dp,
-                        bottomStart = if (isOutgoing) 14.dp else 2.dp,
-                        bottomEnd = if (isOutgoing) 2.dp else 14.dp
-                    )
-                )
+                .border(1.dp, bubbleBorderColor, bubbleShape)
                 .clickable { onToggleExpand() }
                 .padding(horizontal = 12.dp, vertical = 10.dp)
         ) {
@@ -1035,6 +1030,7 @@ private fun ChatComposerBar(
             .fillMaxWidth()
             .background(radioColors.surface)
             .border(1.dp, radioColors.border.copy(alpha = 0.5f))
+            .navigationBarsPadding()
             .padding(horizontal = 10.dp, vertical = 8.dp),
         verticalArrangement = Arrangement.spacedBy(6.dp)
     ) {
@@ -1056,7 +1052,7 @@ private fun ChatComposerBar(
                 modifier = Modifier
                     .weight(1f)
                     .height(46.dp)
-                    .clip(RoundedCornerShape(12.dp))
+                    .clip(TacticalShapeTokens.Button)
                     .background(pttBg)
                     .pointerInput(Unit) {
                         detectTapGestures(
@@ -1109,9 +1105,9 @@ private fun ChatComposerBar(
             Box(
                 modifier = Modifier
                     .size(46.dp)
-                    .clip(RoundedCornerShape(12.dp))
+                    .clip(TacticalShapeTokens.Button)
                     .background(radioColors.capsule)
-                    .border(1.dp, radioColors.border.copy(alpha = 0.6f), RoundedCornerShape(12.dp))
+                    .border(1.dp, radioColors.border.copy(alpha = 0.6f), TacticalShapeTokens.Button)
                     .clickable { onSendQuickMessage() },
                 contentAlignment = Alignment.Center
             ) {

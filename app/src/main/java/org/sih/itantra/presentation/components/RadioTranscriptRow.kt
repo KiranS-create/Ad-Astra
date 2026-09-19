@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import org.sih.itantra.presentation.theme.TacticalShapeTokens
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
@@ -84,9 +85,9 @@ fun RadioTranscriptRow(
         Box(
             modifier = Modifier
                 .fillMaxWidth(0.92f)
-                .clip(RoundedCornerShape(10.dp))
+                .clip(TacticalShapeTokens.Card)
                 .background(cardBackground)
-                .border(1.dp, borderColor, RoundedCornerShape(10.dp))
+                .border(1.dp, borderColor, TacticalShapeTokens.Card)
                 .padding(horizontal = 12.dp, vertical = 9.dp)
         ) {
             Column(modifier = Modifier.fillMaxWidth()) {
@@ -100,7 +101,7 @@ fun RadioTranscriptRow(
                         // Direction Capsule: [TX ➔] or [RX 🠔]
                         Box(
                             modifier = Modifier
-                                .clip(RoundedCornerShape(5.dp))
+                                .clip(TacticalShapeTokens.Tag)
                                 .background(
                                     if (isSent) radioColors.sage.copy(alpha = 0.22f) else Color(0xFF0288D1).copy(alpha = 0.22f)
                                 )
@@ -180,7 +181,7 @@ fun RadioTranscriptRow(
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clip(RoundedCornerShape(5.dp))
+                            .clip(TacticalShapeTokens.Tag)
                             .background(radioColors.alert.copy(alpha = 0.15f))
                             .padding(horizontal = 7.dp, vertical = 3.dp)
                     ) {
@@ -209,9 +210,9 @@ fun RadioTranscriptRow(
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clip(RoundedCornerShape(5.dp))
+                            .clip(TacticalShapeTokens.Tag)
                             .background((if (radioColors.isDark) radioColors.sage else radioColors.forest).copy(alpha = 0.15f))
-                            .border(1.dp, (if (radioColors.isDark) radioColors.sage else radioColors.forest).copy(alpha = 0.4f), RoundedCornerShape(5.dp))
+                            .border(1.dp, (if (radioColors.isDark) radioColors.sage else radioColors.forest).copy(alpha = 0.4f), TacticalShapeTokens.Tag)
                             .padding(horizontal = 7.dp, vertical = 3.dp)
                     ) {
                         Row(
@@ -346,9 +347,9 @@ fun RadioTranscriptRow(
                         if (record.isSecure) {
                             Box(
                                 modifier = Modifier
-                                    .clip(RoundedCornerShape(3.dp))
+                                    .clip(TacticalShapeTokens.Tag)
                                     .background((if (radioColors.isDark) radioColors.sage else radioColors.forest).copy(alpha = 0.15f))
-                                    .border(1.dp, (if (radioColors.isDark) radioColors.sage else radioColors.forest).copy(alpha = 0.4f), RoundedCornerShape(3.dp))
+                                    .border(1.dp, (if (radioColors.isDark) radioColors.sage else radioColors.forest).copy(alpha = 0.4f), TacticalShapeTokens.Tag)
                                     .padding(horizontal = 4.dp, vertical = 1.dp)
                             ) {
                                 Text(
@@ -362,9 +363,9 @@ fun RadioTranscriptRow(
                         } else if (record.authStatus == "UNVERIFIED") {
                             Box(
                                 modifier = Modifier
-                                    .clip(RoundedCornerShape(3.dp))
+                                    .clip(TacticalShapeTokens.Tag)
                                     .background(radioColors.warning.copy(alpha = 0.15f))
-                                    .border(1.dp, radioColors.warning.copy(alpha = 0.4f), RoundedCornerShape(3.dp))
+                                    .border(1.dp, radioColors.warning.copy(alpha = 0.4f), TacticalShapeTokens.Tag)
                                     .padding(horizontal = 4.dp, vertical = 1.dp)
                             ) {
                                 Text(

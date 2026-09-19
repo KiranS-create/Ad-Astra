@@ -41,6 +41,10 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.material3.MaterialTheme
+import org.sih.itantra.presentation.theme.TacticalShapeTokens
+import org.sih.itantra.presentation.theme.TacticalType
 import org.sih.itantra.core.common.IndicLanguage
 import org.sih.itantra.core.language.LanguageSelectionMode
 import org.sih.itantra.presentation.theme.LocalRadioColors
@@ -62,12 +66,12 @@ fun LanguageSelectorPill(
     // Main Pill Button
     Box(
         modifier = modifier
-            .clip(RoundedCornerShape(20.dp))
+            .clip(TacticalShapeTokens.Pill)
             .background(radioColors.capsule)
             .border(
                 1.dp,
                 if (isAutoUnavailable) radioColors.alert.copy(alpha = 0.7f) else radioColors.border.copy(alpha = 0.6f),
-                RoundedCornerShape(20.dp)
+                TacticalShapeTokens.Pill
             )
             .clickable { showSheet = true }
             .padding(horizontal = 14.dp, vertical = 7.dp)
@@ -232,7 +236,7 @@ fun LanguageSelectorPill(
                 LazyColumn(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(360.dp)
+                        .heightIn(max = 280.dp)
                 ) {
                     items(IndicLanguage.entries) { lang ->
                         val isSelected = currentState is org.sih.itantra.core.language.LanguageSelectionState.Manual && currentState.language == lang
@@ -240,7 +244,7 @@ fun LanguageSelectorPill(
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .clip(RoundedCornerShape(10.dp))
+                                .clip(TacticalShapeTokens.Button)
                                 .background(
                                     if (isSelected) radioColors.surfaceHighlight else radioColors.surface
                                 )
@@ -263,9 +267,7 @@ fun LanguageSelectorPill(
                                     Text(
                                         text = lang.isoCode.uppercase(),
                                         color = radioColors.textSecondary,
-                                        fontSize = 11.sp,
-                                        fontWeight = FontWeight.Bold,
-                                        fontFamily = FontFamily.Monospace
+                                        style = TacticalType.badgeLabel
                                     )
                                 }
 
@@ -275,13 +277,13 @@ fun LanguageSelectorPill(
                                     Text(
                                         text = lang.displayName,
                                         color = radioColors.textPrimary,
-                                        fontSize = 14.sp,
-                                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
+                                        style = MaterialTheme.typography.titleMedium,
+                                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
                                     )
                                     Text(
                                         text = lang.nativeName,
                                         color = radioColors.textSecondary,
-                                        fontSize = 12.sp
+                                        style = MaterialTheme.typography.bodyMedium
                                     )
                                 }
                             }

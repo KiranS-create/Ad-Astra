@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import org.sih.itantra.presentation.theme.TacticalShapeTokens
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.WarningAmber
 import androidx.compose.material3.BasicAlertDialog
@@ -51,9 +52,9 @@ fun EmergencyConfirmationDialog(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .clip(RoundedCornerShape(16.dp))
+                .clip(TacticalShapeTokens.Modal)
                 .background(radioColors.surface)
-                .border(2.dp, radioColors.alert, RoundedCornerShape(16.dp))
+                .border(2.dp, radioColors.alert, TacticalShapeTokens.Modal)
                 .padding(20.dp)
         ) {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -87,9 +88,9 @@ fun EmergencyConfirmationDialog(
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clip(RoundedCornerShape(8.dp))
+                        .clip(TacticalShapeTokens.Button)
                         .background(radioColors.forest.copy(alpha = 0.25f))
-                        .border(1.dp, radioColors.border, RoundedCornerShape(8.dp))
+                        .border(1.dp, radioColors.border, TacticalShapeTokens.Button)
                         .padding(12.dp),
                     verticalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
@@ -127,9 +128,9 @@ fun EmergencyConfirmationDialog(
                         modifier = Modifier
                             .weight(1f)
                             .height(44.dp)
-                            .clip(RoundedCornerShape(10.dp))
+                            .clip(TacticalShapeTokens.Button)
                             .background(radioColors.capsule)
-                            .border(1.dp, radioColors.border, RoundedCornerShape(10.dp))
+                            .border(1.dp, radioColors.border, TacticalShapeTokens.Button)
                             .clickable { onDismiss() },
                         contentAlignment = Alignment.Center
                     ) {
@@ -147,7 +148,7 @@ fun EmergencyConfirmationDialog(
                         modifier = Modifier
                             .weight(1.3f)
                             .height(44.dp)
-                            .clip(RoundedCornerShape(10.dp))
+                            .clip(TacticalShapeTokens.Button)
                             .background(radioColors.alert)
                             .clickable { onConfirm() },
                         contentAlignment = Alignment.Center

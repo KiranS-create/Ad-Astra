@@ -57,7 +57,10 @@ import org.sih.itantra.presentation.components.RadioPttControl
 import org.sih.itantra.presentation.components.RadioTranscriptRow
 import org.sih.itantra.presentation.components.TopRadioHeader
 import org.sih.itantra.presentation.components.WaveformVisualizer
+import androidx.compose.material3.MaterialTheme
 import org.sih.itantra.presentation.theme.LocalRadioColors
+import org.sih.itantra.presentation.theme.TacticalShapeTokens
+import org.sih.itantra.presentation.theme.TacticalType
 import org.sih.itantra.presentation.viewmodel.TransceiverViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -168,9 +171,9 @@ fun MainTransceiverScreen(
             modifier = Modifier
                 .fillMaxWidth()
                 .weight(1f)
-                .clip(RoundedCornerShape(10.dp))
+                .clip(TacticalShapeTokens.Card)
                 .background(radioColors.surface.copy(alpha = 0.5f))
-                .border(1.dp, radioColors.border.copy(alpha = 0.35f), RoundedCornerShape(10.dp))
+                .border(1.dp, radioColors.border.copy(alpha = 0.35f), TacticalShapeTokens.Card)
                 .padding(10.dp)
         ) {
             // Live Radio Traffic Header
@@ -185,32 +188,28 @@ fun MainTransceiverScreen(
                     Text(
                         text = "LIVE RADIO TRAFFIC",
                         color = if (radioColors.isDark) radioColors.sage else radioColors.forest,
-                        fontSize = 13.sp,
+                        style = MaterialTheme.typography.titleSmall,
                         fontWeight = FontWeight.Bold,
-                        fontFamily = FontFamily.Monospace,
                         letterSpacing = 0.8.sp
                     )
                     Spacer(modifier = Modifier.width(6.dp))
                     Box(
                         modifier = Modifier
-                            .clip(RoundedCornerShape(4.dp))
+                            .clip(TacticalShapeTokens.Tag)
                             .background((if (radioColors.isDark) radioColors.sage else radioColors.forest).copy(alpha = 0.15f))
                             .padding(horizontal = 5.dp, vertical = 2.dp)
                     ) {
                         Text(
                             text = "REAL-TIME",
                             color = if (radioColors.isDark) radioColors.sage else radioColors.forest,
-                            fontSize = 10.sp,
-                            fontWeight = FontWeight.Bold,
-                            fontFamily = FontFamily.Monospace
+                            style = TacticalType.badgeLabel
                         )
                     }
                 }
                 Text(
                     text = if (history.isEmpty()) "CH-1 IDLE" else "${history.size} MSG${if (history.size > 1) "S" else ""}",
                     color = radioColors.textTertiary,
-                    fontSize = 11.5.sp,
-                    fontFamily = FontFamily.Monospace
+                    style = TacticalType.telemetryCode
                 )
             }
 
@@ -317,12 +316,12 @@ fun MainTransceiverScreen(
                 modifier = Modifier
                     .weight(1f)
                     .height(42.dp)
-                    .clip(RoundedCornerShape(8.dp))
+                    .clip(TacticalShapeTokens.Button)
                     .background(if (isContinuous) radioColors.surfaceHighlight else radioColors.surface)
                     .border(
                         1.dp,
                         if (isContinuous) (if (radioColors.isDark) radioColors.sage else radioColors.forest) else radioColors.border.copy(alpha = 0.4f),
-                        RoundedCornerShape(8.dp)
+                        TacticalShapeTokens.Button
                     )
                     .clickable { viewModel.toggleContinuousMode() }
                     .padding(horizontal = 4.dp)
@@ -337,9 +336,7 @@ fun MainTransceiverScreen(
                 Text(
                     text = if (isContinuous) "CONTINUOUS" else "WALKIE PTT",
                     color = radioColors.textPrimary,
-                    fontSize = 10.sp,
-                    fontWeight = FontWeight.Bold,
-                    fontFamily = FontFamily.Monospace,
+                    style = TacticalType.badgeLabel,
                     maxLines = 1
                 )
             }
@@ -351,9 +348,9 @@ fun MainTransceiverScreen(
                 modifier = Modifier
                     .weight(1.15f)
                     .height(42.dp)
-                    .clip(RoundedCornerShape(8.dp))
+                    .clip(TacticalShapeTokens.Button)
                     .background(radioColors.alert.copy(alpha = 0.18f))
-                    .border(1.5.dp, radioColors.alert, RoundedCornerShape(8.dp))
+                    .border(1.5.dp, radioColors.alert, TacticalShapeTokens.Button)
                     .clickable { showDistressDialog = true }
                     .padding(horizontal = 4.dp)
             ) {
@@ -367,9 +364,8 @@ fun MainTransceiverScreen(
                 Text(
                     text = "SEND DISTRESS",
                     color = radioColors.alert,
-                    fontSize = 10.sp,
+                    style = TacticalType.badgeLabel,
                     fontWeight = FontWeight.Black,
-                    fontFamily = FontFamily.Monospace,
                     letterSpacing = 0.5.sp,
                     maxLines = 1
                 )
@@ -382,9 +378,9 @@ fun MainTransceiverScreen(
                 modifier = Modifier
                     .weight(1f)
                     .height(42.dp)
-                    .clip(RoundedCornerShape(8.dp))
+                    .clip(TacticalShapeTokens.Button)
                     .background(radioColors.surface)
-                    .border(1.dp, radioColors.border.copy(alpha = 0.4f), RoundedCornerShape(8.dp))
+                    .border(1.dp, radioColors.border.copy(alpha = 0.4f), TacticalShapeTokens.Button)
                     .clickable { viewModel.testNeuralLoopback() }
                     .padding(horizontal = 4.dp)
             ) {
@@ -398,9 +394,7 @@ fun MainTransceiverScreen(
                 Text(
                     text = "TEST PACKET",
                     color = radioColors.textPrimary,
-                    fontSize = 10.sp,
-                    fontWeight = FontWeight.Bold,
-                    fontFamily = FontFamily.Monospace,
+                    style = TacticalType.badgeLabel,
                     maxLines = 1
                 )
             }

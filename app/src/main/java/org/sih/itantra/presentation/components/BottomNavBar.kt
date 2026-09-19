@@ -32,6 +32,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import org.sih.itantra.presentation.theme.LocalRadioColors
 
+import androidx.compose.foundation.layout.navigationBarsPadding
+import org.sih.itantra.presentation.theme.TacticalShapeTokens
+import androidx.compose.material3.MaterialTheme
+
 enum class RadioNavTab(val label: String, val icon: ImageVector) {
     CHATS("Chats", Icons.Default.ChatBubbleOutline),
     RADIO("Radio", Icons.Default.Radio),
@@ -67,6 +71,7 @@ fun BottomNavBar(
                 color = radioColors.border.copy(alpha = 0.5f),
                 shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)
             )
+            .navigationBarsPadding()
             .padding(horizontal = 8.dp, vertical = 6.dp)
     ) {
         Row(
@@ -86,7 +91,7 @@ fun BottomNavBar(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center,
                     modifier = Modifier
-                        .clip(RoundedCornerShape(12.dp))
+                        .clip(TacticalShapeTokens.Card)
                         .clickable { onTabSelected(tab) }
                         .padding(horizontal = 14.dp, vertical = 6.dp)
                 ) {
@@ -112,9 +117,8 @@ fun BottomNavBar(
                     Text(
                         text = tab.label,
                         color = itemColor,
-                        fontSize = 10.sp,
-                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-                        fontFamily = FontFamily.SansSerif
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
                     )
                 }
             }
