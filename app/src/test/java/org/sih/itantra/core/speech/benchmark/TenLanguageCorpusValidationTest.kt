@@ -14,6 +14,10 @@ class TenLanguageCorpusValidationTest {
     @Before
     fun setUp() {
         val jsonText = when {
+            File("docs/benchmarks/corpus/tactical_speech_corpus_10lang.json").exists() ->
+                File("docs/benchmarks/corpus/tactical_speech_corpus_10lang.json").readText()
+            File("../docs/benchmarks/corpus/tactical_speech_corpus_10lang.json").exists() ->
+                File("../docs/benchmarks/corpus/tactical_speech_corpus_10lang.json").readText()
             File("docs/benchmark/corpus/tactical_speech_corpus_10lang.json").exists() ->
                 File("docs/benchmark/corpus/tactical_speech_corpus_10lang.json").readText()
             File("../docs/benchmark/corpus/tactical_speech_corpus_10lang.json").exists() ->

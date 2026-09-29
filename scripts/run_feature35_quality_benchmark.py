@@ -7,9 +7,10 @@ import re
 import numpy as np
 import sherpa_onnx
 
-CORPUS_PATH = r"c:\Projects\iTantra\docs\benchmark\corpus\tactical_speech_corpus_10lang.json"
-ASSET_DIR = r"c:\Projects\iTantra\app\src\main\assets\models"
-OUT_RESULTS_JSON = r"c:\Projects\iTantra\docs\benchmark\feature35_results.json"
+BENCHMARK_DIR = os.path.join(os.path.dirname(__file__), "..", "docs", "benchmarks") if os.path.exists(os.path.join(os.path.dirname(__file__), "..", "docs", "benchmarks")) else os.path.join(os.path.dirname(__file__), "..", "docs", "benchmark")
+CORPUS_PATH = os.path.join(BENCHMARK_DIR, "corpus", "tactical_speech_corpus_10lang.json")
+ASSET_DIR = os.path.join(os.path.dirname(__file__), "..", "app", "src", "main", "assets", "models")
+OUT_RESULTS_JSON = os.path.join(BENCHMARK_DIR, "feature35_results.json")
 
 LANGUAGES = [
     {"code": "en", "name": "English", "script": "Latin"},

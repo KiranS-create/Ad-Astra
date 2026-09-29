@@ -22,7 +22,7 @@
 
 <br/>
 
-**[Demo Video](docs/assets/demo/ad-astra-sih-2026-demo.mp4)** • **[Technical Report](FINAL_ITANTRA_TECHNICAL_REPORT.md)** • **[Feature Status](FINAL_FEATURE_STATUS.md)** • **[Evidence Matrix](FINAL_EVIDENCE_MATRIX.md)** • **[Judge Quick Ref](SIH_JUDGE_QUICK_REFERENCE.md)** • **[Demo Script](SIH_DEMO_SCRIPT.md)** • **[Architecture](docs/ARCHITECTURE.md)** • **[Protocol Spec](docs/PROTOCOL.md)** • **[Third-Party Licenses](THIRD_PARTY_LICENSES.md)**
+**[Demo Video](docs/assets/demo/ad-astra-sih-2026-demo.mp4)** • **[Technical Report](docs/reports/FINAL_ITANTRA_TECHNICAL_REPORT.md)** • **[Feature Status](docs/evidence/FINAL_FEATURE_STATUS.md)** • **[Evidence Matrix](docs/evidence/FINAL_EVIDENCE_MATRIX.md)** • **[Emergency Stack Report](docs/reports/FEATURE_EMERGENCY_RESCUE_STACK_REPORT.md)** • **[Judge Quick Ref](docs/reports/SIH_JUDGE_QUICK_REFERENCE.md)** • **[Demo Script](docs/reports/SIH_DEMO_SCRIPT.md)** • **[Architecture](docs/reports/ARCHITECTURE.md)** • **[Protocol Spec](docs/reports/PROTOCOL.md)** • **[Third-Party Licenses](THIRD_PARTY_LICENSES.md)**
 
 </div>
 
@@ -247,17 +247,18 @@ In strict adherence to truthful engineering principles:
 
 ## 9. Comprehensive Documentation Index
 
-- **[Final Technical Report](FINAL_ITANTRA_TECHNICAL_REPORT.md):** 31-section comprehensive engineering and benchmark report.
-- **[Final Feature Status (Features 1–27)](FINAL_FEATURE_STATUS.md):** Authoritative feature status and evidence classification matrix.
-- **[Final Evidence Matrix](FINAL_EVIDENCE_MATRIX.md):** Evidence categorization across all 27 capabilities.
-- **[Judge Quick Reference](SIH_JUDGE_QUICK_REFERENCE.md):** Concise answers to anticipated technical jury questions.
-- **[SIH 3-Minute Demo Script](SIH_DEMO_SCRIPT.md):** Structured live demonstration procedure with live vs. simulated demarcation.
-- **[Demo Failover & Contingency Plan](SIH_DEMO_FAILOVER_PLAN.md):** Fallback protocols for RF interference, hardware limits, and single-device mode.
+- **[Final Technical Report](docs/reports/FINAL_ITANTRA_TECHNICAL_REPORT.md):** 31-section comprehensive engineering and benchmark report.
+- **[Emergency Rescue Stack Report](docs/reports/FEATURE_EMERGENCY_RESCUE_STACK_REPORT.md):** 4-capability emergency communication, telemetry, BLE RSSI locate, and GPS integration report.
+- **[Final Feature Status (Features 1–27)](docs/evidence/FINAL_FEATURE_STATUS.md):** Authoritative feature status and evidence classification matrix.
+- **[Final Evidence Matrix](docs/evidence/FINAL_EVIDENCE_MATRIX.md):** Evidence categorization across all 27 capabilities.
+- **[Judge Quick Reference](docs/reports/SIH_JUDGE_QUICK_REFERENCE.md):** Concise answers to anticipated technical jury questions.
+- **[SIH 3-Minute Demo Script](docs/reports/SIH_DEMO_SCRIPT.md):** Structured live demonstration procedure with live vs. simulated demarcation.
+- **[Demo Failover & Contingency Plan](docs/reports/SIH_DEMO_FAILOVER_PLAN.md):** Fallback protocols for RF interference, hardware limits, and single-device mode.
 - **[Model & Licensing Audit](MODEL_AND_LICENSES.md):** Detailed licensing breakdown of all bundled and external speech models.
-- **[Final Build Information](FINAL_BUILD_INFO.md):** APK sizes, hashes, Gradle environment, and CI configuration.
-- **[Documentation Claim Audit](CLAIM_AUDIT.md):** Audit and qualification of all technical claims against physical evidence.
-- **[System Architecture Spec](docs/ARCHITECTURE.md):** In-depth 6-layer neural transceiver architecture.
-- **[Binary Protocol Specification](docs/PROTOCOL.md):** 28-byte canonical header, wire formats, and field definitions.
+- **[Final Build Information](docs/reports/FINAL_BUILD_INFO.md):** APK sizes, hashes, Gradle environment, and CI configuration.
+- **[Documentation Claim Audit](docs/evidence/CLAIM_AUDIT.md):** Audit and qualification of all technical claims against physical evidence.
+- **[System Architecture Spec](docs/reports/ARCHITECTURE.md):** In-depth 6-layer neural transceiver architecture.
+- **[Binary Protocol Specification](docs/reports/PROTOCOL.md):** 28-byte canonical header, wire formats, and field definitions.
 - **[Security Policy](SECURITY.md):** Threat model, STRIDE evaluation, and vulnerability reporting.
 - **[Third-Party Licenses](THIRD_PARTY_LICENSES.md):** Complete legal notices for third-party libraries and neural weights.
 

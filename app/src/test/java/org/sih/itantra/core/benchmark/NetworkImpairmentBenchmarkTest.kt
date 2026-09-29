@@ -341,7 +341,12 @@ class NetworkImpairmentBenchmarkTest {
         val scenarios = runner.buildAllScenarios()
         assertTrue("Scenarios must cover bandwidth, loss, latency, burst, and DTN", scenarios.size >= 100)
 
-        val targetDir = if (java.io.File("gradlew.bat").exists()) java.io.File(".") else java.io.File("..")
+        val targetDir = when {
+            java.io.File("docs/benchmarks").exists() -> java.io.File("docs/benchmarks")
+            java.io.File("../docs/benchmarks").exists() -> java.io.File("../docs/benchmarks")
+            java.io.File("gradlew.bat").exists() -> java.io.File(".")
+            else -> java.io.File("..")
+        }
         val results = runner.runAndSave(targetDir)
         assertEquals(scenarios.size, results.size)
         assertTrue(java.io.File(targetDir, "feature22_results.csv").exists())

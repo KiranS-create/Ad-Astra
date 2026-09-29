@@ -1,9 +1,9 @@
-﻿import os
+import os
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 
-output_dir = os.path.join("docs", "benchmark", "charts")
+output_dir = os.path.join("docs", "benchmarks", "charts") if os.path.exists(os.path.join("docs", "benchmarks")) else os.path.join("docs", "benchmark", "charts")
 os.makedirs(output_dir, exist_ok=True)
 
 plt.style.use('seaborn-v0_8-whitegrid' if 'seaborn-v0_8-whitegrid' in plt.style.available else 'default')
@@ -21,7 +21,8 @@ colors = {
     'CONTEXT_DELTA': '#27ae60'
 }
 
-df = pd.read_csv("feature22_results.csv")
+csv_path = os.path.join("docs", "benchmarks", "feature22_results.csv") if os.path.exists(os.path.join("docs", "benchmarks", "feature22_results.csv")) else "feature22_results.csv"
+df = pd.read_csv(csv_path)
 
 # 1. Delivery Success Rate vs Loss Rate
 fig, ax = plt.subplots(figsize=(8, 5))
@@ -174,4 +175,4 @@ plt.tight_layout()
 plt.savefig(os.path.join(output_dir, "qos_emergency_congestion.png"))
 plt.close()
 
-print("Successfully generated all 8 Feature 22 charts in docs/benchmark/charts/")
+print(f"Successfully generated all 8 Feature 22 charts in {output_dir}/")

@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env python3
+#!/usr/bin/env python3
 """
 Feature 30: 10-Language Multilingual STT Model Evaluation & Selection Pipeline
 ================================================================================
@@ -21,10 +21,11 @@ import sys
 import math
 import time
 
-CORPUS_PATH = os.path.join(os.path.dirname(__file__), "..", "docs", "benchmark", "corpus", "tactical_speech_corpus_10lang.json")
-OUT_JSON_PATH = os.path.join(os.path.dirname(__file__), "..", "docs", "benchmark", "feature30_model_comparison_matrix.json")
-OUT_CSV_PATH = os.path.join(os.path.dirname(__file__), "..", "docs", "benchmark", "feature30_model_comparison_matrix.csv")
-OUT_MD_PATH = os.path.join(os.path.dirname(__file__), "..", "docs", "benchmark", "FEATURE30_MODEL_EVALUATION_REPORT.md")
+BENCHMARK_DIR = os.path.join(os.path.dirname(__file__), "..", "docs", "benchmarks") if os.path.exists(os.path.join(os.path.dirname(__file__), "..", "docs", "benchmarks")) else os.path.join(os.path.dirname(__file__), "..", "docs", "benchmark")
+CORPUS_PATH = os.path.join(BENCHMARK_DIR, "corpus", "tactical_speech_corpus_10lang.json")
+OUT_JSON_PATH = os.path.join(BENCHMARK_DIR, "feature30_model_comparison_matrix.json")
+OUT_CSV_PATH = os.path.join(BENCHMARK_DIR, "feature30_model_comparison_matrix.csv")
+OUT_MD_PATH = os.path.join(BENCHMARK_DIR, "FEATURE30_MODEL_EVALUATION_REPORT.md")
 
 LANGUAGES = [
     {"code": "en", "name": "English", "script": "Latin"},

@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env python3
+#!/usr/bin/env python3
 """
 Feature 30: REAL Multilingual STT Inference Benchmark Engine (Optimized & Robust)
 =================================================================================
@@ -22,9 +22,10 @@ import re
 import numpy as np
 import sherpa_onnx
 
-CORPUS_PATH = os.path.join(os.path.dirname(__file__), "..", "docs", "benchmark", "corpus", "tactical_speech_corpus_10lang.json")
+BENCHMARK_DIR = os.path.join(os.path.dirname(__file__), "..", "docs", "benchmarks") if os.path.exists(os.path.join(os.path.dirname(__file__), "..", "docs", "benchmarks")) else os.path.join(os.path.dirname(__file__), "..", "docs", "benchmark")
+CORPUS_PATH = os.path.join(BENCHMARK_DIR, "corpus", "tactical_speech_corpus_10lang.json")
 ASSET_DIR = os.path.join(os.path.dirname(__file__), "..", "app", "src", "main", "assets", "models")
-RAW_OUTPUT_DIR = os.path.join(os.path.dirname(__file__), "..", "docs", "benchmark", "raw_transcriptions")
+RAW_OUTPUT_DIR = os.path.join(BENCHMARK_DIR, "raw_transcriptions")
 
 LANGUAGES = [
     {"code": "en", "name": "English", "script": "Latin"},
@@ -386,16 +387,16 @@ def main():
         "per_language_results": per_language_results
     }
     
-    with open(os.path.join(os.path.dirname(__file__), "..", "docs", "benchmark", "feature30_real_results.json"), "w", encoding="utf-8") as f:
+    with open(os.path.join(BENCHMARK_DIR, "feature30_real_results.json"), "w", encoding="utf-8") as f:
         json.dump(final_json, f, indent=2, ensure_ascii=False)
     
-    csv_path = os.path.join(os.path.dirname(__file__), "..", "docs", "benchmark", "feature30_real_results.csv")
+    csv_path = os.path.join(BENCHMARK_DIR, "feature30_real_results.csv")
     with open(csv_path, "w", encoding="utf-8") as f:
         f.write("language_code,language_name,actual_model,model_size_mb,raw_wer,post_wer,raw_cer,post_cer,raw_tactical_f1,post_tactical_f1,semantic_fact_accuracy,mean_rtf,mean_latency_ms\n")
         for c, res in per_language_results.items():
             f.write(f"{c},{res['name']},{res['actual_model']},{res['model_size_mb']},{res['raw_wer']},{res['post_wer']},{res['raw_cer']},{res['post_cer']},{res['raw_tactical_f1']},{res['post_tactical_f1']},{res['semantic_fact_accuracy']},{res['mean_rtf']},{res['mean_latency_ms']}\n")
             
-    err_md_path = os.path.join(os.path.dirname(__file__), "..", "docs", "benchmark", "feature30_error_analysis.md")
+    err_md_path = os.path.join(BENCHMARK_DIR, "feature30_error_analysis.md")
     with open(err_md_path, "w", encoding="utf-8") as f:
         f.write("# Feature 30 — Multilingual STT Real Error Analysis\n\n")
         f.write("> **Dataset**: 250 Evaluated Tactical Utterances across 10 Languages\n\n")
@@ -416,11 +417,11 @@ def main():
                 f.write("- Perfect phonetic match on tactical tokens.\n")
             f.write(f"**Recommendation**: Expand regex normalizer for code-switched military numbers and NATO phonetic alphabet.\n\n")
             
-    eval_md_path = os.path.join(os.path.dirname(__file__), "..", "docs", "benchmark", "FEATURE30_REAL_STT_EVALUATION.md")
+    eval_md_path = os.path.join(BENCHMARK_DIR, "FEATURE30_REAL_STT_EVALUATION.md")
     with open(eval_md_path, "w", encoding="utf-8") as f:
         f.write("# Feature 30 — Real Multilingual STT Quality & ASR Inference Benchmark Report\n\n")
         f.write("> **Evaluation Type**: Genuine On-Device Neural ASR Inference (Sherpa-ONNX Whisper-Tiny INT8)\n")
-        f.write(f"> **Corpus**: 	actical_speech_corpus_10lang.json ({len(utterances)} total utterances)\n")
+        f.write(f"> **Corpus**: tactical_speech_corpus_10lang.json ({len(utterances)} total utterances)\n")
         f.write(f"> **STT Asset Footprint**: {total_stt_bytes:,} bytes (98.69 MB)\n\n")
         f.write("## 1. Measured Performance per Language (RAW ASR vs TACTICAL POST-PROCESSING)\n\n")
         f.write("| Language | Model | RAW WER | POST WER | RAW CER | POST CER | RAW F1 | POST F1 | Fact Accuracy | RTF | Latency |\n")
@@ -432,7 +433,7 @@ def main():
         f.write("- **Dolphin Small CTC**: UNAVAILABLE — Model weights are not embedded in APK assets.\n")
         f.write("- **Odia Subsystem**: PLATFORM OS FALLBACK — Android SpeechRecognizer used offline.\n\n")
         f.write("## 3. Auditable Verification Trail\n\n")
-        f.write(f"- Raw outputs logged for all {len(raw_transcriptions)} utterances in docs/benchmark/raw_transcriptions/feature30_raw_transcriptions_audit.json.\n")
+        f.write(f"- Raw outputs logged for all {len(raw_transcriptions)} utterances in docs/benchmarks/raw_transcriptions/feature30_raw_transcriptions_audit.json.\n")
         f.write("- Zero hardcoded or synthetic metrics.\n")
         
     print("\n" + "=" * 80)

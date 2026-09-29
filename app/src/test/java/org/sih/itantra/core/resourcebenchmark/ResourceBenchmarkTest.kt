@@ -376,14 +376,19 @@ class ResourceBenchmarkTest {
     // 17. Artifact Generation and Schema Validation
     @Test
     fun test_17_generateFeature24Artifacts() {
-        val targetDir = if (File("gradlew.bat").exists()) File(".") else File("..")
+        val targetDir = when {
+            File("docs/benchmarks").exists() -> File("docs/benchmarks")
+            File("../docs/benchmarks").exists() -> File("../docs/benchmarks")
+            File("gradlew.bat").exists() -> File(".")
+            else -> File("..")
+        }
         ResourceBenchmarkSuiteGenerator.writeArtifacts(targetDir)
 
         val csvFile = File(targetDir, "feature24_resource_results.csv")
         val jsonFile = File(targetDir, "feature24_resource_results.json")
 
-        assertTrue("CSV artifact must exist in root", csvFile.exists())
-        assertTrue("JSON artifact must exist in root", jsonFile.exists())
+        assertTrue("CSV artifact must exist in target directory", csvFile.exists())
+        assertTrue("JSON artifact must exist in target directory", jsonFile.exists())
 
         val csvLines = csvFile.readLines()
         assertTrue("CSV must contain header + data rows", csvLines.size >= 25)
