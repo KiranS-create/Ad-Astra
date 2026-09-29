@@ -55,10 +55,12 @@ import org.sih.itantra.core.contact.TacticalContact
 import org.sih.itantra.core.discovery.BleDiscoverySource
 import org.sih.itantra.core.discovery.DeviceTrustState
 import org.sih.itantra.core.discovery.MeshTopologyDiscoverySource
+import org.sih.itantra.core.discovery.LocateModeEngine
 import org.sih.itantra.core.discovery.NearbyDevice
 import org.sih.itantra.core.discovery.NearbyDeviceRepository
 import org.sih.itantra.core.discovery.UwbDiscoverySource
 import org.sih.itantra.core.discovery.WifiDirectDiscoverySource
+import org.sih.itantra.core.protocol.EmergencyBypassCode
 import org.sih.itantra.core.search.LocalSearchRepository
 import org.sih.itantra.core.search.SearchContactItem
 import org.sih.itantra.core.search.SearchIndex
@@ -600,6 +602,13 @@ class TransceiverViewModel(application: Application) : AndroidViewModel(applicat
         wifiDirectSource = WifiDirectDiscoverySource(coordinator.transportManager.wifiDirectTransport)
     )
 
+    val locateEngine: LocateModeEngine by lazy {
+        LocateModeEngine(
+            discoveryRepository = nearbyDeviceRepository,
+            bleSource = nearbyDeviceRepository.bleSource
+        )
+    }
+
     init {
         viewModelScope.launch {
             coordinator.transportManager.wifiDirectTransport.discoveredPeers.collect { peers ->
@@ -1135,6 +1144,25 @@ class TransceiverViewModel(application: Application) : AndroidViewModel(applicat
 
     fun sendEmergencyDistress() {
         sendDistress()
+    }
+
+    /**
+     * Sends an ultra-compact 1-byte deterministic emergency bypass packet.
+     * Captures freshest on-device GPS location if available.
+     * Operates with highest tactical priority (P1 DISTRESS).
+     */
+    fun sendEmergencyBypass(code: EmergencyBypassCode, onComplete: ((Boolean, String) -> Unit)? = null) {
+        viewModelScope.launch {
+            val location = LocationProviderHelper.getFreshLocation(getApplication())
+            val success = coordinator.sendEmergencyBypass(code, location)
+            val statusMsg = if (location != null) {
+                "BYPASS SENT (1B) · LOCATION ATTACHED"
+            } else {
+                "BYPASS SENT (1B) · LOCATION NOT ATTACHED"
+            }
+            _distressStatus.value = statusMsg
+            onComplete?.invoke(success, statusMsg)
+        }
     }
 
     fun testNeuralLoopback() {

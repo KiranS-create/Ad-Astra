@@ -68,6 +68,7 @@ fun EmergencyMessageBubble(
     onPlayVoice: () -> Unit,
     onStopVoice: () -> Unit,
     onOpenJourney: (String) -> Unit = {},
+    onLocateSender: (() -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
     val radioColors = LocalRadioColors.current
@@ -268,6 +269,26 @@ fun EmergencyMessageBubble(
                     }
                 }
 
+                if (!isOutgoing && onLocateSender != null) {
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Box(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(6.dp))
+                            .background(radioColors.alert.copy(alpha = 0.2f))
+                            .border(1.dp, radioColors.alert.copy(alpha = 0.8f), RoundedCornerShape(6.dp))
+                            .clickable { onLocateSender() }
+                            .padding(horizontal = 8.dp, vertical = 4.dp)
+                    ) {
+                        Text(
+                            text = "🎯 LOCATE SENDER (BLE RSSI)",
+                            color = radioColors.alert,
+                            fontSize = 10.sp,
+                            fontWeight = FontWeight.Bold,
+                            fontFamily = FontFamily.Monospace
+                        )
+                    }
+                }
+
                 Spacer(modifier = Modifier.height(6.dp))
 
                 // 5. Metadata Footer: Language Badge · Wire Size
@@ -326,6 +347,7 @@ fun EmergencyMessageBubble(
 
                     // Feature 16B, 18 & 19: VBR Representation Mode Badge
                     record.representationMode?.let { mode ->
+                        val is1Byte = mode == "EMERGENCY_1BYTE"
                         val isContextDelta = mode == "CONTEXT_DELTA" || record.isContextDelta
                         val isStandalone = mode == "STANDALONE" || record.contextFallback
                         val isEnhanced = mode == "SEMANTIC_ENHANCED" || mode == "BASE_PLUS_ENHANCEMENT"
@@ -334,6 +356,7 @@ fun EmergencyMessageBubble(
                         val isCompact = mode == "COMPACT"
 
                         val vbrBg = when {
+                            is1Byte -> radioColors.alert.copy(alpha = 0.25f)
                             isContextDelta -> radioColors.sage.copy(alpha = 0.25f)
                             isStandalone -> radioColors.warning.copy(alpha = 0.25f)
                             isEnhanced || isBaseOnly || isSemantic -> radioColors.sage.copy(alpha = 0.2f)
@@ -341,6 +364,7 @@ fun EmergencyMessageBubble(
                             else -> radioColors.capsule
                         }
                         val vbrBorder = when {
+                            is1Byte -> radioColors.alert
                             isContextDelta -> radioColors.sage.copy(alpha = 0.8f)
                             isStandalone -> radioColors.warning.copy(alpha = 0.8f)
                             isEnhanced || isBaseOnly || isSemantic -> radioColors.sage.copy(alpha = 0.6f)
@@ -348,6 +372,7 @@ fun EmergencyMessageBubble(
                             else -> radioColors.border.copy(alpha = 0.4f)
                         }
                         val vbrText = when {
+                            is1Byte -> radioColors.alert
                             isContextDelta -> radioColors.sage
                             isStandalone -> radioColors.warning
                             isEnhanced || isBaseOnly || isSemantic -> radioColors.sage
@@ -355,6 +380,7 @@ fun EmergencyMessageBubble(
                             else -> radioColors.textTertiary
                         }
                         val label = when {
+                            is1Byte -> "1-BYTE SOS"
                             isContextDelta -> "CTX DELTA"
                             isStandalone -> "STANDALONE"
                             isEnhanced -> "BASE+ENH"

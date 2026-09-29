@@ -42,6 +42,9 @@ sealed interface ScreenDestination {
 
     /** Feature 13: Truthful Communication Health Panel. */
     data object CommunicationHealth : ScreenDestination
+
+    /** BLE RSSI-based Locate Mode relative proximity screen. */
+    data class LocateMode(val targetNodeId: Int? = null, val targetCallsign: String? = null) : ScreenDestination
 }
 
 /**

@@ -42,6 +42,11 @@ data class DiagnosticsState(
     val lastDistressSeq: Short? = null,
     val lastDistressHops: Int? = null,
     val lastDistressStatus: String? = null,
+    // 1-Byte Emergency Bypass metrics
+    val emergencyBypassSent: Long = 0L,
+    val emergencyBypassReceived: Long = 0L,
+    val emergency1BytePayloadBytes: Long = 0L,
+    val emergencyWireBytes: Long = 0L,
     // DTN Store-and-Forward counters
     val dtnStored: Long = 0L,
     val dtnForwarded: Long = 0L,
@@ -215,6 +220,34 @@ object DiagnosticsRepository {
             lastDistressSeq = seq,
             lastDistressHops = hops,
             lastDistressStatus = if (hasLocation) "RECEIVED · LOCATION ATTACHED" else "RECEIVED · NO LOCATION"
+        )
+    }
+
+    fun recordEmergencyBypassSent(wireBytes: Int, hasLocation: Boolean, seq: Short = 0) {
+        val current = _state.value
+        _state.value = current.copy(
+            distressSent = current.distressSent + 1,
+            emergencyBypassSent = current.emergencyBypassSent + 1,
+            emergency1BytePayloadBytes = current.emergency1BytePayloadBytes + 1,
+            emergencyWireBytes = current.emergencyWireBytes + wireBytes,
+            distressLocationAttached = if (hasLocation) current.distressLocationAttached + 1 else current.distressLocationAttached,
+            distressLocationUnavailable = if (!hasLocation) current.distressLocationUnavailable + 1 else current.distressLocationUnavailable,
+            lastDistressSeq = seq,
+            lastDistressStatus = if (hasLocation) "BYPASS SENT (1B) · LOCATION ATTACHED" else "BYPASS SENT (1B) · NO LOCATION"
+        )
+    }
+
+    fun recordEmergencyBypassReceived(wireBytes: Int, source: Int, hops: Int, seq: Short = 0, hasLocation: Boolean) {
+        val current = _state.value
+        _state.value = current.copy(
+            distressReceived = current.distressReceived + 1,
+            emergencyBypassReceived = current.emergencyBypassReceived + 1,
+            emergency1BytePayloadBytes = current.emergency1BytePayloadBytes + 1,
+            emergencyWireBytes = current.emergencyWireBytes + wireBytes,
+            lastDistressSource = source,
+            lastDistressSeq = seq,
+            lastDistressHops = hops,
+            lastDistressStatus = if (hasLocation) "BYPASS RCVD (1B) · LOCATION ATTACHED" else "BYPASS RCVD (1B) · NO LOCATION"
         )
     }
 

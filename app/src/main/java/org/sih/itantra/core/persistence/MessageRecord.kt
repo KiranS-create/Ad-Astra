@@ -48,5 +48,8 @@ data class MessageRecord(
     val deltaSummary: String? = null,
     val forwardingAction: String? = null,
     val contextReconstructionStatus: String? = null,
-    val relayNodeId: Int? = null
+    val relayNodeId: Int? = null,
+    val payloadSizeBytes: Int? = null,
+    val wireFrameBytes: Int? = null,
+    val savingsPercentage: Double? = null
 )

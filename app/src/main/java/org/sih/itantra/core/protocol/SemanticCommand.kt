@@ -5,6 +5,45 @@ import java.nio.ByteBuffer
 import java.nio.ByteOrder
 
 /**
+ * Ultra-compact 1-byte deterministic emergency bypass codes.
+ *
+ * Each code maps uniquely to a [EmergencyCategory] + [EmergencySubtype] pair,
+ * encoding the 10 most common field-emergency situations in a single byte.
+ * Designed for maximum protocol efficiency in radio-bandwidth-constrained scenarios:
+ *   - 1-byte bypass vs 6-byte SemanticCommand = 83% savings
+ *   - Wire frame (no GPS): 41 bytes   (vs 53 bytes for 6-byte semantic)
+ *   - Wire frame (with GPS): 73 bytes (vs 85 bytes for 6-byte semantic)
+ */
+enum class EmergencyBypassCode(
+    val code: Byte,
+    val category: EmergencyCategory,
+    val subtype: EmergencySubtype,
+    val label: String
+) {
+    GENERAL         (0x00, EmergencyCategory.OTHER,      EmergencySubtype.NONE,      "GENERAL SOS"),
+    MEDICAL         (0x01, EmergencyCategory.MEDICAL,    EmergencySubtype.NONE,      "MEDICAL EMERGENCY"),
+    MEDICAL_INJURED (0x02, EmergencyCategory.MEDICAL,    EmergencySubtype.INJURED,   "INJURED - NEED AID"),
+    MEDICAL_UNCON   (0x03, EmergencyCategory.MEDICAL,    EmergencySubtype.UNCONSCIOUS,"PERSON UNCONSCIOUS"),
+    FIRE            (0x04, EmergencyCategory.FIRE,       EmergencySubtype.BUILDING,  "FIRE EMERGENCY"),
+    TRAPPED         (0x05, EmergencyCategory.TRAPPED,    EmergencySubtype.COLLAPSE,  "TRAPPED - RESCUE"),
+    ATTACK          (0x06, EmergencyCategory.SECURITY,   EmergencySubtype.NONE,      "UNDER ATTACK"),
+    EVACUATION      (0x07, EmergencyCategory.EVACUATION, EmergencySubtype.NONE,      "EVACUATE NOW"),
+    EXTRACTION      (0x08, EmergencyCategory.RESCUE,     EmergencySubtype.TEAM,      "NEED EXTRACTION"),
+    HAZARD          (0x09, EmergencyCategory.HAZARD,     EmergencySubtype.NONE,      "HAZARD ALERT");
+
+    companion object {
+        fun fromCode(code: Byte): EmergencyBypassCode? =
+            entries.firstOrNull { it.code == code }
+
+        /** Best-effort mapping from category+subtype to nearest bypass code. */
+        fun fromCategorySubtype(cat: EmergencyCategory, sub: EmergencySubtype): EmergencyBypassCode =
+            entries.firstOrNull { it.category == cat && it.subtype == sub }
+                ?: entries.firstOrNull { it.category == cat }
+                ?: GENERAL
+    }
+}
+
+/**
  * Emergency Category identifier for structured commands.
  */
 enum class EmergencyCategory(val id: Byte, val label: String) {
@@ -63,21 +102,33 @@ enum class EmergencySeverity(val id: Byte, val label: String) {
 /**
  * Deterministic Structured Emergency Command.
  *
- * Wire encoding: Exactly 6 bytes:
+ * Wire encoding: Exactly 6 bytes (standard) or 1 byte (bypass mode):
+ * Standard 6-byte layout:
  * - byte 0: category (1B)
  * - byte 1: subtype (1B)
  * - byte 2: severity (1B)
  * - byte 3: count (1B: 0 = unspecified, 1..255)
  * - byte 4..5: parameter (2B short)
+ *
+ * 1-byte bypass mode: single [EmergencyBypassCode] byte encodes category+subtype deterministically.
  */
 data class SemanticCommand(
     val category: EmergencyCategory,
     val subtype: EmergencySubtype = EmergencySubtype.NONE,
     val count: Int = 0,
     val severity: EmergencySeverity = EmergencySeverity.CRITICAL,
-    val parameter: Short = 0
+    val parameter: Short = 0,
+    /** Internal: non-null only when this command was decoded from a 1-byte bypass payload. */
+    val _bypassCode: EmergencyBypassCode? = null
 ) {
     val sector: Int get() = parameter.toInt()
+
+    /** True when this command was decoded from (or is intended to be sent as) a 1-byte bypass. */
+    val is1ByteBypass: Boolean get() = _bypassCode != null
+
+    /** The bypass code if this is a bypass command, otherwise the best-fit code for this category/subtype. */
+    val bypassCode: EmergencyBypassCode
+        get() = _bypassCode ?: EmergencyBypassCode.fromCategorySubtype(category, subtype)
 
     /**
      * Serialize into ultra-compact 6-byte binary payload.
@@ -91,6 +142,12 @@ data class SemanticCommand(
         buffer.putShort(parameter)
         return buffer.array()
     }
+
+    /**
+     * Serialize into ultra-compact 1-byte emergency bypass payload.
+     * Uses [bypassCode] (best-fit mapping if not already a bypass command).
+     */
+    fun serialize1Byte(): ByteArray = byteArrayOf(bypassCode.code)
 
     /**
      * Single-line compact badge label.
@@ -206,11 +263,27 @@ data class SemanticCommand(
 
     companion object {
         const val SIZE_BYTES = 6
+        /** Wire payload size for 1-byte emergency bypass encoding. */
+        const val BYPASS_SIZE_BYTES = 1
 
         /**
-         * Deserialize from raw binary bytes. Returns null if buffer is too small.
+         * Deserialize from raw binary bytes.
+         * - If exactly 1 byte: decode as [EmergencyBypassCode] → expanded [SemanticCommand].
+         * - If ≥ 6 bytes: decode legacy/standard 6-byte format.
+         * - Otherwise: returns null.
          */
         fun deserialize(bytes: ByteArray): SemanticCommand? {
+            if (bytes.size == BYPASS_SIZE_BYTES) {
+                val bypass = EmergencyBypassCode.fromCode(bytes[0]) ?: return null
+                return SemanticCommand(
+                    category = bypass.category,
+                    subtype = bypass.subtype,
+                    count = 0,
+                    severity = EmergencySeverity.CRITICAL,
+                    parameter = 0,
+                    _bypassCode = bypass
+                )
+            }
             if (bytes.size < SIZE_BYTES) return null
             val buffer = ByteBuffer.wrap(bytes).order(ByteOrder.BIG_ENDIAN)
             val cat = EmergencyCategory.fromId(buffer.get())

@@ -17,7 +17,7 @@ object PacketSerializer {
     fun serialize(packet: Packet): ByteArray {
         val hasSemantic = ((packet.flags.toInt() and Packet.FLAG_SEMANTIC) != 0) || packet.semanticCommand != null
         val payload = if (hasSemantic && packet.payload.isEmpty() && packet.semanticCommand != null) {
-            packet.semanticCommand.serialize()
+            if (packet.semanticCommand.is1ByteBypass) packet.semanticCommand.serialize1Byte() else packet.semanticCommand.serialize()
         } else {
             packet.payload
         }
@@ -142,7 +142,7 @@ object PacketSerializer {
         val hasSemantic = (flags.toInt() and Packet.FLAG_SEMANTIC) != 0
         val semanticCommand = if (hasSemantic) {
             SemanticCommand.deserialize(payload)
-                ?: throw CorruptPacketException("Malformed semantic command payload: size ${payload.size} (min ${SemanticCommand.SIZE_BYTES})")
+                ?: throw CorruptPacketException("Malformed semantic command payload: size ${payload.size} (expected 1B bypass or ${SemanticCommand.SIZE_BYTES}B command)")
         } else null
 
         return Packet(

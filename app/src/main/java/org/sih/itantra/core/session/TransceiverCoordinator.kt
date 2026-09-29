@@ -25,6 +25,7 @@ import org.sih.itantra.core.persistence.MessageDirection
 import org.sih.itantra.core.persistence.MessageHistoryStore
 import org.sih.itantra.core.persistence.MessageRecord
 import org.sih.itantra.core.protocol.AdaptiveCompressor
+import org.sih.itantra.core.protocol.EmergencyBypassCode
 import org.sih.itantra.core.protocol.EmergencyCategory
 import org.sih.itantra.core.protocol.EmergencySeverity
 import org.sih.itantra.core.protocol.EmergencySubtype
@@ -792,6 +793,89 @@ class TransceiverCoordinator(
     }
 
     /**
+     * Ultra-compact 1-Byte Emergency Distress Bypass Transmission.
+     * Encodes critical field emergency into a single byte payload, bypassing compression/fragmentation.
+     * Priority: DISTRESS (P1). Wire frame is 41 bytes (no GPS) or 73 bytes (with GPS).
+     */
+    suspend fun sendEmergencyBypass(code: EmergencyBypassCode, location: org.sih.itantra.core.protocol.GeoLocation?): Boolean {
+        val lang = _activeLanguage.value
+        val payloadBytes = byteArrayOf(code.code)
+        val hasLoc = location != null
+        val flagMask = Packet.FLAG_SEMANTIC or (if (hasLoc) Packet.FLAG_HAS_LOCATION else 0)
+        val flags = flagMask.toByte()
+        val cmd = SemanticCommand(
+            category = code.category,
+            subtype = code.subtype,
+            count = 0,
+            severity = EmergencySeverity.CRITICAL,
+            parameter = 0,
+            _bypassCode = code
+        )
+        val transferId = (transferSequence.getAndIncrement() and 0x7FFF).toShort()
+        val key = NetworkKeyManager.getKey()
+        val rawPacket = Packet(
+            version = Packet.PROTOCOL_VERSION,
+            msgType = Packet.TYPE_DISTRESS,
+            priority = MessagePriority.DISTRESS,
+            flags = flags,
+            sequenceNumber = transferId,
+            timestamp = System.currentTimeMillis(),
+            sourceDeviceId = localDeviceId,
+            destinationDeviceId = Packet.BROADCAST_ID,
+            language = lang,
+            payload = payloadBytes,
+            location = location,
+            semanticCommand = cmd
+        )
+        val signedPacket = if (key != null) {
+            val (s, n) = PacketAuthenticator.signWithLatency(rawPacket, key)
+            DiagnosticsRepository.recordAuthPacketSent(n / 1000.0)
+            s
+        } else rawPacket
+        val serialized = PacketSerializer.serialize(signedPacket)
+        val wireBytes = serialized.size
+        onPacketActivity?.invoke("DISTRESS", "BYPASS SENT (1B, loc=$hasLoc)", localDeviceId, Packet.BROADCAST_ID, MessagePriority.DISTRESS.name, signedPacket)
+        val success = qosScheduler.send(signedPacket)
+        DiagnosticsRepository.recordEmergencyBypassSent(wireBytes = wireBytes, hasLocation = hasLoc, seq = transferId)
+
+        val messageId = UUID.randomUUID().toString()
+        val baselineTextBytes = cmd.toDisplayString().toByteArray(Charsets.UTF_8).size
+        val savings = (baselineTextBytes - payloadBytes.size).coerceAtLeast(0)
+        val savingsPct = if (baselineTextBytes > 0) (savings.toDouble() / baselineTextBytes.toDouble() * 100.0) else null
+
+        MessageHistoryStore.addRecord(
+            MessageRecord(
+                id = messageId,
+                timestamp = System.currentTimeMillis(),
+                direction = MessageDirection.SENT,
+                language = lang,
+                priority = MessagePriority.DISTRESS,
+                text = cmd.toDisplayString(),
+                peer = "Broadcast",
+                packetSizeBytes = wireBytes,
+                rawAudioEquivalentBytes = 0L,
+                measuredLatencyMs = 0.0,
+                location = location,
+                isSemantic = true,
+                semanticSummary = cmd.toBadgeString(),
+                semanticSavingsBytes = savings,
+                isSecure = key != null,
+                authStatus = if (key != null) "AUTH ✓" else "UNVERIFIED",
+                qosStatus = "PRIORITY 1",
+                representationMode = "EMERGENCY_1BYTE",
+                semanticBaseBytes = 1,
+                enhancementBytes = 0,
+                payloadSizeBytes = payloadBytes.size,
+                wireFrameBytes = wireBytes,
+                savingsPercentage = savingsPct
+            )
+        )
+
+        Log.i(tag, "Transmitted 1-BYTE EMERGENCY BYPASS: '${code.label}' (code=0x${Integer.toHexString(code.code.toInt() and 0xFF)}, locAttached=$hasLoc) | Wire: ${wireBytes}B")
+        return success
+    }
+
+    /**
      * Incoming Pipeline: Transport -> Mesh Relay / Protocol Decode -> TTS Synthesize -> Playback
      */
     private suspend fun handleIncomingPacket(packet: Packet) {
@@ -1113,7 +1197,8 @@ class TransceiverCoordinator(
                         displayText = cmd.toDisplayString()
                         ttsSpeechText = cmd.toTtsText(packet.language)
                         semanticSummary = cmd.toBadgeString()
-                        repMode = "SEMANTIC_BASE"
+                        val is1Byte = effectivePayload.size == SemanticCommand.BYPASS_SIZE_BYTES
+                        repMode = if (is1Byte) "EMERGENCY_1BYTE" else "SEMANTIC_BASE"
                         rxBasePayloadBytes = effectivePayload.size
                         rxEnhPayloadBytes = 0
                         rxEnhReceived = false
@@ -1182,14 +1267,31 @@ class TransceiverCoordinator(
             "Node #${packet.sourceDeviceId}"
         }
 
+        val rxWireBytes = effectivePayload.size + Packet.MIN_PACKET_SIZE + (if (packet.hasLocation) Packet.LOCATION_SIZE_BYTES else 0) + (if (packet.isAuthenticated) Packet.AUTH_TAG_SIZE_BYTES else 0)
+
         if (packet.msgType == Packet.TYPE_DISTRESS || packet.priority == MessagePriority.DISTRESS) {
-            DiagnosticsRepository.recordDistressReceived(
-                hasLocation = packet.hasLocation,
-                source = packet.sourceDeviceId,
-                hops = hopCount,
-                seq = packet.sequenceNumber
-            )
+            if (repMode == "EMERGENCY_1BYTE") {
+                DiagnosticsRepository.recordEmergencyBypassReceived(
+                    wireBytes = rxWireBytes,
+                    source = packet.sourceDeviceId,
+                    hops = hopCount,
+                    seq = packet.sequenceNumber,
+                    hasLocation = packet.hasLocation
+                )
+            } else {
+                DiagnosticsRepository.recordDistressReceived(
+                    hasLocation = packet.hasLocation,
+                    source = packet.sourceDeviceId,
+                    hops = hopCount,
+                    seq = packet.sequenceNumber
+                )
+            }
         }
+
+        val is1ByteBypassRx = (repMode == "EMERGENCY_1BYTE")
+        val rxBaselineBytes = if (is1ByteBypassRx) displayText.toByteArray(Charsets.UTF_8).size else 0
+        val rxSavings = if (is1ByteBypassRx) (rxBaselineBytes - effectivePayload.size).coerceAtLeast(0) else null
+        val rxSavingsPct = if (is1ByteBypassRx && rxBaselineBytes > 0) (rxSavings!!.toDouble() / rxBaselineBytes.toDouble() * 100.0) else null
 
         MessageHistoryStore.addRecord(
             MessageRecord(
@@ -1200,7 +1302,7 @@ class TransceiverCoordinator(
                 priority = packet.priority,
                 text = displayText,
                 peer = peerLabel,
-                packetSizeBytes = effectivePayload.size + Packet.MIN_PACKET_SIZE + (if (packet.hasLocation) Packet.LOCATION_SIZE_BYTES else 0) + (if (packet.isAuthenticated) Packet.AUTH_TAG_SIZE_BYTES else 0),
+                packetSizeBytes = rxWireBytes,
                 rawAudioEquivalentBytes = 0L,
                 measuredLatencyMs = ttsLatencyMs,
                 isRelayed = packet.isForwarded || hopCount > 0,
@@ -1208,6 +1310,7 @@ class TransceiverCoordinator(
                 location = packet.location,
                 isSemantic = isSemantic,
                 semanticSummary = semanticSummary,
+                semanticSavingsBytes = rxSavings,
                 fragmentCount = fragmentCountForLog,
                 isSecure = isVerified,
                 authStatus = authStatusLabel,
@@ -1224,7 +1327,10 @@ class TransceiverCoordinator(
                 deltaSummary = rxDeltaSummary,
                 forwardingAction = rxForwardingAction ?: (if (packet.isForwarded || hopCount > 0) "FORWARDED UNCHANGED" else "DIRECT"),
                 contextReconstructionStatus = rxContextReconstructionStatus,
-                relayNodeId = if (packet.isForwarded && hopCount > 0) packet.sourceDeviceId else null
+                relayNodeId = if (packet.isForwarded && hopCount > 0) packet.sourceDeviceId else null,
+                payloadSizeBytes = if (is1ByteBypassRx) effectivePayload.size else null,
+                wireFrameBytes = rxWireBytes,
+                savingsPercentage = rxSavingsPct
             )
         )
 

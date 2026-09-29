@@ -48,7 +48,7 @@ object PacketAuthenticator {
     fun getCanonicalBytes(packet: Packet): ByteArray {
         val hasSemantic = ((packet.flags.toInt() and Packet.FLAG_SEMANTIC) != 0) || packet.semanticCommand != null
         val payload = if (hasSemantic && packet.payload.isEmpty() && packet.semanticCommand != null) {
-            packet.semanticCommand.serialize()
+            if (packet.semanticCommand.is1ByteBypass) packet.semanticCommand.serialize1Byte() else packet.semanticCommand.serialize()
         } else {
             packet.payload
         }

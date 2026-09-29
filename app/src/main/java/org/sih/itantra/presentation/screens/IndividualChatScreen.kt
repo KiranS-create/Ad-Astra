@@ -110,6 +110,7 @@ fun IndividualChatScreen(
     onOpenMessageJourney: (String) -> Unit = {},
     initialExpandedMessageId: String? = null,
     onExpandedMessageIdChanged: (String?) -> Unit = {},
+    onLocatePeer: ((Int?, String?) -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
     val radioColors = LocalRadioColors.current
@@ -134,14 +135,33 @@ fun IndividualChatScreen(
         viewModel.getThreadMessages(peerId)
     }
 
-    // Feature 12: Dynamic emergency context derived from thread history (distinguishes active vs historical)
-    val emergencyContext = remember(threadMessages) {
-        EmergencyUiMapper.map(threadMessages)
+    val discoveredDevices by viewModel.nearbyDeviceRepository.discoveredDevices.collectAsState()
+    val targetNodeId = remember(peerId) { peerId.removePrefix("Node #").substringBefore(" ").toIntOrNull() }
+    val matchingDevice = remember(discoveredDevices, targetNodeId) {
+        discoveredDevices.firstOrNull { it.nodeId == targetNodeId }
+    }
+    val observedProximity = remember(matchingDevice) {
+        when (matchingDevice?.discovery?.proximityState) {
+            org.sih.itantra.core.discovery.ProximityState.VERY_CLOSE -> "VERY NEAR"
+            org.sih.itantra.core.discovery.ProximityState.NEARBY -> "NEAR"
+            org.sih.itantra.core.discovery.ProximityState.APPROXIMATE -> "CLOSER"
+            org.sih.itantra.core.discovery.ProximityState.FAR -> "FAR"
+            else -> "UNKNOWN"
+        }
     }
 
     // Dynamic header state derived from topology and thread
     val headerState = remember(allMessages, topologySnapshot, peerId) {
         viewModel.getChatHeaderState(peerId)
+    }
+
+    // Feature 12: Dynamic emergency context derived from thread history (distinguishes active vs historical)
+    val emergencyContext = remember(threadMessages, observedProximity, headerState.routeState) {
+        EmergencyUiMapper.map(
+            messages = threadMessages,
+            observedProximity = observedProximity,
+            currentNetworkState = headerState.routeState.label
+        )
     }
 
     // Feature 14: Dynamic adaptive network state derived from health, route and thread history
@@ -211,7 +231,15 @@ fun IndividualChatScreen(
         NetworkContextBanner(bannerState = adaptiveUiState.banner)
 
         // Feature 12: Emergency Distress Banner (distinguishes active vs historical)
-        EmergencyBanner(context = emergencyContext)
+        EmergencyBanner(
+            context = emergencyContext,
+            onLocatePeer = if (onLocatePeer != null) {
+                {
+                    val targetNodeId = peerId.toIntOrNull()
+                    onLocatePeer(targetNodeId, peerId)
+                }
+            } else null
+        )
 
         // Feature 15: Local Message Retention Policy Notice
         Row(
@@ -310,6 +338,10 @@ fun IndividualChatScreen(
                                     expandedMessageId = journeyMsgId
                                     onExpandedMessageIdChanged(journeyMsgId)
                                     onOpenMessageJourney(journeyMsgId)
+                                },
+                                onLocateSender = {
+                                    val senderNodeId = msg.peer.removePrefix("Node #").substringBefore(" ").toIntOrNull()
+                                    onLocatePeer?.invoke(senderNodeId, msg.peer)
                                 }
                             )
                         } else {
@@ -385,11 +417,19 @@ fun IndividualChatScreen(
                 emergencyUiState = emergencyUiState.copy(isConfirmationOpen = false)
             },
             onConfirmSend = {
-                val textToSend = emergencyUiState.effectiveMessageText
-                viewModel.sendDistress(customText = textToSend)
+                if (emergencyUiState.customNote.isBlank()) {
+                    viewModel.sendEmergencyBypass(emergencyUiState.selectedAction.bypassCode)
+                } else {
+                    val textToSend = emergencyUiState.effectiveMessageText
+                    viewModel.sendDistress(customText = textToSend)
+                }
                 emergencyUiState = EmergencyUiState.IDLE
             },
             onDismiss = {
+                emergencyUiState = EmergencyUiState.IDLE
+            },
+            onSend1ByteBypass = { code ->
+                viewModel.sendEmergencyBypass(code)
                 emergencyUiState = EmergencyUiState.IDLE
             }
         )

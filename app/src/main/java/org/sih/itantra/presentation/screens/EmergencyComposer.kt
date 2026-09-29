@@ -41,6 +41,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import org.sih.itantra.core.emergency.EmergencyAction
 import org.sih.itantra.core.emergency.EmergencyUiState
+import org.sih.itantra.core.protocol.EmergencyBypassCode
 import org.sih.itantra.presentation.components.EmergencyConfirmationDialog
 import org.sih.itantra.presentation.components.EmergencyQuickActionRow
 import org.sih.itantra.presentation.theme.LocalRadioColors
@@ -59,6 +60,7 @@ fun EmergencyComposer(
     onDismissConfirmation: () -> Unit,
     onConfirmSend: () -> Unit,
     onDismiss: () -> Unit,
+    onSend1ByteBypass: ((EmergencyBypassCode) -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
     val radioColors = LocalRadioColors.current
@@ -180,6 +182,70 @@ fun EmergencyComposer(
                 }
             }
 
+            // 2b. 1-Byte Emergency Bypass Telemetry Card
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(TacticalShapeTokens.Card)
+                    .background(radioColors.alert.copy(alpha = 0.08f))
+                    .border(1.dp, radioColors.alert.copy(alpha = 0.4f), TacticalShapeTokens.Card)
+                    .padding(12.dp)
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Column {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(
+                                text = "1-BYTE EMERGENCY BYPASS",
+                                color = radioColors.alert,
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Bold,
+                                fontFamily = FontFamily.Monospace
+                            )
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Box(
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(3.dp))
+                                    .background(radioColors.alert.copy(alpha = 0.2f))
+                                    .padding(horizontal = 4.dp, vertical = 1.dp)
+                            ) {
+                                Text(
+                                    text = "0x%02X".format(uiState.selectedAction.bypassCode.code),
+                                    color = radioColors.alert,
+                                    fontSize = 9.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    fontFamily = FontFamily.Monospace
+                                )
+                            }
+                        }
+                        Text(
+                            text = if (uiState.gpsFixAvailable) "Wire Frame: 73 Bytes (1B Payload + 32B GPS)" else "Wire Frame: 41 Bytes (1B Payload + CRC/Auth)",
+                            color = radioColors.textTertiary,
+                            fontSize = 9.sp,
+                            fontFamily = FontFamily.Monospace
+                        )
+                    }
+                    Box(
+                        modifier = Modifier
+                            .clip(TacticalShapeTokens.Tag)
+                            .background(radioColors.alert.copy(alpha = 0.15f))
+                            .border(1.dp, radioColors.alert, TacticalShapeTokens.Tag)
+                            .padding(horizontal = 6.dp, vertical = 2.dp)
+                    ) {
+                        Text(
+                            text = "83% SAVINGS",
+                            color = radioColors.alert,
+                            fontSize = 9.sp,
+                            fontWeight = FontWeight.Bold,
+                            fontFamily = FontFamily.Monospace
+                        )
+                    }
+                }
+            }
+
             // 3. Quick Distress Categories
             Text(
                 text = "TACTICAL DISTRESS CATEGORY:",
@@ -237,12 +303,12 @@ fun EmergencyComposer(
                     .fillMaxWidth()
                     .navigationBarsPadding()
                     .padding(vertical = 8.dp),
-                horizontalArrangement = Arrangement.spacedBy(10.dp)
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 // Cancel Button
                 Box(
                     modifier = Modifier
-                        .weight(1f)
+                        .weight(0.9f)
                         .height(48.dp)
                         .clip(TacticalShapeTokens.Button)
                         .background(radioColors.surface)
@@ -253,16 +319,39 @@ fun EmergencyComposer(
                     Text(
                         text = "CANCEL",
                         color = radioColors.textSecondary,
-                        fontSize = 12.sp,
+                        fontSize = 11.sp,
                         fontWeight = FontWeight.Bold,
                         fontFamily = FontFamily.Monospace
                     )
                 }
 
+                // 1-Byte Instant Bypass Action (if provided)
+                if (onSend1ByteBypass != null) {
+                    Box(
+                        modifier = Modifier
+                            .weight(1.1f)
+                            .height(48.dp)
+                            .clip(TacticalShapeTokens.Button)
+                            .background(radioColors.alert.copy(alpha = 0.85f))
+                            .clickable(enabled = uiState.canSend) {
+                                onSend1ByteBypass(uiState.selectedAction.bypassCode)
+                            },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "1-BYTE SOS ⚡",
+                            color = Color.White,
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Bold,
+                            fontFamily = FontFamily.Monospace
+                        )
+                    }
+                }
+
                 // Send Distress Action (Triggers Confirmation)
                 Box(
                     modifier = Modifier
-                        .weight(1.4f)
+                        .weight(1.2f)
                         .height(48.dp)
                         .clip(TacticalShapeTokens.Button)
                         .background(radioColors.alert)
@@ -270,9 +359,9 @@ fun EmergencyComposer(
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = if (uiState.isTransmitting) "TRANSMITTING..." else "SEND DISTRESS →",
+                        text = if (uiState.isTransmitting) "SENDING..." else "DISTRESS →",
                         color = Color.White,
-                        fontSize = 12.sp,
+                        fontSize = 11.sp,
                         fontWeight = FontWeight.Bold,
                         fontFamily = FontFamily.Monospace,
                         letterSpacing = 0.5.sp

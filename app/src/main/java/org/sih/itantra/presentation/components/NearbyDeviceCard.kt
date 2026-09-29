@@ -25,6 +25,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ChatBubbleOutline
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material.icons.filled.NearMe
 import androidx.compose.material.icons.filled.NetworkCheck
 import androidx.compose.material.icons.filled.PersonAdd
 import androidx.compose.material3.Button
@@ -66,6 +67,7 @@ fun NearbyDeviceCard(
     onAddContact: (NearbyDevice) -> Unit = {},
     onOpenChat: (Int) -> Unit = {},
     onTestConnection: (Int) -> Unit = {},
+    onLocate: ((NearbyDevice) -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
     val radioColors = LocalRadioColors.current
@@ -238,21 +240,42 @@ fun NearbyDeviceCard(
                         }
                     }
 
-                    // Test Radio Connection Action
-                    OutlinedButton(
-                        onClick = { onTestConnection(device.nodeId) },
-                        colors = ButtonDefaults.outlinedButtonColors(
-                            contentColor = ColorSignalBlue
-                        ),
-                        border = ButtonDefaults.outlinedButtonBorder.copy(
-                            brush = androidx.compose.ui.graphics.SolidColor(ColorSignalBlue.copy(alpha = 0.5f))
-                        ),
-                        shape = RoundedCornerShape(8.dp),
-                        modifier = Modifier.fillMaxWidth()
+                    // Test Radio Connection & Locate Mode Actions
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        Icon(imageVector = Icons.Default.NetworkCheck, contentDescription = null, modifier = Modifier.size(16.dp))
-                        Spacer(modifier = Modifier.width(6.dp))
-                        Text(text = "TEST CONNECTION", fontSize = 11.sp, fontWeight = FontWeight.Bold, fontFamily = FontFamily.Monospace)
+                        OutlinedButton(
+                            onClick = { onTestConnection(device.nodeId) },
+                            colors = ButtonDefaults.outlinedButtonColors(
+                                contentColor = ColorSignalBlue
+                            ),
+                            border = ButtonDefaults.outlinedButtonBorder.copy(
+                                brush = androidx.compose.ui.graphics.SolidColor(ColorSignalBlue.copy(alpha = 0.5f))
+                            ),
+                            shape = RoundedCornerShape(8.dp),
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Icon(imageVector = Icons.Default.NetworkCheck, contentDescription = null, modifier = Modifier.size(16.dp))
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(text = "TEST", fontSize = 11.sp, fontWeight = FontWeight.Bold, fontFamily = FontFamily.Monospace)
+                        }
+
+                        if (onLocate != null) {
+                            Button(
+                                onClick = { onLocate(device) },
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = radioColors.alert.copy(alpha = 0.85f),
+                                    contentColor = Color.White
+                                ),
+                                shape = RoundedCornerShape(8.dp),
+                                modifier = Modifier.weight(1f)
+                            ) {
+                                Icon(imageVector = Icons.Default.NearMe, contentDescription = null, modifier = Modifier.size(16.dp))
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text(text = "LOCATE", fontSize = 11.sp, fontWeight = FontWeight.Bold, fontFamily = FontFamily.Monospace)
+                            }
+                        }
                     }
                 }
             }

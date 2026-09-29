@@ -332,6 +332,10 @@ fun DiagnosticsScreen(
 
         DiagnosticRow(label = "Distress Packets Sent", value = "${diag.distressSent}")
         DiagnosticRow(label = "Distress Packets Received", value = "${diag.distressReceived}")
+        DiagnosticRow(label = "1-Byte Bypass Sent", value = "${diag.emergencyBypassSent}")
+        DiagnosticRow(label = "1-Byte Bypass Received", value = "${diag.emergencyBypassReceived}")
+        DiagnosticRow(label = "1-Byte Total Payload", value = "${diag.emergency1BytePayloadBytes} B")
+        DiagnosticRow(label = "1-Byte Total Wire", value = "${diag.emergencyWireBytes} B")
         DiagnosticRow(label = "Location Attached", value = "${diag.distressLocationAttached}")
         DiagnosticRow(label = "Location Unavailable", value = "${diag.distressLocationUnavailable}")
         diag.lastDistressStatus?.let {

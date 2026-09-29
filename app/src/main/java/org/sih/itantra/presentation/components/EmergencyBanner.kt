@@ -5,10 +5,12 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -38,6 +40,7 @@ import java.util.Locale
 @Composable
 fun EmergencyBanner(
     context: EmergencyChannelContext,
+    onLocatePeer: (() -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
     val radioColors = LocalRadioColors.current
@@ -54,39 +57,101 @@ fun EmergencyBanner(
                     SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date(it.timestamp))
                 } ?: ""
 
-                Row(
+                androidx.compose.foundation.layout.Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .background(radioColors.alert.copy(alpha = 0.15f))
+                        .background(radioColors.alert.copy(alpha = 0.12f))
                         .border(1.dp, radioColors.alert)
-                        .padding(horizontal = 14.dp, vertical = 6.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
+                        .padding(horizontal = 12.dp, vertical = 6.dp)
                 ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(
-                            imageVector = Icons.Default.WarningAmber,
-                            contentDescription = "Active Distress Signal",
-                            tint = radioColors.alert,
-                            modifier = Modifier.size(16.dp)
-                        )
-                        Spacer(modifier = Modifier.width(6.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                imageVector = Icons.Default.WarningAmber,
+                                contentDescription = "Active Distress Signal",
+                                tint = radioColors.alert,
+                                modifier = Modifier.size(16.dp)
+                            )
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text(
+                                text = if (timeStr.isNotBlank()) "⚠ EMERGENCY ACTIVE ($timeStr)" else "⚠ EMERGENCY ACTIVE",
+                                color = radioColors.alert,
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.Bold,
+                                fontFamily = FontFamily.Monospace,
+                                letterSpacing = 0.5.sp
+                            )
+                        }
                         Text(
-                            text = if (timeStr.isNotBlank()) "⚠ EMERGENCY ACTIVE ($timeStr)" else "⚠ EMERGENCY ACTIVE",
+                            text = context.latestEmergencyRecord?.semanticSummary ?: "PRIORITY 1",
                             color = radioColors.alert,
-                            fontSize = 10.sp,
+                            fontSize = 9.sp,
                             fontWeight = FontWeight.Bold,
-                            fontFamily = FontFamily.Monospace,
-                            letterSpacing = 0.5.sp
+                            fontFamily = FontFamily.Monospace
                         )
                     }
-                    Text(
-                        text = "PRIORITY 1",
-                        color = radioColors.alert,
-                        fontSize = 9.sp,
-                        fontWeight = FontWeight.Bold,
-                        fontFamily = FontFamily.Monospace
-                    )
+
+                    Spacer(modifier = Modifier.height(6.dp))
+
+                    // Integrated 4-State Truthful Emergency Grid
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        // 1. EMERGENCY DELIVERY STATE
+                        androidx.compose.foundation.layout.Column(modifier = Modifier.weight(1f)) {
+                            Text("EMERGENCY", color = radioColors.textTertiary, fontSize = 8.sp, fontFamily = FontFamily.Monospace)
+                            val delivery = context.latestEmergencyRecord?.deliveryStatus?.name ?: "ACTIVE"
+                            Text(delivery, color = radioColors.alert, fontSize = 9.sp, fontWeight = FontWeight.Bold, fontFamily = FontFamily.Monospace)
+                        }
+
+                        // 2. LOCATION STATE (FIXED / LAST KNOWN / UNAVAILABLE)
+                        androidx.compose.foundation.layout.Column(modifier = Modifier.weight(1f)) {
+                            Text("LOCATION", color = radioColors.textTertiary, fontSize = 8.sp, fontFamily = FontFamily.Monospace)
+                            Text(
+                                context.locationState,
+                                color = if (context.locationState == "UNAVAILABLE") radioColors.warning else radioColors.sage,
+                                fontSize = 9.sp,
+                                fontWeight = FontWeight.Bold,
+                                fontFamily = FontFamily.Monospace
+                            )
+                        }
+
+                        // 3. PROXIMITY STATE
+                        androidx.compose.foundation.layout.Column(
+                            modifier = Modifier
+                                .weight(1f)
+                                .then(
+                                    if (onLocatePeer != null) {
+                                        Modifier.clickable { onLocatePeer() }
+                                    } else Modifier
+                                )
+                        ) {
+                            Text("PROXIMITY", color = radioColors.textTertiary, fontSize = 8.sp, fontFamily = FontFamily.Monospace)
+                            val proxText = if (onLocatePeer != null && context.proximityState != "UNKNOWN") {
+                                "${context.proximityState} 🎯"
+                            } else {
+                                context.proximityState
+                            }
+                            Text(
+                                proxText,
+                                color = if (context.proximityState == "UNKNOWN") radioColors.textTertiary else radioColors.sage,
+                                fontSize = 9.sp,
+                                fontWeight = FontWeight.Bold,
+                                fontFamily = FontFamily.Monospace
+                            )
+                        }
+
+                        // 4. NETWORK STATE
+                        androidx.compose.foundation.layout.Column(modifier = Modifier.weight(1f)) {
+                            Text("NETWORK", color = radioColors.textTertiary, fontSize = 8.sp, fontFamily = FontFamily.Monospace)
+                            Text(context.networkState, color = radioColors.textPrimary, fontSize = 9.sp, fontWeight = FontWeight.Bold, fontFamily = FontFamily.Monospace)
+                        }
+                    }
                 }
             }
             EmergencyBannerType.HISTORICAL -> {

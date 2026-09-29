@@ -116,6 +116,7 @@ object MessageTechnicalInspectorMapper {
         ))
         record.representationMode?.let { mode ->
             val label = when (mode) {
+                "EMERGENCY_1BYTE" -> "1-BYTE EMERGENCY BYPASS"
                 "CONTEXT_DELTA" -> "CONTEXT DELTA"
                 "SEMANTIC_ENHANCED", "BASE_PLUS_ENHANCEMENT" -> "SEMANTIC BASE + ENHANCEMENT"
                 "SEMANTIC_BASE", "BASE_ONLY" -> "SEMANTIC BASE"
@@ -127,6 +128,7 @@ object MessageTechnicalInspectorMapper {
                 "VBR REPRESENTATION",
                 label,
                 style = when {
+                    mode == "EMERGENCY_1BYTE" -> TechnicalFieldStyle.ALERT
                     mode.contains("DELTA") || mode.contains("SEMANTIC") || mode.contains("BASE") -> TechnicalFieldStyle.HIGHLIGHT
                     mode == "COMPACT" -> TechnicalFieldStyle.WARNING
                     else -> TechnicalFieldStyle.NORMAL
@@ -385,7 +387,14 @@ object MessageTechnicalInspectorMapper {
             fields.add(TechnicalInspectorField("AUTH STATUS", record.authStatus))
         }
 
-        fields.add(TechnicalInspectorField("WIRE PAYLOAD", "${record.packetSizeBytes} Bytes"))
+        val is1Byte = record.representationMode == "EMERGENCY_1BYTE"
+        if (is1Byte) {
+            fields.add(TechnicalInspectorField("APP PAYLOAD", "1 Byte (1-Byte Bypass)", style = TechnicalFieldStyle.HIGHLIGHT))
+            val wire = record.wireFrameBytes ?: record.packetSizeBytes
+            fields.add(TechnicalInspectorField("WIRE FRAME", "$wire Bytes", style = TechnicalFieldStyle.NORMAL))
+        } else {
+            fields.add(TechnicalInspectorField("WIRE PAYLOAD", "${record.packetSizeBytes} Bytes"))
+        }
 
         if (record.isSemantic || record.representationMode?.contains("SEMANTIC") == true || record.representationMode?.contains("BASE") == true) {
             val baseBytes = record.semanticBaseBytes ?: (if (record.isSemantic) 8 else 0)
@@ -410,9 +419,14 @@ object MessageTechnicalInspectorMapper {
         }
 
         if (record.semanticSavingsBytes != null && record.semanticSavingsBytes > 0) {
+            val pctStr = if (record.savingsPercentage != null) {
+                String.format(Locale.US, " (-%.0f%%)", record.savingsPercentage)
+            } else {
+                " (-82%)"
+            }
             fields.add(TechnicalInspectorField(
                 "SEMANTIC SAVINGS",
-                "-${record.semanticSavingsBytes} B (-82%)",
+                "-${record.semanticSavingsBytes} B$pctStr",
                 style = TechnicalFieldStyle.SUCCESS
             ))
         }

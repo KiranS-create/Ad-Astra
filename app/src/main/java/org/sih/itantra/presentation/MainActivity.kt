@@ -107,6 +107,9 @@ class MainActivity : ComponentActivity() {
                                     dest.expandedMessageId = messageId
                                     navManager.navigateTo(ScreenDestination.MessageJourney(messageId))
                                 },
+                                onLocatePeer = { nodeId, callsign ->
+                                    navManager.navigateTo(ScreenDestination.LocateMode(nodeId, callsign))
+                                },
                                 modifier = Modifier
                                     .fillMaxSize()
                                     .statusBarsPadding()
@@ -180,6 +183,9 @@ class MainActivity : ComponentActivity() {
                                 onTestConnection = { nodeId ->
                                     viewModel.sendTestPacketTo(nodeId)
                                 },
+                                onLocateNode = { nodeId, callsign ->
+                                    navManager.navigateTo(ScreenDestination.LocateMode(nodeId, callsign))
+                                },
                                 modifier = Modifier
                                     .fillMaxSize()
                                     .statusBarsPadding()
@@ -251,6 +257,19 @@ class MainActivity : ComponentActivity() {
                                 viewModel = viewModel,
                                 onBack = { navManager.navigateBack() },
                                 onOpenMeshTopology = { navManager.navigateTo(ScreenDestination.ManetDemo) },
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .statusBarsPadding()
+                                    .navigationBarsPadding()
+                            )
+                        }
+                        is ScreenDestination.LocateMode -> {
+                            org.sih.itantra.presentation.screens.LocateModeScreen(
+                                locateEngine = viewModel.locateEngine,
+                                discoveryRepository = viewModel.nearbyDeviceRepository,
+                                initialTargetNodeId = dest.targetNodeId,
+                                initialTargetCallsign = dest.targetCallsign,
+                                onBack = { navManager.navigateBack() },
                                 modifier = Modifier
                                     .fillMaxSize()
                                     .statusBarsPadding()

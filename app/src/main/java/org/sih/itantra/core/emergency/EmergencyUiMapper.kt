@@ -17,7 +17,10 @@ data class EmergencyChannelContext(
     val activeEmergencyCount: Int,
     val totalEmergencyCount: Int,
     val latestEmergencyRecord: MessageRecord?,
-    val isEmergencyActive: Boolean
+    val isEmergencyActive: Boolean,
+    val locationState: String = "UNAVAILABLE",
+    val proximityState: String = "UNKNOWN",
+    val networkState: String = "DIRECT"
 )
 
 /**
@@ -34,7 +37,9 @@ object EmergencyUiMapper {
 
     fun map(
         messages: List<MessageRecord>,
-        currentTimeMs: Long = System.currentTimeMillis()
+        currentTimeMs: Long = System.currentTimeMillis(),
+        observedProximity: String = "UNKNOWN",
+        currentNetworkState: String = "DIRECT"
     ): EmergencyChannelContext {
         val emergencyMessages = messages.filter {
             it.priority == MessagePriority.DISTRESS || it.priority == MessagePriority.ALERT
@@ -46,7 +51,10 @@ object EmergencyUiMapper {
                 activeEmergencyCount = 0,
                 totalEmergencyCount = 0,
                 latestEmergencyRecord = null,
-                isEmergencyActive = false
+                isEmergencyActive = false,
+                locationState = "UNAVAILABLE",
+                proximityState = observedProximity,
+                networkState = currentNetworkState
             )
         }
 
@@ -63,12 +71,23 @@ object EmergencyUiMapper {
             EmergencyBannerType.HISTORICAL
         }
 
+        val locationState = when {
+            latestRecord?.location != null -> {
+                val age = (currentTimeMs - latestRecord.location.timestamp).coerceAtLeast(0)
+                if (age <= 60_000L) "FIXED" else "LAST KNOWN"
+            }
+            else -> "UNAVAILABLE"
+        }
+
         return EmergencyChannelContext(
             bannerType = bannerType,
             activeEmergencyCount = activeEmergencies.size,
             totalEmergencyCount = emergencyMessages.size,
             latestEmergencyRecord = latestRecord,
-            isEmergencyActive = hasActive
+            isEmergencyActive = hasActive,
+            locationState = locationState,
+            proximityState = observedProximity,
+            networkState = currentNetworkState
         )
     }
 

@@ -83,6 +83,7 @@ fun NearbyDevicesScreen(
     onAddContact: (NearbyDevice) -> Unit = {},
     onOpenChat: (Int) -> Unit = {},
     onTestConnection: (Int) -> Unit = {},
+    onLocateNode: (Int?, String?) -> Unit = { _, _ -> },
     modifier: Modifier = Modifier
 ) {
     val radioColors = LocalRadioColors.current
@@ -230,6 +231,9 @@ fun NearbyDevicesScreen(
                             onTestConnection = {
                                 connectionTestNodeId = it
                                 onTestConnection(it)
+                            },
+                            onLocate = { dev ->
+                                onLocateNode(dev.nodeId, dev.callsign)
                             }
                         )
                     }
