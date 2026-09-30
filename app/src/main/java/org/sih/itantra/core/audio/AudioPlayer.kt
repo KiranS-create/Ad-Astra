@@ -105,13 +105,14 @@ class AndroidAudioPlayer(
                     track.play()
                 }
 
-                val totalBytes = pcmBytes.size
+                val conditionedBytes = SpeechIntelligibilityFilter.process(pcmBytes, sampleRate)
+                val totalBytes = conditionedBytes.size
                 var offset = 0
                 val chunkSize = 8192 // 8KB chunks for efficient JNI streaming
 
                 while (offset < totalBytes && _isPlaying.get() && myPlaybackId == currentPlaybackId.get()) {
                     val bytesToWrite = minOf(chunkSize, totalBytes - offset)
-                    val written = track.write(pcmBytes, offset, bytesToWrite, AudioTrack.WRITE_BLOCKING)
+                    val written = track.write(conditionedBytes, offset, bytesToWrite, AudioTrack.WRITE_BLOCKING)
                     if (written < 0) {
                         Log.w(tag, "AudioTrack.write error code: $written")
                         break

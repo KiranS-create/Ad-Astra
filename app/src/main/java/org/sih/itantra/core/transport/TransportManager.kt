@@ -129,6 +129,8 @@ class TransportManager(
                 val tName = when (_activeTransport.value) {
                     bluetoothTransport -> "BT"
                     wifiDirectTransport -> "WIFI_DIRECT"
+                    embeddedRadioTransport -> "RADIO"
+                    loopbackTransport -> "LOOPBACK"
                     else -> "WIFI"
                 }
                 org.sih.itantra.core.diagnostics.DiagnosticsRepository.recordTransportSent(tName)

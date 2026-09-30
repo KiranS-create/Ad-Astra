@@ -1,4 +1,4 @@
-﻿package org.sih.itantra
+package org.sih.itantra
 
 import org.junit.Assert.assertEquals
 import org.junit.Test
@@ -36,5 +36,29 @@ class SentenceFinalizerTest {
         assertEquals("टीम तैयार है।", segments[0])
         assertEquals("हम आगे बढ़ रहे हैं।", segments[1])
         assertEquals("सब ठीक है।", segments[2])
+    }
+
+    @Test
+    fun testCjkCharactersPurgedFromTranscription() {
+        // Mixed Indian speech with trailing Chinese character hallucinated by Whisper
+        val raw = "हम सुरक्षित हैं 晩"
+        val finalized = SentenceFinalizer.finalizeSentence(raw, IndicLanguage.HINDI)
+        assertEquals("हम सुरक्षित हैं।", finalized)
+    }
+
+    @Test
+    fun testPureCjkHallucinationReturnsEmpty() {
+        // Pure Chinese hallucination common during silence/noise
+        val raw = "晚上好 址"
+        val finalized = SentenceFinalizer.finalizeSentence(raw, IndicLanguage.HINDI)
+        assertEquals("", finalized)
+    }
+
+    @Test
+    fun testWhisperSilenceHallucinationRejected() {
+        // Common internet subtitle phantom hallucination on silence
+        val raw = "Thank you for watching."
+        val finalized = SentenceFinalizer.finalizeSentence(raw, IndicLanguage.HINDI)
+        assertEquals("", finalized)
     }
 }

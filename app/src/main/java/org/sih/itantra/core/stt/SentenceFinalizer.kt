@@ -10,6 +10,15 @@ object SentenceFinalizer {
 
     private val TERMINATORS = setOf('.', '?', '!', '।', '॥', '\n')
 
+    // Purge CJK (Chinese, Japanese, Korean) characters that never belong in Indic or English tactical speech
+    private val CJK_REGEX = Regex("[\\u4e00-\\u9fff\\u3400-\\u4dbf\\uf900-\\ufaff\\u3040-\\u309f\\u30a0-\\u30ff\\uac00-\\ud7af\\u2e80-\\u2eff\\u3000-\\u303f\\uff00-\\uffef]")
+
+    // Phantom hallucination phrases commonly emitted by Whisper on silence or ambient background noise
+    private val PHANTOM_HALLUCINATIONS = listOf(
+        Regex("(?i)^\\s*(?:thank(?:s|\\s+you)(?:\\s+very\\s+much)?(?:\\s+for\\s+watching)?|please\\s+subscribe|subtitles\\s+by.*|amara\\.org|mbc|copyright.*|all\\s+rights\\s+reserved|bye(?:\\s+bye)?)\\s*[.?!।॥]*\\s*$"),
+        Regex("(?i)^\\s*(?:you|i|the|a|it|so)\\s*[.?!।॥]*\\s*$")
+    )
+
     /**
      * Cleans and finalizes recognized speech into a clean, radio-transmittable sentence.
      */
@@ -17,11 +26,26 @@ object SentenceFinalizer {
         var trimmed = rawText.trim().replace("\\s+".toRegex(), " ")
         if (trimmed.isEmpty()) return ""
 
-        // Suppress repetitive loop artifacts common in CTC decoding under noisy conditions
-        trimmed = cleanRepetitiveLoops(trimmed)
+        // 1. Purge Chinese/East Asian characters permanently
+        if (trimmed.contains(CJK_REGEX)) {
+            trimmed = trimmed.replace(CJK_REGEX, "").trim().replace("\\s+".toRegex(), " ")
+            if (trimmed.isEmpty()) return ""
+        }
 
-        // Feature 30: Tactical domain vocabulary biasing and reranking
+        // 2. Reject Whisper phantom silence/ambient noise hallucinations
+        for (pattern in PHANTOM_HALLUCINATIONS) {
+            if (pattern.matches(trimmed)) {
+                return ""
+            }
+        }
+
+        // 3. Suppress repetitive loop artifacts common in CTC/Whisper decoding under low confidence
+        trimmed = cleanRepetitiveLoops(trimmed)
+        if (trimmed.isEmpty()) return ""
+
+        // 4. Feature 30: Tactical domain vocabulary biasing and reranking
         trimmed = TacticalDomainReranker.rerank(trimmed, language)
+        if (trimmed.isEmpty()) return ""
 
         val lastChar = trimmed.last()
         val hasTerminator = lastChar in TERMINATORS

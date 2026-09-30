@@ -20,6 +20,7 @@ import org.sih.itantra.core.audio.AndroidAudioPlayer
 import org.sih.itantra.core.audio.AudioPlayer
 import org.sih.itantra.core.common.IndicLanguage
 import org.sih.itantra.core.tts.AlertToneGenerator
+import org.sih.itantra.core.tts.IndicTextPreprocessor
 import org.sih.itantra.core.tts.TextSynthesizer
 import org.sih.itantra.core.tts.TtsState
 import org.sih.itantra.ml.model.ModelAssetManager
@@ -62,8 +63,8 @@ class SherpaOnnxTtsEngine(
 
     private val tag = "SherpaOnnxTTS"
     private val modelLock = Any()
+    private val memoryManager = TtsModelMemoryManager<OfflineTts>(maxSlots = 2) { it.release() }
     private var activeLanguage: IndicLanguage? = null
-    private var activeTts: OfflineTts? = null
 
     private val _ttsState = MutableStateFlow(TtsState.IDLE)
     override val ttsState: StateFlow<TtsState> = _ttsState.asStateFlow()
@@ -89,36 +90,26 @@ class SherpaOnnxTtsEngine(
     }
 
     private fun getOrInitTtsLocked(language: IndicLanguage): OfflineTts? {
-        if (activeLanguage == language && activeTts != null) {
-            return activeTts
+        val tts = memoryManager.getOrPut(language) { lang ->
+            createTtsModelLocked(lang)
         }
-
-        // Evict previous active model before initializing new one
-        if (activeTts != null) {
-            Log.i(tag, "Evicting previous TTS model (${activeLanguage?.displayName ?: "unknown"}) to maintain single-active resident model")
-            try {
-                activeTts?.release()
-            } catch (e: Throwable) {
-                Log.w(tag, "Error releasing previous TTS model", e)
-            } finally {
-                activeTts = null
-                activeLanguage = null
-            }
-            // Trigger GC asynchronously so critical path is not stalled
-            CoroutineScope(Dispatchers.IO).launch {
-                System.gc()
-            }
+        if (tts != null) {
+            activeLanguage = language
+            isInitialized = true
         }
+        return tts
+    }
 
+    private fun createTtsModelLocked(language: IndicLanguage): OfflineTts? {
         val spec = when (language) {
             IndicLanguage.HINDI -> {
                 if (!modelAssetManager.isHindiTtsReady()) return null
                 TtsModelSpec(
                     modelFile = modelAssetManager.vitsModelFile,
                     tokensFile = modelAssetManager.vitsTokensFile,
-                    noiseScale = 0.667f,
-                    noiseScaleW = 0.8f,
-                    lengthScale = 1.0f
+                    noiseScale = 0.38f,
+                    noiseScaleW = 0.45f,
+                    lengthScale = 1.08f
                 )
             }
             IndicLanguage.GUJARATI -> {
@@ -136,9 +127,9 @@ class SherpaOnnxTtsEngine(
                 TtsModelSpec(
                     modelFile = modelAssetManager.mrVitsModelFile,
                     tokensFile = modelAssetManager.mrVitsTokensFile,
-                    noiseScale = 0.667f,
-                    noiseScaleW = 0.8f,
-                    lengthScale = 1.0f
+                    noiseScale = 0.38f,
+                    noiseScaleW = 0.45f,
+                    lengthScale = 1.08f
                 )
             }
             IndicLanguage.KANNADA -> {
@@ -146,9 +137,9 @@ class SherpaOnnxTtsEngine(
                 TtsModelSpec(
                     modelFile = modelAssetManager.knVitsModelFile,
                     tokensFile = modelAssetManager.knVitsTokensFile,
-                    noiseScale = 0.667f,
-                    noiseScaleW = 0.8f,
-                    lengthScale = 1.0f
+                    noiseScale = 0.38f,
+                    noiseScaleW = 0.45f,
+                    lengthScale = 1.08f
                 )
             }
             IndicLanguage.MALAYALAM -> {
@@ -156,9 +147,9 @@ class SherpaOnnxTtsEngine(
                 TtsModelSpec(
                     modelFile = modelAssetManager.mlVitsModelFile,
                     tokensFile = modelAssetManager.mlVitsTokensFile,
-                    noiseScale = 0.667f,
-                    noiseScaleW = 0.8f,
-                    lengthScale = 1.0f
+                    noiseScale = 0.38f,
+                    noiseScaleW = 0.45f,
+                    lengthScale = 1.08f
                 )
             }
             IndicLanguage.TAMIL -> {
@@ -166,9 +157,9 @@ class SherpaOnnxTtsEngine(
                 TtsModelSpec(
                     modelFile = modelAssetManager.taVitsModelFile,
                     tokensFile = modelAssetManager.taVitsTokensFile,
-                    noiseScale = 0.667f,
-                    noiseScaleW = 0.8f,
-                    lengthScale = 1.0f
+                    noiseScale = 0.38f,
+                    noiseScaleW = 0.45f,
+                    lengthScale = 1.08f
                 )
             }
             IndicLanguage.TELUGU -> {
@@ -176,9 +167,9 @@ class SherpaOnnxTtsEngine(
                 TtsModelSpec(
                     modelFile = modelAssetManager.teVitsModelFile,
                     tokensFile = modelAssetManager.teVitsTokensFile,
-                    noiseScale = 0.667f,
-                    noiseScaleW = 0.8f,
-                    lengthScale = 1.0f
+                    noiseScale = 0.38f,
+                    noiseScaleW = 0.45f,
+                    lengthScale = 1.08f
                 )
             }
             IndicLanguage.ODIA -> {
@@ -186,9 +177,9 @@ class SherpaOnnxTtsEngine(
                 TtsModelSpec(
                     modelFile = modelAssetManager.orVitsModelFile,
                     tokensFile = modelAssetManager.orVitsTokensFile,
-                    noiseScale = 0.667f,
-                    noiseScaleW = 0.8f,
-                    lengthScale = 1.0f
+                    noiseScale = 0.38f,
+                    noiseScaleW = 0.45f,
+                    lengthScale = 1.08f
                 )
             }
             IndicLanguage.BENGALI -> {
@@ -196,9 +187,9 @@ class SherpaOnnxTtsEngine(
                 TtsModelSpec(
                     modelFile = modelAssetManager.bnVitsModelFile,
                     tokensFile = modelAssetManager.bnVitsTokensFile,
-                    noiseScale = 0.667f,
-                    noiseScaleW = 0.8f,
-                    lengthScale = 1.0f
+                    noiseScale = 0.38f,
+                    noiseScaleW = 0.45f,
+                    lengthScale = 1.08f
                 )
             }
             IndicLanguage.ENGLISH -> {
@@ -206,9 +197,9 @@ class SherpaOnnxTtsEngine(
                 TtsModelSpec(
                     modelFile = modelAssetManager.enVitsModelFile,
                     tokensFile = modelAssetManager.enVitsTokensFile,
-                    noiseScale = 0.667f,
-                    noiseScaleW = 0.8f,
-                    lengthScale = 1.0f
+                    noiseScale = 0.45f,
+                    noiseScaleW = 0.55f,
+                    lengthScale = 1.05f
                 )
             }
             else -> return null
@@ -216,7 +207,7 @@ class SherpaOnnxTtsEngine(
 
         return try {
             val isMms = (language == IndicLanguage.TAMIL || language == IndicLanguage.KANNADA || language == IndicLanguage.ODIA)
-            val threads = if (language == IndicLanguage.TAMIL) 4 else 2
+            val threads = if (language == IndicLanguage.TAMIL) 4 else Runtime.getRuntime().availableProcessors().coerceIn(2, 4)
             val maxSentences = if (language == IndicLanguage.TAMIL) 2 else 1
 
             val vitsConfig = OfflineTtsVitsModelConfig().apply {
@@ -239,14 +230,11 @@ class SherpaOnnxTtsEngine(
             val ttsConfig = OfflineTtsConfig().apply {
                 this.model = modelConfig
                 this.maxNumSentences = maxSentences
-                this.silenceScale = 0.2f
+                this.silenceScale = 0.25f
             }
 
             val engine = OfflineTts(assetManager = null, config = ttsConfig)
-            activeTts = engine
-            activeLanguage = language
-            isInitialized = true
-            Log.i(tag, "Sherpa-ONNX VITS TTS initialized successfully for ${language.displayName}! SampleRate: ${engine.sampleRate()} threads=$threads maxSentences=$maxSentences (single active model resident)")
+            Log.i(tag, "Sherpa-ONNX VITS TTS initialized successfully for ${language.displayName}! SampleRate: ${engine.sampleRate()} threads=$threads maxSentences=$maxSentences (pool cached, max 2 slots)")
             engine
         } catch (e: Throwable) {
             Log.e(tag, "Failed to initialize SherpaOnnxTtsEngine for ${language.displayName}", e)
@@ -266,8 +254,12 @@ class SherpaOnnxTtsEngine(
         initEngine(language)
     }
 
+    fun preWarm(language: IndicLanguage) = synchronized(modelLock) {
+        memoryManager.preWarm(language) { createTtsModelLocked(it) }
+    }
+
     override fun isReadyForLanguage(language: IndicLanguage): Boolean = synchronized(modelLock) {
-        activeLanguage == language && activeTts != null
+        memoryManager.isCached(language)
     }
 
     override suspend fun awaitReady(language: IndicLanguage, timeoutMs: Long): Boolean {
@@ -295,15 +287,11 @@ class SherpaOnnxTtsEngine(
                 Log.i(tag, "Synthesizing ${language.displayName} text: '$text'")
 
                 val tPreprocessStart = System.nanoTime()
-                val textToSynthesize = if (language == IndicLanguage.TAMIL) {
-                    val processed = TamilTextPreprocessor.process(text)
-                    if (processed != text) {
-                        Log.i(tag, "Tamil text preprocessed: '$text' -> '$processed'")
-                    }
-                    processed.ifBlank { text }
-                } else {
-                    text
+                val processed = IndicTextPreprocessor.process(text, language)
+                if (processed != text) {
+                    Log.i(tag, "${language.displayName} text preprocessed: '$text' -> '$processed'")
                 }
+                val textToSynthesize = processed.ifBlank { text }
                 val tPreprocessEnd = System.nanoTime()
                 val preprocessMs = (tPreprocessEnd - tPreprocessStart) / 1_000_000.0
 
@@ -315,7 +303,7 @@ class SherpaOnnxTtsEngine(
                 var synthEndRecorded = 0L
 
                 val audio: GeneratedAudio? = synchronized(modelLock) {
-                    wasLoaded = (activeLanguage == language && activeTts != null)
+                    wasLoaded = memoryManager.isCached(language)
                     if (!wasLoaded) {
                         tModelLoadStart = System.nanoTime()
                     }
@@ -446,6 +434,14 @@ class SherpaOnnxTtsEngine(
             }
         }
 
+    suspend fun synthesizeClauses(clauses: List<org.sih.itantra.core.stt.StreamClause>, isUrgent: Boolean = false): Boolean {
+        for (clause in clauses) {
+            val ok = synthesize(clause.text, clause.language, isUrgent || clause.isDistressOrCommand)
+            if (!ok) return false
+        }
+        return true
+    }
+
     override fun stop() {
         player.stopPlayback()
         _ttsState.value = TtsState.IDLE
@@ -454,18 +450,9 @@ class SherpaOnnxTtsEngine(
     override fun release() {
         stop()
         synchronized(modelLock) {
-            try {
-                activeTts?.release()
-            } catch (e: Throwable) {
-                Log.w(tag, "Error releasing active TTS engine", e)
-            } finally {
-                activeTts = null
-                activeLanguage = null
-                isInitialized = false
-            }
-            CoroutineScope(Dispatchers.IO).launch {
-                System.gc()
-            }
+            memoryManager.releaseAll()
+            activeLanguage = null
+            isInitialized = false
         }
     }
 }

@@ -129,7 +129,7 @@ class ModelAssetManager(private val context: Context) {
     fun isMalayalamSttReady(): Boolean = isIndicConformerSttReady(IndicLanguage.MALAYALAM) || isDolphinSttReady() || isWhisperSttReady()
     fun isTamilSttReady(): Boolean = isIndicConformerSttReady(IndicLanguage.TAMIL) || isDolphinSttReady() || isWhisperSttReady()
     fun isTeluguSttReady(): Boolean = isIndicConformerSttReady(IndicLanguage.TELUGU) || isDolphinSttReady() || isWhisperSttReady()
-    fun isOdiaSttReady(): Boolean = isDolphinSttReady()
+    fun isOdiaSttReady(): Boolean = isDolphinSttReady() || isWhisperSttReady()
     fun isBengaliSttReady(): Boolean = isIndicConformerSttReady(IndicLanguage.BENGALI) || isDolphinSttReady() || isWhisperSttReady()
     fun isEnglishSttReady(): Boolean = isWhisperSttReady()
 

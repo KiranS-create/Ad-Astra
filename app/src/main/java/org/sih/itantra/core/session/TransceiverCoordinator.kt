@@ -11,6 +11,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.sih.itantra.core.audio.AcousticFilterMode
+import org.sih.itantra.core.audio.AcousticFrontEnd
 import org.sih.itantra.core.audio.AndroidAudioPlayer
 import org.sih.itantra.core.audio.AndroidAudioRecorder
 import org.sih.itantra.core.audio.AudioPlayer
@@ -92,7 +94,8 @@ class TransceiverCoordinator(
     val modelAssetManager: ModelAssetManager = ModelAssetManager(context),
     val stt: SpeechRecognizer = NeuralSpeechRouter(context, modelAssetManager),
     val tts: TextSynthesizer = NeuralTtsRouter(context, modelAssetManager),
-    val transportManager: TransportManager = TransportManager(context)
+    val transportManager: TransportManager = TransportManager(context),
+    val acousticFrontEnd: AcousticFrontEnd = AcousticFrontEnd(mode = AcousticFilterMode.BYPASS)
 ) {
     private val tag = "TransceiverCoordinator"
     private val scope = CoroutineScope(dispatcher)
@@ -290,13 +293,15 @@ class TransceiverCoordinator(
         stateMachine.transitionTo(PttState.PTT_PRESSED)
         tAudioCaptureStart = BenchmarkClock.nowNanos()
         vad.reset()
+        acousticFrontEnd.reset()
 
         if (recorder.startRecording()) {
             stateMachine.transitionTo(PttState.RECORDING)
             audioCollectJob?.cancel()
             audioCollectJob = scope.launch {
                 recorder.audioFlow.collect { pcmFrame ->
-                    vad.processFrame(pcmFrame)
+                    val cleanedFrame = acousticFrontEnd.process(pcmFrame)
+                    vad.processFrame(cleanedFrame)
                 }
             }
         } else {
@@ -322,6 +327,7 @@ class TransceiverCoordinator(
     private fun startContinuousListening() {
         tAudioCaptureStart = BenchmarkClock.nowNanos()
         vad.reset()
+        acousticFrontEnd.reset()
         recorder.startRecording()
         stateMachine.transitionTo(PttState.RECORDING)
 
@@ -330,7 +336,8 @@ class TransceiverCoordinator(
             recorder.audioFlow.collect { pcmFrame ->
                 // Do not process microphone input while playing received audio (avoids feedback loop)
                 if (stateMachine.state.value != PttState.PLAYING) {
-                    vad.processFrame(pcmFrame)
+                    val cleanedFrame = acousticFrontEnd.process(pcmFrame)
+                    vad.processFrame(cleanedFrame)
                 }
             }
         }
