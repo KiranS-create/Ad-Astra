@@ -69,10 +69,11 @@ object TacticalDomainReranker {
     private val HINDI_TACTICAL_MAP = listOf(
         // Whisper acoustic phonetic artifacts -> Native Hindi
         Regex("(?i)\\b(?:hanslerxet|hans\\s*raksite|hans\\s*rakshethe|ham\\s*surakshit|hum\\s*surakshit|1/2)\\b.*") to "हम सुरक्षित हैं",
-        Regex("(?i)\\b(?:mother\\s*(?:chahi|jahi|desire)|madad\\s*chahi(?:ye)?|help\\s*chahiye|desire)\\b") to "मदद चाहिए",
+        Regex("(?i)\\b(?:mother\\s*(?:chahi|jahi|desire)|madad\\s*chahi(?:ye)?|help\\s*chahiye|desire|madhath\\s*jahi)\\b") to "मदद चाहिए",
         Regex("(?i)\\b(?:bhani\\s*(?:chahi|jahi)|paani\\s*chahi(?:ye)?|pani\\s*chahiye|water\\s*chahiye)\\b") to "पानी चाहिए",
         Regex("(?i)\\b(?:dr\\.?\\s*chahi|doctor\\s*chahi(?:ye)?|chikitsak\\s*chahiye)\\b") to "डॉक्टर चाहिए",
-        Regex("(?i)\\b(?:namaste|namaskar)\\b") to "नमस्ते",
+        Regex("(?i)\\b(?:namaste|namaskar|namastee)\\b") to "नमस्ते",
+        Regex("(?i)\\b(?:sticky\\s*saman(?:\\s*neh)?|sthiti\\s*samanya)\\b.*") to "स्थिति सामान्य है",
         Regex("(?i)\\b(?:khatra|khatre\\s*mein|danger)\\b") to "खतरा है",
         Regex("(?i)\\b(?:bachao|bachaao|save\\s*us)\\b") to "बचाओ",
         Regex("(?i)\\b(?:aag\\s*lagi(?:\\s*hai)?|fire)\\b") to "आग लगी है",

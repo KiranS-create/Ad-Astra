@@ -63,7 +63,11 @@ object SentenceFinalizer {
         }
 
         return if (hasTerminator) {
-            trimmed
+            if ((language == IndicLanguage.HINDI || language == IndicLanguage.ODIA || language == IndicLanguage.BENGALI) && lastChar == '.') {
+                trimmed.dropLast(1) + "।"
+            } else {
+                trimmed
+            }
         } else {
             "$trimmed$defaultTerminator"
         }

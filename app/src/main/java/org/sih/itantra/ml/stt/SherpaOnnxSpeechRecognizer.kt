@@ -151,7 +151,7 @@ class SherpaOnnxSpeechRecognizer(
                     // Whisper-99 languages do not include Odia ("or"); map to closely related Bengali ("bn") for Indic prior
                     this.language = if (language == IndicLanguage.ODIA) "bn" else language.isoCode
                     task = "transcribe"
-                    tailPaddings = 0
+                    tailPaddings = -1
                 }
 
                 val optimalThreads = Runtime.getRuntime().availableProcessors().coerceIn(2, 4)
@@ -242,29 +242,21 @@ class SherpaOnnxSpeechRecognizer(
                     sumSq += s * s
                 }
 
-                // RMS Normalization (target: -20 dBFS = 0.10f) with dynamic noise-gating
+                // RMS Normalization (target: -20 dBFS = 0.10f) with gain clamped to avoid amplifying noise
                 val rms = kotlin.math.sqrt(sumSq / numSamples.coerceAtLeast(1)).toFloat()
                 val targetRms = 0.10f
-                val gain = when {
-                    rms > 0.005f -> (targetRms / rms).coerceIn(0.2f, 3.5f)
-                    rms > 1e-4f -> 1.0f // Mild ambient floor, preserve unity gain to prevent noise hallucination
-                    else -> 0.0f // Negligible energy / complete silence
+                val gain = if (rms > 1e-4f) {
+                    (targetRms / rms).coerceIn(0.2f, 4.0f)
+                } else {
+                    1.0f
                 }
 
-                // Silence padding (200ms = 3200 samples at 16kHz) to preserve onset/coda phonemes
-                val padSamples = (16000 * 0.20f).toInt()
+                // Silence padding (150ms = 2400 samples at 16kHz) to preserve boundary phonemes in acoustic models
+                val padSamples = (16000 * 0.15f).toInt()
                 val totalSamples = rawSamples.size + 2 * padSamples
                 val samples = FloatArray(totalSamples)
                 for (i in 0 until numSamples) {
                     samples[padSamples + i] = (rawSamples[i] * gain).coerceIn(-1.0f, 1.0f)
-                }
-
-                // Smooth 10ms cosine taper at onset and offset to eliminate PTT keying step discontinuities
-                val taperSamples = (16000 * 0.01f).toInt().coerceAtMost(numSamples / 4)
-                for (i in 0 until taperSamples) {
-                    val taper = 0.5f * (1.0f - kotlin.math.cos(Math.PI * i / taperSamples).toFloat())
-                    samples[padSamples + i] *= taper
-                    samples[padSamples + numSamples - 1 - i] *= taper
                 }
 
                 val rawText = synchronized(modelLock) {
