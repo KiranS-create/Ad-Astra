@@ -3,7 +3,7 @@ package org.sih.itantra.core.stt
 import org.sih.itantra.core.common.IndicLanguage
 
 /**
- * Sentence segmentation and utterance boundary detector.
+ * Sentence segmentation, multilingual script boundary normalizer, and utterance boundary detector.
  * Handles Indian scripts (danda '।', double danda '॥'), English punctuation, and pause rules.
  */
 object SentenceFinalizer {
@@ -20,7 +20,7 @@ object SentenceFinalizer {
     )
 
     /**
-     * Cleans and finalizes recognized speech into a clean, radio-transmittable sentence.
+     * Cleans and finalizes recognized speech into a clean, radio-transmittable sentence in the active language.
      */
     fun finalizeSentence(rawText: String, language: IndicLanguage): String {
         var trimmed = rawText.trim().replace("\\s+".toRegex(), " ")
@@ -29,6 +29,7 @@ object SentenceFinalizer {
         // 1. Purge Chinese/East Asian characters permanently
         if (trimmed.contains(CJK_REGEX)) {
             trimmed = trimmed.replace(CJK_REGEX, "").trim().replace("\\s+".toRegex(), " ")
+            trimmed = trimmed.replace(Regex("^[,;:?\\s]+"), "").trim()
             if (trimmed.isEmpty()) return ""
         }
 
@@ -43,8 +44,14 @@ object SentenceFinalizer {
         trimmed = cleanRepetitiveLoops(trimmed)
         if (trimmed.isEmpty()) return ""
 
-        // 4. Feature 30: Tactical domain vocabulary biasing and reranking
+        // 4. Feature 30: Tactical domain vocabulary biasing, acoustic homophone normalization, and script restoration
         trimmed = TacticalDomainReranker.rerank(trimmed, language)
+        if (trimmed.isEmpty()) return ""
+
+        // 5. Ultimate Indic script guarantee: no Latin alphabet leaks if an Indic language is selected
+        if (language != IndicLanguage.ENGLISH && trimmed.any { it in 'A'..'Z' || it in 'a'..'z' }) {
+            trimmed = IndicPhoneticTransliterator.transliterate(trimmed, language)
+        }
         if (trimmed.isEmpty()) return ""
 
         val lastChar = trimmed.last()

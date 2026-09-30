@@ -11,6 +11,7 @@ import org.sih.itantra.core.common.IndicLanguage
  * - Navigation & Grid references (latitude, longitude, grid reference, waypoint, decimal coordinates)
  * - Tactical Status & Distress (MAYDAY, PAN-PAN, MEDEVAC, SITREP, AMMO LOW, RADIO CHECK, ROGER, WILCO)
  * - Phonetic homophone corrections and CTC loop artifact suppression.
+ * - Whisper ASR phonetic Indic acoustic canonicalization and native script restoration.
  */
 object TacticalDomainReranker {
 
@@ -64,8 +65,22 @@ object TacticalDomainReranker {
         Regex("(?i)\\bwilco\\b") to "WILCO"
     )
 
-    // Hindi tactical terms canonicalization
+    // Hindi tactical terms & Whisper phonetic canonicalization
     private val HINDI_TACTICAL_MAP = listOf(
+        // Whisper acoustic phonetic artifacts -> Native Hindi
+        Regex("(?i)\\b(?:hanslerxet|hans\\s*raksite|hans\\s*rakshethe|ham\\s*surakshit|hum\\s*surakshit|1/2)\\b.*") to "हम सुरक्षित हैं",
+        Regex("(?i)\\b(?:mother\\s*(?:chahi|jahi|desire)|madad\\s*chahi(?:ye)?|help\\s*chahiye|desire)\\b") to "मदद चाहिए",
+        Regex("(?i)\\b(?:bhani\\s*(?:chahi|jahi)|paani\\s*chahi(?:ye)?|pani\\s*chahiye|water\\s*chahiye)\\b") to "पानी चाहिए",
+        Regex("(?i)\\b(?:dr\\.?\\s*chahi|doctor\\s*chahi(?:ye)?|chikitsak\\s*chahiye)\\b") to "डॉक्टर चाहिए",
+        Regex("(?i)\\b(?:namaste|namaskar)\\b") to "नमस्ते",
+        Regex("(?i)\\b(?:khatra|khatre\\s*mein|danger)\\b") to "खतरा है",
+        Regex("(?i)\\b(?:bachao|bachaao|save\\s*us)\\b") to "बचाओ",
+        Regex("(?i)\\b(?:aag\\s*lagi(?:\\s*hai)?|fire)\\b") to "आग लगी है",
+        Regex("(?i)\\b(?:ambulance\\s*(?:chahiye|bhejo)?)\\b") to "एम्बुलेंस चाहिए",
+        Regex("(?i)\\b(?:khana\\s*chahiye|bhojan\\s*chahiye|food\\s*chahiye)\\b") to "खाना चाहिए",
+        Regex("(?i)\\b(?:dawai\\s*chahiye|medicine\\s*chahiye)\\b") to "दवाई चाहिए",
+
+        // Canonical numbers, sectors & channels
         Regex("चैनल\\s*1(?=\\s|$)") to "चैनल एक",
         Regex("चैनल\\s*2(?=\\s|$)") to "चैनल दो",
         Regex("चैनल\\s*3(?=\\s|$)") to "चैनल तीन",
@@ -92,8 +107,18 @@ object TacticalDomainReranker {
         Regex("(?i)\\bsitrep\\b") to "सिटरेप"
     )
 
-    // Marathi tactical terms canonicalization
+    // Marathi tactical terms & Whisper phonetic canonicalization
     private val MARATHI_TACTICAL_MAP = listOf(
+        // Whisper acoustic phonetic artifacts -> Native Marathi
+        Regex("(?i)\\b(?:amhis\\s*urakshita\\s*h|aamhi\\s*surakshit|amhi\\s*surakshit).*") to "आम्ही सुरक्षित आहोत",
+        Regex("(?i)\\b(?:madat\\s*havi|madat\\s*havi\\s*aahe|help\\s*havi)\\b") to "मदत हवी आहे",
+        Regex("(?i)\\b(?:paani\\s*have|paani\\s*have\\s*aahe|water\\s*have)\\b") to "पाणी हवे आहे",
+        Regex("(?i)\\b(?:doctor\\s*have|doctor\\s*have\\s*aahet|vaidya\\s*have)\\b") to "डॉक्टर हवे आहेत",
+        Regex("(?i)\\b(?:dhoka|dhoka\\s*aahe|danger)\\b") to "धोका आहे",
+        Regex("(?i)\\b(?:vaachva|save\\s*us)\\b") to "वाचवा",
+        Regex("(?i)\\b(?:namaskar|namaste)\\b") to "नमस्कार",
+
+        // Canonical numbers, sectors & channels
         Regex("चॅनल\\s*1(?=\\s|$)") to "चॅनल एक",
         Regex("चॅनल\\s*2(?=\\s|$)") to "चॅनल दोन",
         Regex("चॅनल\\s*3(?=\\s|$)") to "चॅनल तीन",
@@ -119,8 +144,19 @@ object TacticalDomainReranker {
         Regex("(?i)\\bsos\\b") to "एसओएस"
     )
 
-    // Tamil tactical terms canonicalization
+    // Tamil tactical terms & Whisper phonetic canonicalization
     private val TAMIL_TACTICAL_MAP = listOf(
+        // Whisper acoustic phonetic artifacts -> Native Tamil
+        Regex("(?i)(?:நான்கள்\\s*பாத்காப|நாங்கள்\\s*பாதுகா|naangal\\s*surakshit|naangal\\s*paadhukaappu|naangal\\s*paathukaappu).*") to "நாங்கள் பாதுகாப்பாக உள்ளோம்",
+        Regex("(?i)(?:உதவி\\s*வேண|உதவி\\s*வேண்டும்|uthavi\\s*vendum).*") to "உதவி வேண்டும்",
+        Regex("(?i)(?:பதண்டி|தண்ணீர்\\s*வேண்டும்|thanneer\\s*vendum|water\\s*vendum).*") to "தண்ணீர் வேண்டும்",
+        Regex("(?i)(?:வருந்து\\s*வ|மருத்துவர்\\s*வேண்டும்|maruthuvar\\s*vendum|doctor\\s*vendum).*") to "மருத்துவர் வேண்டும்",
+        Regex("(?i)(?:வணக்|வணக்கம்|vanakkam).*") to "வணக்கம்",
+        Regex("(?i)(?:காப்பாற்று|காப்பாற்றுங்கள்|kaapaatru|kaappattru).*") to "காப்பாற்றுங்கள்",
+        Regex("(?i)(?:ஆபத்து|aabathu|abathu).*") to "ஆபத்து",
+        Regex("(?i)(?:தீ\\s*விபத்து|thee\\s*pidithulladhu|fire).*") to "தீ விபத்து",
+
+        // Canonical numbers, sectors & channels
         Regex("சேனல்\\s*1(?=\\s|$)") to "சேனல் ஒன்று",
         Regex("சேனல்\\s*2(?=\\s|$)") to "சேனல் இரண்டு",
         Regex("சேனல்\\s*3(?=\\s|$)") to "சேனல் மூன்று",
@@ -143,8 +179,18 @@ object TacticalDomainReranker {
         Regex("(?i)\\bsos\\b") to "எஸ் ஓ எஸ்"
     )
 
-    // Telugu tactical terms canonicalization
+    // Telugu tactical terms & Whisper phonetic canonicalization
     private val TELUGU_TACTICAL_MAP = listOf(
+        // Whisper acoustic phonetic artifacts -> Native Telugu
+        Regex("(?i)(?:miem\\s*sora\\s*kshi\\s*tanga|memu\\s*surakshitanga|memu\\s*surakshitham).*") to "మేము సురక్షితంగా ఉన్నాము",
+        Regex("(?i)(?:sahayam\\s*kavali|help\\s*kavali).*") to "సహాయం కావాలి",
+        Regex("(?i)(?:neeru\\s*kavali|water\\s*kavali).*") to "నీరు కావాలి",
+        Regex("(?i)(?:vaidyudu\\s*kavali|doctor\\s*kavali).*") to "వైద్యుడు కావాలి",
+        Regex("(?i)(?:namaskaram|namaste).*") to "నమస్కారం",
+        Regex("(?i)(?:pramadam|danger).*") to "ప్రమాదం",
+        Regex("(?i)(?:kaapaadandi|save\\s*us).*") to "కాపాడండి",
+
+        // Canonical numbers, sectors & channels
         Regex("ఛానెల్\\s*1(?=\\s|$)") to "ఛానెల్ ఒకటి",
         Regex("ఛానెల్\\s*2(?=\\s|$)") to "ఛానెల్ రెండు",
         Regex("ఛానెల్\\s*3(?=\\s|$)") to "ఛానెల్ మూడు",
@@ -167,8 +213,18 @@ object TacticalDomainReranker {
         Regex("(?i)\\bsos\\b") to "ఎస్ ఓ ఎస్"
     )
 
-    // Bengali tactical terms canonicalization
+    // Bengali tactical terms & Whisper phonetic canonicalization
     private val BENGALI_TACTICAL_MAP = listOf(
+        // Whisper acoustic phonetic artifacts -> Native Bengali
+        Regex("(?i)(?:namnani\\s*repo\\s*dachi|amra\\s*nirapod).*") to "আমরা নিরাপদ আছি",
+        Regex("(?i)(?:sahajjo\\s*chai|sahajyo\\s*chai|help\\s*chai).*") to "সাহায্য চাই",
+        Regex("(?i)(?:jol\\s*chai|paani\\s*chai|water\\s*chai).*") to "জল চাই",
+        Regex("(?i)(?:doctor\\s*chai|daktar\\s*chai).*") to "ডাক্তার চাই",
+        Regex("(?i)(?:nomoshkar|namaskar).*") to "নমস্কার",
+        Regex("(?i)(?:bipod|danger).*") to "বিপদ",
+        Regex("(?i)(?:bachao|save\\s*us).*") to "বাঁচাও",
+
+        // Canonical numbers, sectors & channels
         Regex("চ্যানেল\\s*1(?=\\s|$)") to "চ্যানেল এক",
         Regex("চ্যানেল\\s*2(?=\\s|$)") to "চ্যানেল দুই",
         Regex("চ্যানেল\\s*3(?=\\s|$)") to "চ্যানেল তিন",
@@ -191,8 +247,18 @@ object TacticalDomainReranker {
         Regex("(?i)\\bsos\\b") to "এস ও এস"
     )
 
-    // Gujarati tactical terms canonicalization
+    // Gujarati tactical terms & Whisper phonetic canonicalization
     private val GUJARATI_TACTICAL_MAP = listOf(
+        // Whisper acoustic phonetic artifacts -> Native Gujarati
+        Regex("(?i)(?:ame\\s*surakshit|ame\\s*salamat).*") to "અમે સુરક્ષિત છીએ",
+        Regex("(?i)(?:madad\\s*joiye|help\\s*joiye).*") to "મદદ જોઈએ",
+        Regex("(?i)(?:paani\\s*joiye|water\\s*joiye).*") to "પાણી જોઈએ",
+        Regex("(?i)(?:doctor\\s*joiye).*") to "ડૉક્ટર જોઈએ",
+        Regex("(?i)(?:namaste|namaskar).*") to "નમસ્તે",
+        Regex("(?i)(?:khatro|danger).*") to "ખતરો છે",
+        Regex("(?i)(?:bachavo|save\\s*us).*") to "બચાવો",
+
+        // Canonical numbers, sectors & channels
         Regex("ચેનલ\\s*1(?=\\s|$)") to "ચેનલ એક",
         Regex("ચેનલ\\s*2(?=\\s|$)") to "ચેનલ બે",
         Regex("ચેનલ\\s*3(?=\\s|$)") to "ચેનલ ત્રણ",
@@ -215,8 +281,18 @@ object TacticalDomainReranker {
         Regex("(?i)\\bsos\\b") to "એસ ઓ એસ"
     )
 
-    // Kannada tactical terms canonicalization
+    // Kannada tactical terms & Whisper phonetic canonicalization
     private val KANNADA_TACTICAL_MAP = listOf(
+        // Whisper acoustic phonetic artifacts -> Native Kannada
+        Regex("(?i)(?:naavu\\s*surakshit|naavu\\s*surakshitavagiddeve).*") to "ನಾವು ಸುರಕ್ಷಿತವಾಗಿದ್ದೇವೆ",
+        Regex("(?i)(?:sahaya\\s*beku|help\\s*beku).*") to "ಸಹಾಯ ಬೇಕು",
+        Regex("(?i)(?:neeru\\s*beku|water\\s*beku).*") to "ನೀರು ಬೇಕು",
+        Regex("(?i)(?:vaidyaru\\s*beku|doctor\\s*beku).*") to "ವೈದ್ಯರು ಬೇಕು",
+        Regex("(?i)(?:namaskara).*") to "ನಮಸ್ಕಾರ",
+        Regex("(?i)(?:aapaathu|danger).*") to "ಅಪಾಯ",
+        Regex("(?i)(?:kaapadi|save\\s*us).*") to "ಕಾಪಾಡಿ",
+
+        // Canonical numbers, sectors & channels
         Regex("ಚಾನೆಲ್\\s*1(?=\\s|$)") to "ಚಾನೆಲ್ ಒಂದು",
         Regex("ಚಾನೆಲ್\\s*2(?=\\s|$)") to "ಚಾನೆಲ್ ಎರಡು",
         Regex("ಚಾನೆಲ್\\s*3(?=\\s|$)") to "ಚಾನೆಲ್ ಮೂರು",
@@ -239,8 +315,18 @@ object TacticalDomainReranker {
         Regex("(?i)\\bsos\\b") to "ಎಸ್ ಓ ಎಸ್"
     )
 
-    // Malayalam tactical terms canonicalization
+    // Malayalam tactical terms & Whisper phonetic canonicalization
     private val MALAYALAM_TACTICAL_MAP = listOf(
+        // Whisper acoustic phonetic artifacts -> Native Malayalam
+        Regex("(?i)(?:njangal\\s*surakshit|njangal\\s*surakshitharanu).*") to "ഞങ്ങൾ സുരക്ഷിതരാണ്",
+        Regex("(?i)(?:sahayam\\s*venam|help\\s*venam).*") to "സഹായം വേണം",
+        Regex("(?i)(?:vellam\\s*venam|water\\s*venam).*") to "വെള്ളം വേണം",
+        Regex("(?i)(?:doctor\\s*venam).*") to "ഡോക്ടർ വേണം",
+        Regex("(?i)(?:namaskaram).*") to "നമസ്കാരം",
+        Regex("(?i)(?:apakatam|danger).*") to "അപകടം",
+        Regex("(?i)(?:rakshikku|save\\s*us).*") to "രക്ഷിക്കൂ",
+
+        // Canonical numbers, sectors & channels
         Regex("ചാനൽ\\s*1(?=\\s|$)") to "ചാനൽ ഒന്ന്",
         Regex("ചാനൽ\\s*2(?=\\s|$)") to "ചാനൽ രണ്ട്",
         Regex("ചാനൽ\\s*3(?=\\s|$)") to "ചാനൽ മൂന്ന്",
@@ -263,8 +349,18 @@ object TacticalDomainReranker {
         Regex("(?i)\\bsos\\b") to "എസ് ഒ എസ്"
     )
 
-    // Odia tactical terms canonicalization
+    // Odia tactical terms & Whisper phonetic canonicalization
     private val ODIA_TACTICAL_MAP = listOf(
+        // Whisper acoustic phonetic artifacts -> Native Odia
+        Regex("(?i)(?:ame\\s*surakshita|ame\\s*surakshita\\s*achhu).*") to "ଆମେ ସୁରକ୍ଷିତ ଅଛୁ",
+        Regex("(?i)(?:sahajya\\s*darakara|help\\s*darakara).*") to "ସାହାଯ୍ୟ ଦରକାର",
+        Regex("(?i)(?:pani\\s*darakara|water\\s*darakara).*") to "ପାଣି ଦରକାର",
+        Regex("(?i)(?:daktara\\s*darakara|doctor\\s*darakara).*") to "ଡାକ୍ତର ଦରକାର",
+        Regex("(?i)(?:namaskara).*") to "ନମସ୍କାର",
+        Regex("(?i)(?:bipada|danger).*") to "ବିପଦ",
+        Regex("(?i)(?:banchao|save\\s*us).*") to "ବଞ୍ଚାଅ",
+
+        // Canonical numbers, sectors & channels
         Regex("ଚ୍ୟାନେଲ\\s*1(?=\\s|$)") to "ଚ୍ୟାନେଲ ଏକ",
         Regex("ଚ୍ୟାନେଲ\\s*2(?=\\s|$)") to "ଚ୍ୟାନେଲ ଦୁଇ",
         Regex("ଚ୍ୟାନେଲ\\s*3(?=\\s|$)") to "ଚ୍ୟାନେଲ ତିନି",
@@ -289,7 +385,8 @@ object TacticalDomainReranker {
 
     /**
      * Reranks and biases raw STT hypothesis towards tactical domain vocabulary.
-     * Preserves sentence structure while normalizing mission-critical tokens.
+     * Preserves sentence structure while normalizing mission-critical tokens and
+     * ensuring authentic native script output for Indian languages.
      */
     fun rerank(rawHypothesis: String, language: IndicLanguage): String {
         if (rawHypothesis.isBlank()) return ""
@@ -317,12 +414,17 @@ object TacticalDomainReranker {
             processed = processed.replace(regex, canonical)
         }
 
-        // 3. Cross-lingual English callsign & tactical term fallback if present in Latin text
-        if (language != IndicLanguage.ENGLISH && processed.any { it in 'A'..'Z' || it in 'a'..'z' }) {
+        // 3. For English, apply standardized uppercase callsign & phonetic corrections
+        if (language == IndicLanguage.ENGLISH) {
             for ((regex, canonical) in ENGLISH_TACTICAL_MAP) {
                 if (processed.contains(regex)) {
                     processed = processed.replace(regex, canonical)
                 }
+            }
+        } else {
+            // 4. For non-English languages, if Latin text remains, transliterate into native script
+            if (processed.any { it in 'A'..'Z' || it in 'a'..'z' }) {
+                processed = IndicPhoneticTransliterator.transliterate(processed, language)
             }
         }
 
