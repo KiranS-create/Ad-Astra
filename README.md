@@ -268,6 +268,6 @@ In strict adherence to truthful engineering principles:
 
 - **Competition:** Smart India Hackathon 2026
 - **Problem Statement ID:** `SIH26173`
-- **Team Name:** Ad Astra
+- **Team Name:** Ad_Astra
 - **Project Name:** iTantra
 - **Repository License:** MIT License (see [THIRD_PARTY_LICENSES.md](THIRD_PARTY_LICENSES.md))
