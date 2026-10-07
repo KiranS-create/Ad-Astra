@@ -152,6 +152,19 @@ object TamilTextPreprocessor {
         text = text.replace("ஆஃப்", "ஆப்")
         text = text.replace("ஃ", "க்")
 
+        // 4b. Expand percentages (e.g. 40% -> 40 சதவீதம்) and decimals (e.g. 13.1 -> 13 புள்ளி 1)
+        text = text.replace(Regex("(\\d+)\\s*%"), "$1 சதவீதம் ")
+        val decPattern = Pattern.compile("(\\d+)\\.(\\d+)")
+        val decMatcher = decPattern.matcher(text)
+        val decSb = StringBuffer()
+        while (decMatcher.find()) {
+            val whole = decMatcher.group(1) ?: ""
+            val frac = decMatcher.group(2) ?: ""
+            decMatcher.appendReplacement(decSb, "$whole புள்ளி $frac")
+        }
+        decMatcher.appendTail(decSb)
+        text = decSb.toString()
+
         // 5. Expand numbers to Tamil words (with suffix handling e.g. 8ல் -> எட்டில்)
         text = expandNumbers(text)
 

@@ -53,7 +53,8 @@ object IndicPhoneticTransliterator {
         "jevan" to "जेवण", "aushadh" to "औषध", "ambulance" to "रुग्णवाहिका", "namaskar" to "नमस्कार",
         "dhanyavaad" to "धन्यवाद", "krupaya" to "कृपया", "lavkar" to "लवकर", "thik" to "ठीक",
         "nahi" to "नाही", "ho" to "हो", "aani" to "आणि", "var" to "वर", "ek" to "एक",
-        "don" to "दोन", "teen" to "तीन", "char" to "चार", "paach" to "पाच", "zakhmi" to "जखमी"
+        "don" to "दोन", "teen" to "तीन", "char" to "चार", "paach" to "पाच", "zakhmi" to "जखमी",
+        "sangh" to "संघ", "he" to "हे", "kade" to "कडे", "jaat" to "जात"
     )
 
     private val TAMIL_DICT = mapOf(
@@ -64,16 +65,18 @@ object IndicPhoneticTransliterator {
         "aabathu" to "ஆபத்து", "abathu" to "ஆபத்து", "thee" to "தீ", "saappaadu" to "சாப்பாடு",
         "marunthu" to "மருந்து", "ambulanse" to "ஆம்புலன்ஸ்", "seekiram" to "சீக்கிரம்", "onru" to "ஒன்று",
         "irandu" to "இரண்டு", "moondru" to "மூன்று", "naangu" to "நான்கு", "aainthu" to "ஐந்து",
-        "kaayam" to "காயம்", "illai" to "இல்லை", "aam" to "ஆம்", "matrum" to "மற்றும்"
+        "kaayam" to "காயம்", "illai" to "இல்லை", "aam" to "ஆம்", "matrum" to "மற்றும்",
+        "ani" to "அணி", "indha" to "இந்த", "nokki" to "நோக்கி", "selgirathu" to "செல்கிறது"
     )
 
     private val TELUGU_DICT = mapOf(
         "memu" to "మేము", "surakshitanga" to "సురక్షితంగా", "surakshitham" to "సురక్షితం", "unnamu" to "ఉన్నాము",
         "sahayam" to "సహాయం", "kavali" to "కావాలి", "neeru" to "నీరు", "vaidyudu" to "వైద్యుడు",
         "doctor" to "వైద్యుడు", "namaskaram" to "నమస్కారం", "dhanyavadalu" to "ధన్యవాదాలు",
-        "kaapaadandi" to "కాపాడండి", "pramadam" to "ప్రమాదం", "agni" to "అగ్ని", "aahaaram" to "ఆహారం",
+        "kaapaadandi" to "ಕಾపాడండి", "pramadam" to "ప్రమాదం", "agni" to "అగ్ని", "aahaaram" to "ఆహారం",
         "mandulu" to "మందులు", "tvaraga" to "త్వరగా", "okati" to "ఒకటి", "rendu" to "రెండు",
-        "moodu" to "మూడు", "naalugu" to "నాలుగు", "aidu" to "ఐదు", "kaadu" to "కాదు", "avunu" to "అవును"
+        "moodu" to "మూడు", "naalugu" to "నాలుగు", "aidu" to "ఐదు", "kaadu" to "కాదు", "avunu" to "అవును",
+        "brundam" to "బృందం", "ee" to "ఈ", "vaipu" to "వైపు", "kadulutondi" to "కదులుతోంది"
     )
 
     private val BENGALI_DICT = mapOf(
@@ -82,7 +85,8 @@ object IndicPhoneticTransliterator {
         "daktar" to "ডাক্তার", "doctor" to "ডাক্তার", "nomoshkar" to "নমস্কার", "dhonnobad" to "ধন্যবাদ",
         "bachao" to "বাঁচাও", "bipod" to "বিপদ", "agun" to "আগুন", "khabar" to "খাবার",
         "oshudh" to "ওষুধ", "taratari" to "তাড়াতাড়ি", "ek" to "এক", "dui" to "দুই",
-        "tin" to "তিন", "char" to "চার", "paanch" to "পাঁচ", "na" to "না", "haan" to "হ্যাঁ"
+        "tin" to "তিন", "char" to "চার", "paanch" to "পাঁচ", "na" to "না", "haan" to "হ্যাঁ",
+        "dol" to "দল", "ei" to "এই", "dike" to "দিকে", "egocche" to "এগোচ্ছে"
     )
 
     private val GUJARATI_DICT = mapOf(
@@ -91,7 +95,8 @@ object IndicPhoneticTransliterator {
         "namaste" to "નમસ્તે", "aabhar" to "આભાર", "bachavo" to "બચાવો", "khatro" to "ખતરો",
         "aag" to "આગ", "khorak" to "ખોરાક", "dava" to "દવા", "jaldi" to "જલદી",
         "ek" to "એક", "be" to "બે", "tran" to "ત્રણ", "char" to "ચાર", "paanch" to "પાંચ",
-        "nathi" to "નથી", "haa" to "હા", "ane" to "અને"
+        "nathi" to "નથી", "haa" to "હા", "ane" to "અને",
+        "team" to "ટીમ", "aa" to "આ", "taraf" to "તરફ", "aagal" to "આગળ", "vadhi" to "વધી", "rahyu" to "રહ્યું", "chhe" to "છે"
     )
 
     private val KANNADA_DICT = mapOf(
@@ -100,7 +105,8 @@ object IndicPhoneticTransliterator {
         "doctor" to "ವೈದ್ಯರು", "namaskara" to "ನಮಸ್ಕಾರ", "dhanyavadagalu" to "ಧನ್ಯವಾದಗಳು",
         "kaapadi" to "ಕಾಪಾಡಿ", "aapaathu" to "ಅಪಾಯ", "benki" to "ಬೆಂಕಿ", "oota" to "ಊಟ",
         "aushadhi" to "ಔಷಧಿ", "bega" to "ಬೇಗ", "ondu" to "ಒಂದು", "eradu" to "ಎರಡು",
-        "mooru" to "ಮೂರು", "naalaku" to "ನಾಲ್ಕು", "aidu" to "ಐದು", "illa" to "ಇಲ್ಲ", "haudu" to "ಹೌದು"
+        "mooru" to "ಮೂರು", "naalaku" to "ನಾಲ್ಕು", "aidu" to "ಐದು", "illa" to "ಇಲ್ಲ", "haudu" to "ಹೌದು",
+        "tanda" to "ತಂಡ", "ee" to "ಈ", "kadege" to "ಕಡೆಗೆ", "saguttide" to "ಸಾಗುತ್ತಿದೆ"
     )
 
     private val MALAYALAM_DICT = mapOf(
@@ -109,7 +115,8 @@ object IndicPhoneticTransliterator {
         "namaskaram" to "നമസ്കാരം", "nanni" to "നന്ദി", "rakshikku" to "രക്ഷിക്കൂ",
         "apakatam" to "അപകടം", "thee" to "തീ", "bhkshanam" to "ഭക്ഷണം", "marunnu" to "മരുന്ന്",
         "vegam" to "വേഗം", "onnu" to "ഒന്ന്", "randu" to "രണ്ട്", "moonnu" to "മൂന്ന്",
-        "naalu" to "നാല്", "anchu" to "അഞ്ച്", "illa" to "ഇല്ല", "athe" to "അതെ"
+        "naalu" to "നാല്", "anchu" to "അഞ്ച്", "illa" to "ഇല്ല", "athe" to "അതെ",
+        "sangham" to "സംഘം", "ee" to "ഈ", "lekku" to "ലേക്ക്", "neengunnu" to "നീങ്ങുന്നു"
     )
 
     private val ODIA_DICT = mapOf(
@@ -118,7 +125,8 @@ object IndicPhoneticTransliterator {
         "namaskara" to "ନମସ୍କାର", "dhanyabada" to "ଧନ୍ୟବାଦ", "banchao" to "ବଞ୍ଚାଅ",
         "bipada" to "ବିପଦ", "nia" to "ନିଆଁ", "khadya" to "ଖାଦ୍ୟ", "aushadha" to "ଔଷଧ",
         "shighra" to "ଶୀଘ୍ର", "eka" to "ଏକ", "dui" to "ଦୁଇ", "tini" to "ତିନି",
-        "chari" to "ଚାରି", "pancha" to "ପାଞ୍ଚ", "nahin" to "ନାହିଁ", "haan" to "ହଁ"
+        "chari" to "ଚାରି", "pancha" to "ପାଞ୍ଚ", "nahin" to "ନାହିଁ", "haan" to "ହଁ",
+        "dala" to "ଦଳ", "ei" to "ଏହି", "aagaku" to "ଆଗକୁ", "badhuchhi" to "ବଢ଼ୁଛି"
     )
 
     // =========================================================================

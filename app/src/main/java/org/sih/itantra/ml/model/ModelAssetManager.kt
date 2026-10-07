@@ -134,58 +134,58 @@ class ModelAssetManager(private val context: Context) {
     fun isEnglishSttReady(): Boolean = isWhisperSttReady()
 
     fun isHindiTtsReady(): Boolean {
-        return vitsModelFile.exists() && vitsModelFile.length() > 50_000_000L &&
+        return vitsModelFile.exists() && vitsModelFile.length() > 10_000_000L &&
                 vitsTokensFile.exists() &&
                 sharedEspeakDataDir.exists() && sharedEspeakDataDir.isDirectory
     }
 
     fun isGujaratiTtsReady(): Boolean {
-        return guVitsModelFile.exists() && guVitsModelFile.length() > 50_000_000L &&
+        return guVitsModelFile.exists() && guVitsModelFile.length() > 10_000_000L &&
                 guVitsTokensFile.exists() &&
                 sharedEspeakDataDir.exists() && sharedEspeakDataDir.isDirectory
     }
 
     fun isMarathiTtsReady(): Boolean {
-        return mrVitsModelFile.exists() && mrVitsModelFile.length() > 50_000_000L &&
+        return mrVitsModelFile.exists() && mrVitsModelFile.length() > 10_000_000L &&
                 mrVitsTokensFile.exists() &&
                 sharedEspeakDataDir.exists() && sharedEspeakDataDir.isDirectory
     }
 
     fun isKannadaTtsReady(): Boolean {
-        return knVitsModelFile.exists() && knVitsModelFile.length() > 50_000_000L &&
+        return knVitsModelFile.exists() && knVitsModelFile.length() > 10_000_000L &&
                 knVitsTokensFile.exists()
     }
 
     fun isMalayalamTtsReady(): Boolean {
-        return mlVitsModelFile.exists() && mlVitsModelFile.length() > 50_000_000L &&
+        return mlVitsModelFile.exists() && mlVitsModelFile.length() > 10_000_000L &&
                 mlVitsTokensFile.exists() &&
                 sharedEspeakDataDir.exists() && sharedEspeakDataDir.isDirectory
     }
 
     fun isTamilTtsReady(): Boolean {
-        return taVitsModelFile.exists() && taVitsModelFile.length() > 50_000_000L &&
+        return taVitsModelFile.exists() && taVitsModelFile.length() > 10_000_000L &&
                 taVitsTokensFile.exists()
     }
 
     fun isTeluguTtsReady(): Boolean {
-        return teVitsModelFile.exists() && teVitsModelFile.length() > 50_000_000L &&
+        return teVitsModelFile.exists() && teVitsModelFile.length() > 10_000_000L &&
                 teVitsTokensFile.exists() &&
                 sharedEspeakDataDir.exists() && sharedEspeakDataDir.isDirectory
     }
 
     fun isOdiaTtsReady(): Boolean {
-        return orVitsModelFile.exists() && orVitsModelFile.length() > 50_000_000L &&
+        return orVitsModelFile.exists() && orVitsModelFile.length() > 10_000_000L &&
                 orVitsTokensFile.exists()
     }
 
     fun isBengaliTtsReady(): Boolean {
-        return bnVitsModelFile.exists() && bnVitsModelFile.length() > 50_000_000L &&
+        return bnVitsModelFile.exists() && bnVitsModelFile.length() > 10_000_000L &&
                 bnVitsTokensFile.exists() &&
                 sharedEspeakDataDir.exists() && sharedEspeakDataDir.isDirectory
     }
 
     fun isEnglishTtsReady(): Boolean {
-        return enVitsModelFile.exists() && enVitsModelFile.length() > 50_000_000L &&
+        return enVitsModelFile.exists() && enVitsModelFile.length() > 10_000_000L &&
                 enVitsTokensFile.exists() &&
                 sharedEspeakDataDir.exists() && sharedEspeakDataDir.isDirectory
     }

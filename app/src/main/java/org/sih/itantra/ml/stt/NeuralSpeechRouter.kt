@@ -43,14 +43,8 @@ class NeuralSpeechRouter(
     override suspend fun processAudioSegment(pcmBytes: ByteArray, language: IndicLanguage): SpeechResult {
         return if (isNeuralSttSupported(language)) {
             val result = sherpaStt.processAudioSegment(pcmBytes, language)
-            if (result.text.isNotBlank()) {
-                _results.tryEmit(result)
-                result
-            } else {
-                val fbResult = platformStt.processAudioSegment(pcmBytes, language)
-                _results.tryEmit(fbResult)
-                fbResult
-            }
+            _results.tryEmit(result)
+            result
         } else {
             val result = platformStt.processAudioSegment(pcmBytes, language)
             _results.tryEmit(result)

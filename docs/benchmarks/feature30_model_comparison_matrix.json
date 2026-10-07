@@ -1,6 +1,6 @@
 {
   "pipeline": "Feature 30 Multilingual STT Model Evaluation & Selection",
-  "generated_timestamp": "2026-09-18T08:29:04",
+  "generated_timestamp": "2026-10-08T00:24:19",
   "total_corpus_utterances": 250,
   "evaluated_languages_count": 10,
   "size_guardrail": {
