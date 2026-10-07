@@ -2,7 +2,7 @@
 
 # AD ASTRA
 
-### iTantra — Offline Multilingual Voice-to-Packet MANET Transceiver
+### iTantra — Offline Multilingual Voice-to-Packet Multi-Hop Transceiver
 
 **Smart India Hackathon 2026** • **Problem Statement:** `SIH26173` • **Team:** Ad Astra  
 
